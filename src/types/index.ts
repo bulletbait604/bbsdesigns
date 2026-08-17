@@ -12,3 +12,19 @@ export type PublishStatus =
   | 'shopify_draft'
   | 'published'
   | 'retired'
+
+/** Required lineage for every generated product/asset. */
+export type ProvenanceFields = {
+  sourceTrendIds: string[]
+  ideaId?: string | null
+  sloganId?: string | null
+  promptVersion: string
+  modelProvider: string
+  modelName?: string
+  imageAssetKey?: string | null
+  safetyReviewId?: string | null
+  qualityScore?: number | null
+  safetyScore?: number | null
+  safetyDecision?: SafetyDecision | null
+  publishStatus: PublishStatus
+}

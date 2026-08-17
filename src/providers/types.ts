@@ -1,34 +1,155 @@
-/**
- * Provider interfaces live here.
- * Concrete adapters (OpenAI, Gemini, Shopify, Printify, R2, etc.) come in later prompts.
- */
+import type { Niche, PublishStatus } from '@/types'
 
-export interface TextProvider {
-  readonly name: string
-  complete(prompt: string): Promise<string>
+export type ProviderKind =
+  | 'ai_text'
+  | 'image'
+  | 'trend'
+  | 'storage'
+  | 'shopify'
+  | 'printify'
+
+export type ProviderHealth = {
+  ok: boolean
+  provider: string
+  kind: ProviderKind
+  message?: string
+  checkedAt: string
 }
 
-export interface ImageProvider {
-  readonly name: string
-  generate(prompt: string): Promise<{ bytes: Buffer; mimeType: string }>
+export type ProviderConfigValidation = {
+  ok: boolean
+  missing: string[]
+  message?: string
 }
 
-export interface TrendProvider {
+/** Common contract every vendor adapter must satisfy. */
+export interface BaseProvider {
+  readonly kind: ProviderKind
   readonly name: string
-  fetchSignals(niche: string): Promise<Array<{ id: string; title: string; scoreHint?: number }>>
+  healthCheck(): Promise<ProviderHealth>
+  validateConfig(): ProviderConfigValidation
 }
 
-export interface StorageProvider {
-  readonly name: string
-  putObject(key: string, body: Buffer, contentType: string): Promise<string>
+export type TextCompletionRequest = {
+  prompt: string
+  system?: string
+  temperature?: number
+  maxTokens?: number
 }
 
-export interface ShopifyProvider {
-  readonly name: string
-  createDraftProduct(input: unknown): Promise<{ id: string }>
+export type TextCompletionResult = {
+  text: string
+  model: string
+  provider: string
+  usage?: { inputTokens?: number; outputTokens?: number }
 }
 
-export interface PodProvider {
-  readonly name: string
-  createProduct(input: unknown): Promise<{ id: string }>
+export interface AiTextProvider extends BaseProvider {
+  readonly kind: 'ai_text'
+  complete(request: TextCompletionRequest): Promise<TextCompletionResult>
 }
+
+export type ImageGenerateRequest = {
+  prompt: string
+  width?: number
+  height?: number
+  negativePrompt?: string
+}
+
+export type ImageGenerateResult = {
+  bytes: Buffer
+  mimeType: string
+  model: string
+  provider: string
+  width?: number
+  height?: number
+}
+
+export interface ImageProvider extends BaseProvider {
+  readonly kind: 'image'
+  generate(request: ImageGenerateRequest): Promise<ImageGenerateResult>
+}
+
+export type TrendFetchRequest = {
+  niche: Niche
+  limit?: number
+}
+
+export type TrendSignalDto = {
+  externalId: string
+  title: string
+  summary?: string
+  keywords?: string[]
+  scoreHint?: number
+  observedAt?: string
+  raw?: Record<string, unknown>
+}
+
+export interface TrendProvider extends BaseProvider {
+  readonly kind: 'trend'
+  fetchSignals(request: TrendFetchRequest): Promise<TrendSignalDto[]>
+}
+
+export type StoragePutRequest = {
+  key: string
+  body: Buffer
+  contentType: string
+}
+
+export type StoragePutResult = {
+  key: string
+  url: string
+}
+
+export interface StorageProvider extends BaseProvider {
+  readonly kind: 'storage'
+  putObject(request: StoragePutRequest): Promise<StoragePutResult>
+  getPublicUrl(key: string): string
+}
+
+export type ShopifyDraftProductInput = {
+  title: string
+  descriptionHtml?: string
+  tags?: string[]
+  status?: 'DRAFT' | 'ACTIVE'
+  vendor?: string
+  productType?: string
+}
+
+export type ShopifyDraftProductResult = {
+  id: string
+  handle?: string
+  status: PublishStatus | 'shopify_draft'
+}
+
+export interface ShopifyProvider extends BaseProvider {
+  readonly kind: 'shopify'
+  createDraftProduct(input: ShopifyDraftProductInput): Promise<ShopifyDraftProductResult>
+}
+
+export type PodProductInput = {
+  title: string
+  description?: string
+  blueprintId?: string
+  printProviderId?: string
+  imageUrl: string
+  variants?: Array<{ sku?: string; priceCents: number }>
+}
+
+export type PodProductResult = {
+  id: string
+  externalStatus?: string
+}
+
+export interface PodProvider extends BaseProvider {
+  readonly kind: 'printify'
+  createProduct(input: PodProductInput): Promise<PodProductResult>
+}
+
+export type AnyProvider =
+  | AiTextProvider
+  | ImageProvider
+  | TrendProvider
+  | StorageProvider
+  | ShopifyProvider
+  | PodProvider

@@ -6,8 +6,12 @@ const brandSchema = new Schema(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, trim: true, lowercase: true },
     niches: {
-      type: [String],
-      enum: ['gaming', 'baseball', 'softball'],
+      type: [
+        {
+          type: String,
+          enum: ['gaming', 'baseball', 'softball'],
+        },
+      ],
       default: ['gaming', 'baseball', 'softball'],
     },
     status: {

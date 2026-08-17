@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server'
 import { getEnv, missingOptionalIntegrations } from '@/lib/env'
 import { isMongoConfigured } from '@/lib/db'
 import { logger } from '@/lib/logger'
+import { bootstrapProviders } from '@/providers/bootstrap'
+import { healthCheckAll, listProviders } from '@/providers/registry'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
     const env = getEnv()
+    bootstrapProviders()
+    const providerHealth = await healthCheckAll()
+
     return NextResponse.json({
       ok: true,
       service: 'ai-merch-factory',
@@ -15,6 +20,8 @@ export async function GET() {
       autoPublish: env.AUTO_PUBLISH,
       mongoConfigured: isMongoConfigured(),
       missingIntegrations: missingOptionalIntegrations(env),
+      providers: listProviders().map((p) => p.kind),
+      providerHealth,
     })
   } catch (error) {
     logger.error('healthcheck_failed', { error: error instanceof Error ? error.message : String(error) })

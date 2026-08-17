@@ -14,14 +14,13 @@ Shopify-first POD pipeline: trends → score → slogans → safety → designs 
 - `AUTO_PUBLISH=false` (default)
 
 ## Modules (build order)
-1. Foundation + env validation + logging
-2. MongoDB models
-3. Auth + dashboard shell
-4. Provider interfaces
-5. Trend / scoring / slogan / safety engines
-6. Image generation + review + mockups
-7. Shopify + Printify + publishing queue
-8. Analytics, retirement, scheduler, tests, launch
+1. Foundation + env validation + logging ✅
+2. MongoDB models ✅
+3. Provider interfaces ✅ (auth + dashboard shell come with later prompts; numbered prompts are source of truth)
+4. Trend / scoring / slogan / safety engines
+5. Image generation + review + mockups
+6. Shopify + Printify + publishing queue
+7. Analytics, retirement, scheduler, tests, launch
 
 ## Non-negotiables
 - No hard-coded secrets
