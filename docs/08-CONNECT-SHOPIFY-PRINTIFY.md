@@ -84,17 +84,20 @@ Do this while logged into the **same email mindset** you use for Shopify (one Sh
 Local `.env.local`:
 ```
 PRINTIFY_API_TOKEN=paste_token_here
+PRINTIFY_SHOP_ID=your_numeric_shop_id
+PRINTIFY_BLUEPRINT_ID=optional_default_blueprint
+PRINTIFY_PRINT_PROVIDER_ID=optional_default_provider
 ```
 
 Vercel → Project → Settings → Environment Variables:
-- Key: `PRINTIFY_API_TOKEN`
-- Value: the token
+- Key: `PRINTIFY_API_TOKEN` (required)
+- Key: `PRINTIFY_SHOP_ID` (required for product/order calls)
+- Optional: `PRINTIFY_BLUEPRINT_ID`, `PRINTIFY_PRINT_PROVIDER_ID`
 - Environments: Production + Preview
 - Save → **Redeploy**
 
-Then open `/dashboard/providers` and confirm Printify shows **Configured**.
+`PRINTIFY_SHOP_ID` comes from Printify → Manage my stores (or `GET /v1/shops.json` with your token). Blueprint + print provider IDs come from the catalog / an existing template product.
 
-Shop / blueprint / print-provider IDs will be stored in Settings once the Printify adapter is implemented. Until then the token is enough to mark the integration as configured.
 
 Official API token help: [How can I generate an API token?](https://help.printify.com/hc/en-us/articles/4483626447249-How-can-I-generate-an-API-token)  
 Developer docs: [https://developers.printify.com/](https://developers.printify.com/)

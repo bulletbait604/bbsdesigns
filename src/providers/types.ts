@@ -146,23 +146,82 @@ export interface ShopifyProvider extends BaseProvider {
   createDraftProduct(input: ShopifyDraftProductInput): Promise<ShopifyDraftProductResult>
 }
 
+export type PodShop = {
+  id: string
+  title: string
+}
+
+export type PodBlueprint = {
+  id: number
+  title: string
+}
+
+export type PodVariantMapping = {
+  id: number
+  sku?: string
+  priceCents: number
+  isEnabled?: boolean
+}
+
 export type PodProductInput = {
   title: string
   description?: string
-  blueprintId?: string
-  printProviderId?: string
+  shopId?: string
+  blueprintId?: number | string
+  printProviderId?: number | string
   imageUrl: string
-  variants?: Array<{ sku?: string; priceCents: number }>
+  imageFileName?: string
+  variants?: PodVariantMapping[]
+  tags?: string[]
+  idempotencyKey?: string
 }
 
 export type PodProductResult = {
   id: string
   externalStatus?: string
+  shopId?: string
+}
+
+export type PodOrderInput = {
+  shopId?: string
+  externalId: string
+  lineItems: Array<{
+    productId: string
+    variantId: number
+    quantity: number
+  }>
+  shippingMethod?: number
+  addressTo: {
+    firstName: string
+    lastName: string
+    email: string
+    phone?: string
+    country: string
+    region?: string
+    address1: string
+    address2?: string
+    city: string
+    zip: string
+  }
+  idempotencyKey?: string
+}
+
+export type PodOrderResult = {
+  id: string
+  status: string
+  /** True only when Printify confirms fulfillment/shipment — never assumed. */
+  fulfilledConfirmed: boolean
+  trackingNumber?: string | null
+  trackingUrl?: string | null
 }
 
 export interface PodProvider extends BaseProvider {
   readonly kind: 'printify'
+  listShops(): Promise<PodShop[]>
+  listBlueprints(limit?: number): Promise<PodBlueprint[]>
   createProduct(input: PodProductInput): Promise<PodProductResult>
+  createOrder(input: PodOrderInput): Promise<PodOrderResult>
+  getOrderStatus(shopId: string, orderId: string): Promise<PodOrderResult>
 }
 
 export type AnyProvider =

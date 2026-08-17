@@ -111,9 +111,24 @@ export function createStubPodProvider(name = 'stub-printify'): PodProvider {
     name,
     validateConfig: () => missingConfig([]),
     healthCheck: async () => health('printify', name, true, 'stub ready'),
+    listShops: async () => [{ id: 'shop-1', title: 'Stub Shop' }],
+    listBlueprints: async () => [{ id: 5, title: 'Stub Unisex Tee' }],
     createProduct: async (input) => ({
       id: `printify-stub-${Buffer.from(input.title).toString('hex').slice(0, 8)}`,
       externalStatus: 'draft',
+      shopId: input.shopId || 'shop-1',
+    }),
+    createOrder: async (input) => ({
+      id: `order-stub-${input.externalId}`,
+      status: 'pending',
+      fulfilledConfirmed: false,
+    }),
+    getOrderStatus: async (_shopId, orderId) => ({
+      id: orderId,
+      status: 'pending',
+      fulfilledConfirmed: false,
+      trackingNumber: null,
+      trackingUrl: null,
     }),
   }
 }

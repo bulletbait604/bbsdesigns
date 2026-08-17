@@ -21,7 +21,7 @@ Shopify-first POD pipeline: trends → score → slogans → safety → designs 
 5. Slogan + safety engines ✅
 6. Image generation + review ✅
 7. Shopify GraphQL drafts ✅
-8. Printify + publishing queue
+8. Printify + publishing queue ✅
 9. Analytics, retirement, scheduler, tests, launch
 
 ## Non-negotiables

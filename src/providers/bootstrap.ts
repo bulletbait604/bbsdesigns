@@ -2,17 +2,21 @@ import { getEnv } from '@/lib/env'
 import {
   createStubAiTextProvider,
   createStubImageProvider,
-  createStubPodProvider,
   createStubStorageProvider,
   createStubTrendProvider,
+  createStubPodProvider,
   createUnconfiguredShopifyProvider,
 } from '@/providers/stubs'
 import { createShopifyGraphqlProvider } from '@/providers/shopify/graphql'
+import {
+  createPrintifyProvider,
+  createUnconfiguredPrintifyProvider,
+} from '@/providers/printify/api'
 import { clearProviders, registerProvider } from '@/providers/registry'
 
 /**
  * Boots the provider registry.
- * Uses real Shopify GraphQL adapter when store domain + token are present.
+ * Real Shopify/Printify adapters replace stubs when credentials exist.
  */
 export function bootstrapProviders(): void {
   clearProviders()
@@ -22,11 +26,24 @@ export function bootstrapProviders(): void {
   registerProvider('image', createStubImageProvider())
   registerProvider('trend', createStubTrendProvider())
   registerProvider('storage', createStubStorageProvider())
-  registerProvider('printify', createStubPodProvider())
 
   const shopifyReady = Boolean(env.SHOPIFY_STORE_DOMAIN && env.SHOPIFY_ADMIN_ACCESS_TOKEN)
   registerProvider(
     'shopify',
     shopifyReady ? createShopifyGraphqlProvider() : createUnconfiguredShopifyProvider()
   )
+
+  const printifyReady = Boolean(env.PRINTIFY_API_TOKEN)
+  registerProvider(
+    'printify',
+    printifyReady
+      ? // Prefer real API; fall back to stub methods only when token missing.
+        createPrintifyProvider()
+      : createUnconfiguredPrintifyProvider()
+  )
+
+  // Keep a stub available for local offline product mapping tests via env override
+  if (process.env.PRINTIFY_USE_STUB === 'true') {
+    registerProvider('printify', createStubPodProvider())
+  }
 }

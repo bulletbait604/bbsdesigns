@@ -19,6 +19,9 @@ const envSchema = z.object({
   SHOPIFY_API_VERSION: z.string().default('2026-07'),
 
   PRINTIFY_API_TOKEN: z.string().optional().default(''),
+  PRINTIFY_SHOP_ID: z.string().optional().default(''),
+  PRINTIFY_BLUEPRINT_ID: z.string().optional().default(''),
+  PRINTIFY_PRINT_PROVIDER_ID: z.string().optional().default(''),
 
   AI_TEXT_PROVIDER: z.string().optional().default(''),
   AI_TEXT_API_KEY: z.string().optional().default(''),
