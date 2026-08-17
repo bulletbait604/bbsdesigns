@@ -128,11 +128,12 @@ export const CONNECTION_STEPS = {
     'Redeploy. Products will be created as DRAFT while HUMAN_APPROVAL=true and AUTO_PUBLISH=false.',
   ],
   printify: [
-    'In Printify → account/settings → Connections / API, generate an API token.',
-    'Connect your Shopify store inside Printify (Printify’s native Shopify channel).',
-    'Set PRINTIFY_API_TOKEN in Vercel env vars (and locally in .env.local).',
-    'Later we will store shop/blueprint/provider IDs in Settings once the Printify adapter is live.',
-    'Keep fulfillment through Printify; our app prepares Shopify drafts and syncs POD metadata via the provider interface.',
+    'PART A — Connect Shopify inside Printify (pick one path).',
+    'Easiest: Shopify Admin → Apps → Shopify App Store → search “Printify” → install official “Printify: Print on Demand” → Install app → log into your Printify account when prompted.',
+    'Alternate: Printify → upper-left store dropdown → Manage my stores → Connect / Add a new store → Shopify → enter YOUR-STORE.myshopify.com → Install in the Shopify popup → Continue in Printify.',
+    'Confirm success: Printify lists your Shopify store under Manage my stores, and Shopify Apps shows Printify installed.',
+    'PART B — API token for this app: Printify → My Profile → Connections (or https://printify.com/app/account/api) → Generate token → name it bbsdesigns-merch-factory → copy once (expires ~1 year).',
+    'PART C — Set PRINTIFY_API_TOKEN in Vercel env vars and .env.local, redeploy, then check /dashboard/providers.',
   ],
   mongodb: [
     'Create a MongoDB Atlas cluster (free tier is fine to start).',
