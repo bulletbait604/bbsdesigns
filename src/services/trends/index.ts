@@ -1,0 +1,7 @@
+export * from '@/services/trends/types'
+export * from '@/services/trends/normalize'
+export * from '@/services/trends/dedupe'
+export * from '@/services/trends/metrics'
+export * from '@/services/trends/score'
+export * from '@/services/trends/engine'
+export * from '@/services/trends/sources/curated'

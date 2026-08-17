@@ -1,5 +1,18 @@
 import { Schema, models, model, type InferSchemaType, type Model } from 'mongoose'
 
+const scoreComponentsSchema = new Schema(
+  {
+    virality: { type: Number, min: 0, max: 100, required: true },
+    growth: { type: Number, min: 0, max: 100, required: true },
+    commercialIntent: { type: Number, min: 0, max: 100, required: true },
+    audienceFit: { type: Number, min: 0, max: 100, required: true },
+    seasonality: { type: Number, min: 0, max: 100, required: true },
+    evergreenPotential: { type: Number, min: 0, max: 100, required: true },
+    competition: { type: Number, min: 0, max: 100, required: true },
+  },
+  { _id: false }
+)
+
 const trendScoreSchema = new Schema(
   {
     storeId: { type: Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
@@ -16,10 +29,18 @@ const trendScoreSchema = new Schema(
       required: true,
     },
     score: { type: Number, required: true, min: 0, max: 100, index: true },
+    components: { type: scoreComponentsSchema, required: true },
+    weights: { type: Schema.Types.Mixed, required: true },
     commercialPotential: { type: Number, min: 0, max: 100, default: 0 },
     originalityPotential: { type: Number, min: 0, max: 100, default: 0 },
+    ipRisk: { type: Number, min: 0, max: 100, default: 0 },
+    safetyRisk: { type: Number, min: 0, max: 100, default: 0 },
+    designability: { type: Number, min: 0, max: 100, default: 0 },
+    estimatedMargin: { type: Number, min: 0, max: 100, default: 0 },
     riskFlags: { type: [String], default: [] },
     rationale: { type: String, default: '' },
+    /** High commercial score never overrides safety — always false until safety PASSes. */
+    safetyBypassAllowed: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ['pending', 'accepted', 'rejected'],
