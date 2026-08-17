@@ -61,6 +61,13 @@ describe('mongodb models', () => {
 
     const productIndexes = Product.schema.indexes()
     expect(productIndexes.some((idx) => 'provenance.publishStatus' in idx[0])).toBe(true)
+
+    expect(Design.schema.path('prompt')).toBeTruthy()
+    expect(Design.schema.path('provider')).toBeTruthy()
+    expect(Design.schema.path('promptVersion')).toBeTruthy()
+    expect(Design.schema.path('width')).toBeTruthy()
+    expect(SafetyReview.schema.path('policyVersion')).toBeTruthy()
+    expect(SafetyReview.schema.path('modelResponse')).toBeTruthy()
   })
 
   it('requires provenance on generated assets', async () => {

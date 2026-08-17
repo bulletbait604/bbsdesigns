@@ -29,6 +29,8 @@ export async function runSloganEngine(input: {
       text: `${item.slogan}\n${item.concept}`,
       niche: item.niche,
       runAiReview: input.runAiReview,
+      persistLog: false,
+      targetType: 'slogan',
     })
 
     const { scores, overall } = scoreSlogan({
@@ -75,5 +77,5 @@ export async function runSloganEngine(input: {
 
 /** Explicit helper used by tests for franchise-tainted slogans. */
 export async function reviewSloganText(text: string, niche: Niche = 'gaming') {
-  return reviewContentSafety({ text, niche, runAiReview: false })
+  return reviewContentSafety({ text, niche, runAiReview: false, persistLog: false })
 }

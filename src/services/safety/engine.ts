@@ -4,11 +4,13 @@ import { runBlockedTermStage } from '@/services/safety/blockedTerms'
 import { runIpRiskStage } from '@/services/safety/ipRisk'
 import { runAiTextReviewStage } from '@/services/safety/aiReview'
 import { finalizeSafetyDecision } from '@/services/safety/decide'
+import { logSafetyDecision } from '@/services/safety/log'
+import { reviewGeneratedImage } from '@/services/designs/imageReview'
 import type { SafetyReviewInput, SafetyReviewResult, SafetyStageResult } from '@/services/safety/types'
 
 /**
- * Multi-stage safety engine for text (and optional image summary placeholder).
- * Stage 5 image review is a stub until design assets exist.
+ * Multi-stage safety engine.
+ * Stage 5 uses design image review when image context is provided.
  */
 export async function reviewContentSafety(input: SafetyReviewInput): Promise<SafetyReviewResult> {
   const normalizedText = normalizeSafetyText(input.text)
@@ -51,18 +53,32 @@ export async function reviewContentSafety(input: SafetyReviewInput): Promise<Saf
     })
   }
 
-  // Stage 5 placeholder — full image review arrives with design engine
   const imageTriggers: string[] = []
   if (input.imageSummary) {
-    const imageNorm = normalizeSafetyText(input.imageSummary)
-    const imageIp = runIpRiskStage(imageNorm)
-    const imageBlocked = runBlockedTermStage(imageNorm)
-    imageTriggers.push(...imageIp.triggered, ...imageBlocked.triggered)
+    const imageReview = reviewGeneratedImage({
+      slogan: input.text.slice(0, 80),
+      prompt: input.imageSummary,
+      niche: input.niche || 'gaming',
+      bytesLength: input.imageBytesLength ?? 2048,
+      mimeType: input.imageMimeType ?? 'image/png',
+    })
+    imageTriggers.push(
+      ...imageReview.issues,
+      `image_decision:${imageReview.decision}`,
+      ...(imageReview.decision === 'REJECT' ? ['image:reject'] : [])
+    )
     stages.push({
       stage: 'image_review',
       triggered: imageTriggers,
-      notes: ['Image review used text summary placeholder until asset pipeline exists.'],
-      riskDelta: Math.min(100, imageIp.riskDelta + imageBlocked.riskDelta),
+      notes: [
+        `Image review decision ${imageReview.decision} (quality ${imageReview.qualityScore}, ip ${imageReview.ipRisk}).`,
+      ],
+      riskDelta:
+        imageReview.decision === 'REJECT'
+          ? 60
+          : imageReview.decision === 'REVIEW'
+            ? 20
+            : 0,
     })
   } else {
     stages.push({
@@ -79,7 +95,7 @@ export async function reviewContentSafety(input: SafetyReviewInput): Promise<Saf
   })
   stages.push(final.finalStage)
 
-  return {
+  const result: SafetyReviewResult = {
     decision: final.decision,
     score: final.score,
     ipRisk: final.ipRisk,
@@ -97,6 +113,18 @@ export async function reviewContentSafety(input: SafetyReviewInput): Promise<Saf
     disclaimer:
       'Safety decisions reduce risk only and never constitute legal clearance or trademark advice.',
   }
+
+  if (input.persistLog !== false) {
+    await logSafetyDecision({
+      result,
+      targetType: input.targetType || 'text',
+      targetId: input.targetId,
+      storeId: input.storeId,
+      brandId: input.brandId,
+    })
+  }
+
+  return result
 }
 
 /** First safety gate for slogan candidates — reject always wins. */

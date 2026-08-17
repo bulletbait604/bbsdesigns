@@ -12,6 +12,7 @@ describe('safety engine', () => {
       text: 'Lag Is A Lifestyle',
       niche: 'gaming',
       runAiReview: false,
+      persistLog: false,
     })
     expect(result.decision).toBe('PASS')
     expect(result.policyVersion).toBe(SAFETY_POLICY_VERSION)
@@ -23,6 +24,7 @@ describe('safety engine', () => {
       text: 'Official Mario Kart Championship Tee',
       niche: 'gaming',
       runAiReview: false,
+      persistLog: false,
     })
     expect(result.decision).toBe('REJECT')
     expect(result.ipRiskFlags.some((f) => f.includes('mario'))).toBe(true)
@@ -32,6 +34,7 @@ describe('safety engine', () => {
     const result = await reviewContentSafety({
       text: 'kill yourself already',
       runAiReview: false,
+      persistLog: false,
     })
     expect(result.decision).toBe('REJECT')
     expect(result.tosRiskFlags.length).toBeGreaterThan(0)
@@ -42,6 +45,7 @@ describe('safety engine', () => {
       text: 'Pizza First. Standings Later.',
       niche: 'softball',
       runAiReview: false,
+      persistLog: false,
     })
     expect(result.stages.map((s) => s.stage)).toEqual([
       'normalize',

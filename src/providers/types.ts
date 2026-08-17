@@ -111,15 +111,34 @@ export type ShopifyDraftProductInput = {
   title: string
   descriptionHtml?: string
   tags?: string[]
+  /** Always forced to DRAFT by the Shopify adapter unless explicitly overridden after safety PASS. */
   status?: 'DRAFT' | 'ACTIVE'
   vendor?: string
   productType?: string
+  seoTitle?: string
+  seoDescription?: string
+  collectionIds?: string[]
+  media?: Array<{ originalSource: string; alt?: string }>
+  variants?: Array<{
+    price: string
+    sku?: string
+    optionValues?: Array<{ optionName: string; name: string }>
+  }>
+  idempotencyKey?: string
+  safetyDecision?: 'PASS' | 'REVIEW' | 'REJECT'
+  requirements?: {
+    hasMedia?: boolean
+    hasValidPrice?: boolean
+    hasVariants?: boolean
+  }
 }
 
 export type ShopifyDraftProductResult = {
   id: string
   handle?: string
   status: PublishStatus | 'shopify_draft'
+  variantIds?: string[]
+  userErrors?: Array<{ field?: string[] | null; message: string }>
 }
 
 export interface ShopifyProvider extends BaseProvider {

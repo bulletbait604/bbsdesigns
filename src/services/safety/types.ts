@@ -21,8 +21,16 @@ export type SafetyReviewInput = {
   text: string
   niche?: 'gaming' | 'baseball' | 'softball'
   imageSummary?: string
+  imageBytesLength?: number
+  imageMimeType?: string
   /** Skip AI stage when false (unit tests / offline). Default true. */
   runAiReview?: boolean
+  /** Persist/log decision (default true). */
+  persistLog?: boolean
+  targetType?: 'idea' | 'design' | 'product' | 'slogan' | 'text'
+  targetId?: string
+  storeId?: string
+  brandId?: string
 }
 
 export type SafetyReviewResult = {
