@@ -1,0 +1,4 @@
+export * from '@/services/slogans/types'
+export * from '@/services/slogans/generate'
+export * from '@/services/slogans/score'
+export * from '@/services/slogans/engine'
