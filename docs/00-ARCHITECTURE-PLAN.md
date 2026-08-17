@@ -19,7 +19,7 @@ Shopify-first POD pipeline: trends → score → slogans → safety → designs 
 3. Provider interfaces ✅ (auth + dashboard shell come with later prompts; numbered prompts are source of truth)
 4. Trend engine + scoring ✅
 5. Slogan + safety engines ✅
-6. Image generation + review + mockups
+6. Image generation + review ✅
 7. Shopify + Printify + publishing queue
 8. Analytics, retirement, scheduler, tests, launch
 
