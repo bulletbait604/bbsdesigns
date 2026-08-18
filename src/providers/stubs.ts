@@ -44,13 +44,18 @@ export function createStubAiTextProvider(name = 'stub-ai-text'): AiTextProvider 
 }
 
 export function createStubImageProvider(name = 'stub-image'): ImageProvider {
+  // Minimal valid 1×1 PNG so design compose (sharp) works in tests
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64'
+  )
   return {
     kind: 'image',
     name,
     validateConfig: () => missingConfig([]),
     healthCheck: async () => health('image', name, true, 'stub ready'),
     generate: async () => ({
-      bytes: Buffer.from('stub-image'),
+      bytes: png,
       mimeType: 'image/png',
       model: 'stub',
       provider: name,

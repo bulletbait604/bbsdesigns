@@ -31,15 +31,19 @@ With `MONGODB_URI` set:
 
 Requires working Mongo (same SDHQ cluster / `bbsdesigns` database is fine).
 
-## Graphic AI designs (Google Gemini)
+## Graphic AI designs (Google Gemini + typography composite)
+
+Matches starter package prompt 009: **original artwork + clean typography**, print-ready.
 
 1. Open [Google AI Studio](https://aistudio.google.com/apikey) → **Create API key**
 2. Vercel env:
-   - `IMAGE_PROVIDER=google` (or rely on auto-detect when `GEMINI_API` is set)
+   - `IMAGE_PROVIDER=google` (or auto-detect when `GEMINI_API` is set)
    - `IMAGE_API_KEY` or `GEMINI_API` = your Gemini API key
-   - optional `IMAGE_MODEL=gemini-3.1-flash-image` (default; falls back to `gemini-2.5-flash-image`)
+   - optional `IMAGE_MODEL=gemini-3.1-flash-image`
+   - optional `IMAGE_SIZE=2K` (default)
 3. Redeploy
-4. Designs page → **Generate AI design (Google)** for flashy/pop merch art
+4. Designs → **Generate AI illustration**
 
-Prompts request a **dominant illustration** (picture/graphic first) with slogan text secondary — not typography-only layouts.
-Automation `design_generation` creates up to `MAX_AI_DESIGNS_PER_RUN` (default 5) Google images per run and upgrades old SVG placeholders.
+**Pipeline:** Gemini draws the **illustration only** (no letters). The app then **composites** the exact slogan as bold type on the lower band → final PNG is always **graphic + text**, never a text-only poster.
+
+Automation `design_generation` creates up to `MAX_AI_DESIGNS_PER_RUN` (default 5) per run and upgrades old SVG placeholders.

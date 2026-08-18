@@ -15,6 +15,7 @@ describe('image review', () => {
       bytesLength: 2048,
       mimeType: 'image/png',
       minQuality: 85,
+      hasCompositedTypography: true,
     })
     expect(review.qualityScore).toBeGreaterThanOrEqual(85)
     expect(review.decision).toBe('PASS')

@@ -32,7 +32,6 @@ export function extractVisualBrief(concept?: string, niche?: string): string {
   }
   const visualMatch = raw.match(/visual:\s*(.+)$/i)
   if (visualMatch?.[1]) return visualMatch[1].trim().slice(0, 280)
-  // Prefer the most concrete sentence
   const sentences = raw.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean)
   const concrete =
     sentences.find((s) => /\b(cartoon|illustration|visual|mascot|bat|mitt|controller|pixel)\b/i.test(s)) ||
@@ -42,7 +41,8 @@ export function extractVisualBrief(concept?: string, niche?: string): string {
 }
 
 /**
- * Merch-quality illustration prompt: subject/style/composition/text — not a safety essay.
+ * Art-only prompt for the image model. Slogan typography is composited afterward
+ * (starter pack: original artwork + clean typography — never text-only posters).
  */
 export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
   const style = STYLE_BY_NICHE[input.niche] || STYLE_BY_NICHE.gaming
@@ -50,37 +50,41 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
   const slogan = input.slogan.trim()
 
   const prompt = [
-    'Create ONE square print-ready T-shirt graphic as a finished illustrated IMAGE.',
-    'SUBJECT: ' + visual + '.',
-    'The illustration must be the hero — large, centered, readable from 10 feet away, covering most of the canvas.',
+    'Create ONE square print-ready T-shirt GRAPHIC as a finished illustrated IMAGE.',
+    'This must be a PICTURE / cartoon illustration — not a typography poster.',
+    'SUBJECT (required hero): ' + visual + '.',
+    'The illustration fills the UPPER ~70% of the canvas, large and centered, readable from 10 feet away.',
     'STYLE: ' + style + '.',
-    'COMPOSITION: single iconic focal subject, generous negative space for apparel print, no collage, no photo montage, no mockup of a shirt (output the print artwork itself).',
-    'BACKGROUND: clean solid dark charcoal or soft gradient void — not a busy scene, not white paper poster.',
-    `TEXT: render exactly this slogan in bold condensed display lettering under the art, secondary weight (~15% of the design): "${slogan}". Spelling must be perfect. Do not invent extra words.`,
-    'QUALITY: crisp edges, saturated but print-safe colors, professional POD catalog look — not clipart, not AI mush, not watermarked stock.',
+    'COMPOSITION: single iconic focal subject, generous negative space, no collage, no photo montage, no shirt mockup (output the print artwork itself).',
+    'BACKGROUND: clean solid dark charcoal or soft gradient void.',
+    'TEXT RULE (critical): draw ZERO letters, words, slogans, captions, watermarks, or numbers in the image. Leave the bottom ~30% as clean dark empty space for typography that will be added later.',
+    `Theme context only (do not write these words in the image): humor about "${slogan}".`,
+    'QUALITY: crisp edges, saturated but print-safe colors, professional POD catalog look — not clipart, not AI mush.',
     'HARD LIMITS: original artwork only; no logos; no copyrighted characters; no real video-game UI; no pro sports team marks/mascots/jerseys; no celebrity likeness; no watermarks.',
   ].join(' ')
 
   const negativePrompt = [
-    'typography-only poster',
-    'quote card',
-    'empty background with centered text',
-    'blurry',
-    'low detail mush',
-    'extra fingers',
-    'misspelled text',
+    'any text',
+    'letters',
+    'words',
+    'slogan',
+    'typography',
+    'caption',
     'watermark',
     'logo',
-    'photoreal jersey',
+    'typography-only poster',
+    'quote card',
     'shirt mockup',
     'busy collage',
+    'blurry',
+    'low detail mush',
   ].join(', ')
 
   return {
     prompt,
     negativePrompt,
     promptVersion: DESIGN_PROMPT_VERSION,
-    width: 1024,
-    height: 1024,
+    width: 2048,
+    height: 2048,
   }
 }

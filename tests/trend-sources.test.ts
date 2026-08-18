@@ -130,9 +130,10 @@ describe('design prompt graphics', () => {
       slogan: 'Lag Is A Lifestyle',
       concept: 'high ping humor',
     })
-    expect(built.prompt).toMatch(/illustrated|SUBJECT:/i)
+    expect(built.prompt).toMatch(/illustrated|SUBJECT/i)
     expect(built.prompt).toMatch(/streetwear|POD|vector cartoon/i)
-    expect(built.negativePrompt).toMatch(/typography-only|quote card/i)
+    expect(built.prompt).toMatch(/ZERO letters|no letters|typography that will be added/i)
+    expect(built.negativePrompt).toMatch(/text|letters|typography/i)
   })
 })
 
