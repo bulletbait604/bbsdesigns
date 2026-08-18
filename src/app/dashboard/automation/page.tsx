@@ -18,7 +18,7 @@ export default async function AutomationPage() {
     <DashboardShell
       activePath="/dashboard/automation"
       title="Automation"
-      subtitle="Scheduled pipeline jobs — unique IDs, idempotent, logged, retryable. Runs persist to Mongo when configured."
+      subtitle="Run now always executes a fresh job. Pause is respected and persisted to Mongo. Publishing stays gated while AUTO_PUBLISH=false."
     >
       <AutomationConsole jobs={AUTOMATION_JOBS} initialStates={states} initialRuns={runs} />
     </DashboardShell>

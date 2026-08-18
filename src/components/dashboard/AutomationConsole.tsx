@@ -1,7 +1,11 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import type { AutomationJobDefinition, AutomationJobState, AutomationRunRecord } from '@/services/automation/types'
+import type {
+  AutomationJobDefinition,
+  AutomationJobState,
+  AutomationRunRecord,
+} from '@/services/automation/types'
 
 function statusClass(status: string): string {
   if (status === 'succeeded') return 'text-ok'
@@ -24,28 +28,53 @@ export function AutomationConsole({
   const [runs, setRuns] = useState(initialRuns)
   const [selectedRunId, setSelectedRunId] = useState<string | null>(initialRuns[0]?.id || null)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const [busyJob, setBusyJob] = useState<string | null>(null)
 
   const selectedRun = useMemo(
     () => runs.find((r) => r.id === selectedRunId) || null,
     [runs, selectedRunId]
   )
 
-  async function call(body: Record<string, unknown>) {
+  async function call(body: Record<string, unknown>, jobName?: string) {
     setError(null)
-    const res = await fetch('/api/automation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      setError(data.error || 'request_failed')
-      return
+    setNotice(null)
+    if (jobName) setBusyJob(jobName)
+    try {
+      const res = await fetch('/api/automation', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string
+        states?: AutomationJobState[]
+        runs?: AutomationRunRecord[]
+        run?: AutomationRunRecord
+      }
+      if (!res.ok) {
+        setError(data.error || `request_failed_${res.status}`)
+        return
+      }
+      if (data.states) setStates(data.states)
+      if (data.runs) setRuns(data.runs)
+      if (data.run?.id) {
+        setSelectedRunId(data.run.id)
+        setNotice(
+          `${data.run.jobName}: ${data.run.status}${data.run.summary ? ` — ${data.run.summary}` : ''}`
+        )
+      } else if (body.action === 'pause') {
+        setNotice(`Paused ${String(body.jobName)}`)
+      } else if (body.action === 'resume') {
+        setNotice(`Resumed ${String(body.jobName)}`)
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'network_error')
+    } finally {
+      setBusyJob(null)
     }
-    if (data.states) setStates(data.states)
-    if (data.runs) setRuns(data.runs)
-    if (data.run?.id) setSelectedRunId(data.run.id)
   }
 
   return (
@@ -53,6 +82,14 @@ export function AutomationConsole({
       {error ? (
         <p className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
           {error}
+        </p>
+      ) : null}
+      {notice ? (
+        <p className="rounded-md border border-ok/40 bg-ok/10 px-3 py-2 text-sm text-ok">{notice}</p>
+      ) : null}
+      {pending ? (
+        <p className="text-sm text-muted">
+          Running{busyJob ? ` ${busyJob}` : ''}… this can take up to a minute for design jobs.
         </p>
       ) : null}
 
@@ -69,6 +106,7 @@ export function AutomationConsole({
           <tbody>
             {jobs.map((job) => {
               const state = states.find((s) => s.name === job.name)
+              const paused = Boolean(state?.paused)
               return (
                 <tr key={job.name} className="border-t border-line/80 bg-panel/50">
                   <td className="px-3 py-3">
@@ -76,7 +114,7 @@ export function AutomationConsole({
                     <p className="text-xs text-muted">{job.description}</p>
                   </td>
                   <td className="px-3 py-3 text-text">
-                    {state?.paused ? (
+                    {paused ? (
                       <span className="text-warn">Paused</span>
                     ) : (
                       <span className="text-ok">Active</span>
@@ -91,30 +129,31 @@ export function AutomationConsole({
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        disabled={pending}
-                        className="rounded border border-line px-2 py-1 text-xs text-text hover:bg-ink"
+                        disabled={pending || paused}
+                        title={paused ? 'Resume this job before running' : 'Execute this job now'}
+                        className="rounded border border-line px-2 py-1 text-xs text-text hover:bg-ink disabled:opacity-40"
                         onClick={() =>
                           startTransition(() => {
-                            void call({ action: 'run_now', jobName: job.name })
+                            void call({ action: 'run_now', jobName: job.name }, job.name)
                           })
                         }
                       >
-                        Run now
+                        {busyJob === job.name ? 'Running…' : 'Run now'}
                       </button>
                       <button
                         type="button"
                         disabled={pending}
-                        className="rounded border border-line px-2 py-1 text-xs text-text hover:bg-ink"
+                        className="rounded border border-line px-2 py-1 text-xs text-text hover:bg-ink disabled:opacity-40"
                         onClick={() =>
                           startTransition(() => {
                             void call({
-                              action: state?.paused ? 'resume' : 'pause',
+                              action: paused ? 'resume' : 'pause',
                               jobName: job.name,
                             })
                           })
                         }
                       >
-                        {state?.paused ? 'Resume' : 'Pause'}
+                        {paused ? 'Resume' : 'Pause'}
                       </button>
                     </div>
                   </td>
@@ -153,14 +192,15 @@ export function AutomationConsole({
               ))
             )}
           </ul>
-          {selectedRun && (selectedRun.status === 'failed' || selectedRun.status === 'queued') ? (
+          {selectedRun &&
+          (selectedRun.status === 'failed' || selectedRun.status === 'queued') ? (
             <button
               type="button"
               disabled={pending}
-              className="mt-3 rounded-md border border-line px-3 py-2 text-sm text-text"
+              className="mt-3 rounded-md border border-line px-3 py-2 text-sm text-text disabled:opacity-40"
               onClick={() =>
                 startTransition(() => {
-                  void call({ action: 'retry', runId: selectedRun.id })
+                  void call({ action: 'retry', runId: selectedRun.id }, selectedRun.jobName)
                 })
               }
             >
@@ -177,6 +217,11 @@ export function AutomationConsole({
                 {selectedRun.id} · attempt {selectedRun.attempt}/{selectedRun.maxAttempts} ·{' '}
                 {selectedRun.trigger}
               </p>
+              {selectedRun.error ? (
+                <p className="rounded border border-danger/30 bg-danger/10 px-2 py-1 text-xs text-danger">
+                  {selectedRun.error}
+                </p>
+              ) : null}
               <pre className="max-h-72 overflow-auto rounded bg-ink p-3 text-xs text-accent-2">
                 {(selectedRun.logs.length ? selectedRun.logs : ['No log lines']).join('\n')}
               </pre>

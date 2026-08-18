@@ -14,6 +14,8 @@ import {
   findAutomationRunById,
   findAutomationRunByIdempotencyKey,
   listAutomationRunsFromMongo,
+  loadAutomationJobStatesFromMongo,
+  persistAutomationJobState,
   persistAutomationRun,
 } from '@/services/automation/persist'
 
@@ -41,11 +43,21 @@ export function clearAutomationMemory(): void {
   }
 }
 
-/** Pull recent Mongo runs into the in-memory cache (Vercel-safe list). */
+/** Pull recent Mongo runs + pause flags into memory (Vercel-safe). */
 export async function hydrateAutomationRunsFromMongo(): Promise<void> {
-  const mongoRuns = await listAutomationRunsFromMongo(80)
+  const [mongoRuns, mongoStates] = await Promise.all([
+    listAutomationRunsFromMongo(80),
+    loadAutomationJobStatesFromMongo(),
+  ])
   for (const run of mongoRuns) {
     if (!runs.has(run.id)) runs.set(run.id, run)
+  }
+  for (const state of mongoStates) {
+    const local = ensureJobState(state.name)
+    local.paused = state.paused
+    if (state.lastRunId) local.lastRunId = state.lastRunId
+    if (state.lastStatus) local.lastStatus = state.lastStatus
+    if (state.lastFinishedAt) local.lastFinishedAt = state.lastFinishedAt
   }
 }
 
@@ -62,18 +74,12 @@ function appendLog(run: AutomationRunRecord, line: string): void {
 }
 
 /**
- * Execute a job handler. Publishing respects HUMAN_APPROVAL + AUTO_PUBLISH.
+ * Execute a job handler. Publishing never auto-publishes while AUTO_PUBLISH=false;
+ * it still reports queue/gate status so "Run now" is useful.
  */
 async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord): Promise<void> {
   const env = getEnv()
   const def = getJobDefinition(jobName)
-
-  if (def.requiresHumanApprovalGate && env.HUMAN_APPROVAL && !env.AUTO_PUBLISH) {
-    run.status = 'skipped'
-    run.summary = 'Skipped — HUMAN_APPROVAL=true and AUTO_PUBLISH=false'
-    appendLog(run, 'gate:skip_human_approval')
-    return
-  }
 
   await withRetry(
     `automation:${jobName}`,
@@ -134,6 +140,8 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
           break
         }
         case 'listing_preparation': {
+          const { hydratePublishingQueueFromMongo } = await import('@/services/publishing/queue')
+          await hydratePublishingQueueFromMongo()
           const { runListingPreparationJob } = await import('@/services/pipeline/jobs')
           const stats = await runListingPreparationJob()
           run.stats = stats
@@ -167,15 +175,28 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
         case 'weekly_report': {
           const synced = await syncAnalyticsMetrics()
           const report = synced.report.products.length ? synced.report : buildWeeklyReport()
-          run.stats = { reportId: report.id, products: report.products.length, source: synced.source }
+          run.stats = {
+            reportId: report.id,
+            products: report.products.length,
+            source: synced.source,
+          }
           run.summary = `Weekly report ${report.id} (${report.products.length} products)`
           break
         }
         case 'publishing': {
+          const { hydratePublishingQueueFromMongo } = await import('@/services/publishing/queue')
+          await hydratePublishingQueueFromMongo()
           const { runPublishingGateJob } = await import('@/services/pipeline/jobs')
           const stats = await runPublishingGateJob()
           run.stats = stats
-          run.summary = 'Publishing gated — manual approval required (AUTO_PUBLISH=false)'
+
+          if (def.requiresHumanApprovalGate && env.HUMAN_APPROVAL && !env.AUTO_PUBLISH) {
+            run.status = 'skipped'
+            run.summary = `Publishing gated — ${stats.readyForReview ?? 0} ready; approve manually (AUTO_PUBLISH=false)`
+            appendLog(run, 'gate:skip_human_approval')
+          } else {
+            run.summary = `Publishing gate check — ${stats.readyForReview ?? 0} ready for review`
+          }
           break
         }
         default: {
@@ -211,6 +232,7 @@ export function pauseJob(name: AutomationJobName): AutomationJobState {
   const state = ensureJobState(name)
   state.paused = true
   logger.info('automation_paused', { job: name })
+  void persistAutomationJobState(state)
   return state
 }
 
@@ -218,6 +240,7 @@ export function resumeJob(name: AutomationJobName): AutomationJobState {
   const state = ensureJobState(name)
   state.paused = false
   logger.info('automation_resumed', { job: name })
+  void persistAutomationJobState(state)
   return state
 }
 
@@ -225,6 +248,7 @@ export async function enqueueJob(opts: {
   jobName: AutomationJobName
   trigger?: AutomationTrigger
   idempotencyKey?: string
+  /** Bypass pause gate (retries). Does not bypass schedule-day idempotency by itself. */
   force?: boolean
 }): Promise<AutomationRunRecord> {
   const { jobName, trigger = 'manual', force = false } = opts
@@ -235,12 +259,14 @@ export async function enqueueJob(opts: {
     const skipped: AutomationRunRecord = {
       id: `run_${randomUUID().slice(0, 12)}`,
       jobName,
-      idempotencyKey: opts.idempotencyKey || buildIdempotencyKey(jobName, `paused|${dayBucket()}`),
+      idempotencyKey:
+        opts.idempotencyKey ||
+        buildIdempotencyKey(jobName, `paused|${dayBucket()}|${Date.now()}`),
       status: 'paused',
       trigger,
       attempt: 0,
       maxAttempts: 3,
-      summary: 'Job is paused',
+      summary: 'Job is paused — resume it, then Run now',
       logs: [`${new Date().toISOString()} paused`],
       createdAt: new Date().toISOString(),
     }
@@ -249,8 +275,13 @@ export async function enqueueJob(opts: {
     return skipped
   }
 
+  // Manual / retry runs get unique keys so "Run now" always executes.
+  // Schedule keeps a stable day bucket for idempotency.
   const idempotencyKey =
-    opts.idempotencyKey || buildIdempotencyKey(jobName, `${trigger}|${dayBucket()}`)
+    opts.idempotencyKey ||
+    (trigger === 'schedule'
+      ? buildIdempotencyKey(jobName, `schedule|${dayBucket()}`)
+      : buildIdempotencyKey(jobName, `${trigger}|${Date.now()}|${randomUUID()}`))
 
   const existing = [...runs.values()].find(
     (r) =>
@@ -279,7 +310,10 @@ export async function enqueueJob(opts: {
   }
 
   const run: AutomationRunRecord = {
-    id: `run_${createHash('sha256').update(idempotencyKey).digest('hex').slice(0, 16)}`,
+    id: `run_${createHash('sha256')
+      .update(idempotencyKey + randomUUID())
+      .digest('hex')
+      .slice(0, 16)}`,
     jobName,
     idempotencyKey,
     status: 'queued',
@@ -307,7 +341,7 @@ export async function processRun(runId: string): Promise<AutomationRunRecord> {
   }
   if (!run) throw new Error(`Run not found: ${runId}`)
 
-  if (run.status === 'succeeded' || run.status === 'skipped') return run
+  if (run.status === 'succeeded' || run.status === 'skipped' || run.status === 'paused') return run
 
   const state = ensureJobState(run.jobName)
   run.status = 'running'
@@ -332,8 +366,14 @@ export async function processRun(runId: string): Promise<AutomationRunRecord> {
       appendLog(run, `failed:${message}`)
     } else {
       run.status = 'queued'
-      run.summary = `Retry scheduled after error: ${message}`
+      run.summary = `Retrying after error: ${message}`
       appendLog(run, `retryable_error:${message}`)
+      state.lastRunId = run.id
+      state.lastStatus = run.status
+      state.lastFinishedAt = run.finishedAt || undefined
+      await persistAutomationRun(run)
+      void persistAutomationJobState(state)
+      return processRun(run.id)
     }
   }
 
@@ -349,6 +389,7 @@ export async function processRun(runId: string): Promise<AutomationRunRecord> {
   })
 
   await persistAutomationRun(run)
+  void persistAutomationJobState(state)
   return run
 }
 

@@ -23,6 +23,10 @@ export {
 export { CachedDesign, type CachedDesignDoc } from '@/models/CachedDesign'
 export { CachedTrendBatch, type CachedTrendBatchDoc } from '@/models/CachedTrendBatch'
 export { AutomationRun, type AutomationRunDoc } from '@/models/AutomationRun'
+export {
+  AutomationJobStateModel,
+  type AutomationJobStateDoc,
+} from '@/models/AutomationJobState'
 export { AuditLog, type AuditLogDoc } from '@/models/AuditLog'
 export { Settings, type SettingsDoc } from '@/models/Settings'
 export { AdminAuth, type AdminAuthDoc } from '@/models/AdminAuth'

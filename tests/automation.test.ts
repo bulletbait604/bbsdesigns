@@ -53,7 +53,24 @@ describe('automation scheduler', () => {
       force: true,
     })
     expect(run.status).toBe('skipped')
-    expect(run.summary).toMatch(/HUMAN_APPROVAL/)
+    expect(run.summary).toMatch(/gated|HUMAN_APPROVAL|AUTO_PUBLISH/i)
+  })
+
+  it('manual run_now creates a fresh execution each time', async () => {
+    const a = await enqueueJob({ jobName: 'analytics_sync', trigger: 'manual' })
+    const b = await enqueueJob({ jobName: 'analytics_sync', trigger: 'manual' })
+    expect(a.id).not.toBe(b.id)
+    expect(a.status).toBe('succeeded')
+    expect(b.status).toBe('succeeded')
+  })
+
+  it('respects pause on manual run without force', async () => {
+    pauseJob('mockups')
+    const paused = await enqueueJob({ jobName: 'mockups', trigger: 'manual' })
+    expect(paused.status).toBe('paused')
+    resumeJob('mockups')
+    const ran = await enqueueJob({ jobName: 'mockups', trigger: 'manual' })
+    expect(ran.status).toBe('succeeded')
   })
 
   it('supports pause resume and retry', async () => {

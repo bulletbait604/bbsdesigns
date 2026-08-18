@@ -1,7 +1,12 @@
 import { isMongoConfigured, connectMongo } from '@/lib/db'
 import { AutomationRun } from '@/models/AutomationRun'
+import { AutomationJobStateModel } from '@/models/AutomationJobState'
 import { logger } from '@/lib/logger'
-import type { AutomationRunRecord } from '@/services/automation/types'
+import type {
+  AutomationJobName,
+  AutomationJobState,
+  AutomationRunRecord,
+} from '@/services/automation/types'
 
 export async function persistAutomationRun(run: AutomationRunRecord): Promise<void> {
   if (!isMongoConfigured()) return
@@ -31,6 +36,48 @@ export async function persistAutomationRun(run: AutomationRunRecord): Promise<vo
       error: error instanceof Error ? error.message : String(error),
       runId: run.id,
     })
+  }
+}
+
+export async function persistAutomationJobState(state: AutomationJobState): Promise<void> {
+  if (!isMongoConfigured()) return
+  try {
+    await connectMongo()
+    await AutomationJobStateModel.findOneAndUpdate(
+      { jobName: state.name },
+      {
+        jobName: state.name,
+        paused: state.paused,
+        lastRunId: state.lastRunId || null,
+        lastStatus: state.lastStatus || null,
+        lastFinishedAt: state.lastFinishedAt ? new Date(state.lastFinishedAt) : null,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    )
+  } catch (error) {
+    logger.error('automation_job_state_persist_failed', {
+      error: error instanceof Error ? error.message : String(error),
+      job: state.name,
+    })
+  }
+}
+
+export async function loadAutomationJobStatesFromMongo(): Promise<AutomationJobState[]> {
+  if (!isMongoConfigured()) return []
+  try {
+    await connectMongo()
+    const docs = await AutomationJobStateModel.find({}).lean()
+    return docs.map((doc) => ({
+      name: doc.jobName as AutomationJobName,
+      paused: Boolean(doc.paused),
+      lastRunId: doc.lastRunId || undefined,
+      lastStatus: (doc.lastStatus as AutomationJobState['lastStatus']) || undefined,
+      lastFinishedAt: doc.lastFinishedAt
+        ? new Date(doc.lastFinishedAt).toISOString()
+        : undefined,
+    }))
+  } catch {
+    return []
   }
 }
 

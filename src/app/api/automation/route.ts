@@ -14,6 +14,7 @@ import {
 import type { AutomationJobName } from '@/services/automation/types'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 async function snapshot() {
   await hydrateAutomationRunsFromMongo()
@@ -52,7 +53,8 @@ export async function POST(request: Request) {
   try {
     if (action === 'run_now') {
       if (!jobName) return NextResponse.json({ error: 'jobName_required' }, { status: 400 })
-      const run = await enqueueJob({ jobName, trigger: 'manual', force: true })
+      // Unique key per click (handled in enqueueJob for manual). Respect pause.
+      const run = await enqueueJob({ jobName, trigger: 'manual' })
       return NextResponse.json({ ...(await snapshot()), run })
     }
 
