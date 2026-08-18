@@ -34,7 +34,7 @@ export async function runDesignEngine(
         negativePrompt: built.negativePrompt,
         width: built.width,
         height: built.height,
-        imageSize: (process.env.IMAGE_SIZE || '2K').trim() || '2K',
+        imageSize: (process.env.IMAGE_SIZE || '4K').trim() || '4K',
         aspectRatio: '1:1',
       }),
     {
@@ -42,7 +42,7 @@ export async function runDesignEngine(
       kind: 'image',
       label: 'design.generate',
       retries: 1,
-      timeoutMs: 90_000,
+      timeoutMs: 180_000,
     }
   )
 

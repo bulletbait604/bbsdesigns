@@ -24,6 +24,7 @@ import { logger } from '@/lib/logger'
 import type { Niche } from '@/types'
 import type { SafetyDecision } from '@/types'
 import { DESIGN_PROMPT_VERSION } from '@/services/designs/types'
+import { resolveConfiguredImageModel } from '@/providers/image/google'
 
 const DEFAULT_MAX_AI_DESIGNS_PER_RUN = 10
 
@@ -50,6 +51,8 @@ function isSvgPlaceholderDesign(doc: {
     model.includes('svg') ||
     model.includes('lite') ||
     model.includes('stub') ||
+    // Upgrade older Flash-model art to Pro quality
+    (model.includes('flash-image') && !model.includes('pro')) ||
     doc.mimeType === 'image/svg+xml' ||
     url.includes('/api/design-preview') ||
     url.startsWith('local://') ||
@@ -281,7 +284,12 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
     const concept =
       idea.concept ||
       `Visual: maximalist original ${niche} cartoon hero locked into flashy bubble/varsity lettering — inseparable art+text, neon accents, heavy drop shadows.`
-    const cacheKey = buildDesignCacheKey({ niche, slogan, concept })
+    const cacheKey = buildDesignCacheKey({
+      niche,
+      slogan,
+      concept,
+      model: resolveConfiguredImageModel(),
+    })
 
     const hit = await findCachedDesign(cacheKey)
     if (

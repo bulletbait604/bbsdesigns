@@ -39,8 +39,8 @@ Matches starter package prompt 009: **original artwork + clean typography** in *
 2. Vercel env:
    - `IMAGE_PROVIDER=google` (or auto-detect when `GEMINI_API` is set)
    - `IMAGE_API_KEY` or `GEMINI_API` = your Gemini API key
-   - optional `IMAGE_MODEL=gemini-3.1-flash-image`
-   - optional `IMAGE_SIZE=2K` (default)
+   - optional `IMAGE_MODEL=gemini-3-pro-image` (Nano Banana Pro — default)
+   - optional `IMAGE_SIZE=4K` (default)
 3. Redeploy
 4. Designs → **Generate viral design (art + text)**
 

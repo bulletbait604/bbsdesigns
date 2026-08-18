@@ -9,24 +9,35 @@ import type {
   ProviderHealth,
 } from '@/providers/types'
 
-/** Current GA Nano Banana 2 — preferred over deprecated gemini-2.5-flash-image. */
-const DEFAULT_MODEL = 'gemini-3.1-flash-image'
-const DEFAULT_IMAGE_SIZE = '2K'
+/**
+ * Nano Banana Pro — best Gemini image model for merch (text-in-image + graphic design).
+ * Flash is a fallback only when Pro is unavailable on the key/project.
+ */
+export const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image'
+const DEFAULT_IMAGE_SIZE = '4K'
 
-/** Tried in order when the primary model returns a model-related 400/404. No lite — it produces weak/boring art. */
-const FALLBACK_MODELS = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image']
+/** Tried in order when the primary model returns a model-related 400/404. */
+const FALLBACK_MODELS = ['gemini-3-pro-image', 'gemini-3.1-flash-image']
 
 function resolveImageSize(requestSize?: string): string {
   const raw = (requestSize || process.env.IMAGE_SIZE || DEFAULT_IMAGE_SIZE).trim().toUpperCase()
   if (raw === '512' || raw === '0.5K') return '512'
   if (raw === '1K' || raw === '1') return '1K'
+  if (raw === '2K' || raw === '2') return '2K'
   if (raw === '4K' || raw === '4') return '4K'
-  return '2K'
+  return '4K'
 }
 
 function resolveAspectRatio(requestRatio?: string): string {
   const raw = (requestRatio || '1:1').trim()
   return raw || '1:1'
+}
+
+function pixelsForImageSize(imageSize: string): number {
+  if (imageSize === '4K') return 4096
+  if (imageSize === '2K') return 2048
+  if (imageSize === '512') return 512
+  return 1024
 }
 
 function health(provider: string, ok: boolean, message?: string): ProviderHealth {
@@ -55,8 +66,12 @@ export function normalizeImageModelId(raw: string): string {
   return trimmed.replace(/^models\//i, '')
 }
 
+export function resolveConfiguredImageModel(): string {
+  return normalizeImageModelId((process.env.IMAGE_MODEL || '').trim() || DEFAULT_IMAGE_MODEL)
+}
+
 function resolvePrimaryModel(): string {
-  return normalizeImageModelId((process.env.IMAGE_MODEL || '').trim() || DEFAULT_MODEL)
+  return resolveConfiguredImageModel()
 }
 
 function modelCandidates(primary: string): string[] {
@@ -179,8 +194,11 @@ async function generateOnce(opts: {
           lower.includes('image_config') ||
           lower.includes('imagesize') ||
           lower.includes('image_size'))
-      // Retry without imageSize if model rejects 2K/config (e.g. lite only supports 1K)
-      if (imageConfigIssue && opts.imageSize !== '1K') {
+      // Retry at 2K if 4K config is rejected for this model/key
+      if (imageConfigIssue && opts.imageSize === '4K') {
+        return generateOnce({ ...opts, imageSize: '2K' })
+      }
+      if (imageConfigIssue && opts.imageSize === '2K') {
         return generateOnce({ ...opts, imageSize: '1K' })
       }
       if (modalitiesIssue && modalities === modalityVariants[0]) continue
@@ -191,7 +209,12 @@ async function generateOnce(opts: {
       candidates?: Array<{ content?: { parts?: GeminiPart[] } }>
     }
     const parts = data.candidates?.[0]?.content?.parts || []
-    const imagePart = parts.find((p) => p.inlineData?.data)
+    // Prefer the largest inline image part if multiple are returned
+    const imageParts = parts.filter((p) => p.inlineData?.data)
+    const imagePart =
+      imageParts.sort(
+        (a, b) => (b.inlineData?.data?.length || 0) - (a.inlineData?.data?.length || 0)
+      )[0] || parts.find((p) => p.inlineData?.data)
     if (!imagePart?.inlineData?.data) {
       throw new ProviderError('Google image response contained no image bytes', {
         provider: opts.name,
@@ -204,7 +227,7 @@ async function generateOnce(opts: {
 
     const mimeType = imagePart.inlineData.mimeType || 'image/png'
     const bytes = Buffer.from(imagePart.inlineData.data, 'base64')
-    const px = opts.imageSize === '4K' ? 2048 : opts.imageSize === '2K' ? 2048 : 1024
+    const px = pixelsForImageSize(opts.imageSize)
 
     return {
       bytes,
@@ -230,7 +253,7 @@ async function generateOnce(opts: {
 
 /**
  * Google Gemini image generation (AI Studio / Gemini API key).
- * Defaults to gemini-3.1-flash-image with fallbacks if a model is unavailable.
+ * Defaults to gemini-3-pro-image (Nano Banana Pro) for flashy merch with readable lettering.
  */
 export function createGoogleImageProvider(name = 'google-gemini-image'): ImageProvider {
   return {
@@ -268,7 +291,7 @@ export function createGoogleImageProvider(name = 'google-gemini-image'): ImagePr
         request.negativePrompt
           ? `Keep the artwork free of: ${request.negativePrompt}.`
           : '',
-        'Output a single square flashy merch graphic: bold illustration locked together with readable slogan lettering, high contrast, print-ready.',
+        'Professional merch print: maximalist flashy graphic with perfect readable slogan lettering woven into the art, sharp edges, high contrast, DTG/screen-print ready.',
       ]
         .filter(Boolean)
         .join(' ')
@@ -281,12 +304,14 @@ export function createGoogleImageProvider(name = 'google-gemini-image'): ImagePr
       for (let i = 0; i < candidates.length; i++) {
         const model = candidates[i]
         try {
+          // Pro + Flash support up to 4K; never use lite for merch
+          const sizeForModel = model.includes('lite') ? '1K' : imageSize
           const result = await generateOnce({
             name,
             apiKey,
             model,
             prompt,
-            imageSize: model.includes('lite') ? '1K' : imageSize,
+            imageSize: sizeForModel,
             aspectRatio,
           })
           if (i > 0) {
@@ -297,8 +322,8 @@ export function createGoogleImageProvider(name = 'google-gemini-image'): ImagePr
           }
           return {
             ...result,
-            width: result.width ?? request.width ?? 1024,
-            height: result.height ?? request.height ?? 1024,
+            width: result.width ?? request.width ?? pixelsForImageSize(sizeForModel),
+            height: result.height ?? request.height ?? pixelsForImageSize(sizeForModel),
           }
         } catch (error) {
           if (!(error instanceof ProviderError) || error.code !== 'GOOGLE_IMAGE_HTTP') {

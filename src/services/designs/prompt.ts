@@ -140,7 +140,7 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
     prompt,
     negativePrompt,
     promptVersion: DESIGN_PROMPT_VERSION,
-    width: 2048,
-    height: 2048,
+    width: 4096,
+    height: 4096,
   }
 }

@@ -11,7 +11,7 @@ That bucket runs all automation jobs once per UTC day (idempotent):
 | Trends | Scored niche themes (SerpAPI/Etsy when keyed; else curated stubs) |
 | **Text designs** | ~9 AI slogans/ideas/day (3 niches × 3) via Gemini text |
 | Safety | Heuristic PASS / REVIEW / REJECT (no extra LLM in automation) |
-| **Image designs** | Up to `MAX_AI_DESIGNS_PER_RUN` (default **5**) Gemini illustrations; upgrades SVG placeholders |
+| **Image designs** | Up to `MAX_AI_DESIGNS_PER_RUN` (default **10**) Gemini **Pro** illustrations; upgrades SVG / Flash placeholders |
 | Mockups / listings | Local mockup URLs + publishing queue rows |
 | Publishing | **Gate only** — skipped while `HUMAN_APPROVAL=true` and `AUTO_PUBLISH=false` |
 | Analytics / weekly | Metrics + narrative |
@@ -31,12 +31,12 @@ Check live status: `GET /api/health` → `autonomy.readyForAutonomousGeneration`
 | Shopify / Printify | Needed for **draft creation**, not for daily AI generation |
 | `SERPAPI_API_KEY` / Etsy | Optional richer trends |
 
-Optional: `MAX_AI_DESIGNS_PER_RUN=5`, `IMAGE_MODEL=gemini-3.1-flash-image`, `IMAGE_SIZE=2K`, `AI_TEXT_MODEL=gemini-2.5-flash`.
+Optional: `MAX_AI_DESIGNS_PER_RUN=10`, `IMAGE_MODEL=gemini-3-pro-image`, `IMAGE_SIZE=4K`, `AI_TEXT_MODEL=gemini-2.5-flash`.
 
 ## Text + image confirmation
 
 - **Text:** `idea_generation` → Mongo `Idea` slogans/concepts (`slogan-engine-v4-viral-flash`, Gemini `gemini-2.5-flash`).
-- **Image:** `design_generation` → one flashy Gemini design with imagery + slogan locked together (`design-prompt-v9-viral-max` at 2K). SVG is placeholder only when AI is unavailable.
+- **Image:** `design_generation` → one flashy Gemini **Pro** design with imagery + slogan locked together (`design-prompt-v9-viral-max` at **4K** via `gemini-3-pro-image`). SVG is placeholder only when AI is unavailable.
 
 ## Predicted daily API costs (steady state)
 
@@ -45,8 +45,8 @@ Assumptions: paid Gemini Developer API rates (Aug 2026), 1 scheduled run/day, fu
 | API | Volume / day | Unit price (approx.) | Daily $ |
 |---|---|---|---|
 | Gemini **text** (`gemini-2.5-flash`) | ~3 calls, ~2–4k tokens total | ~$0.30 / 1M in, $2.50 / 1M out (order-of-magnitude) | **~<$0.02** |
-| Gemini **image** (`gemini-3.1-flash-image` @ **2K**) | ≤5 images | **~$0.101 / image** | **~$0.50** |
-| Image prompt tokens | ~5 × short prompts | $0.50 / 1M input | **~<$0.01** |
+| Gemini **image** (`gemini-3-pro-image` @ **4K**) | ≤10 images | **higher than Flash** (Pro quality) | **~$1–3** (plan-dependent) |
+| Image prompt tokens | ~10 × short prompts | $0.50 / 1M input | **~<$0.01** |
 | SerpAPI (optional) | ~6–9 searches if cache cold | plan-dependent (~$0.01–0.05) | **~$0.05–0.45** |
 | Etsy (optional) | ~3 listings searches | free tier / plan | **~$0** |
 | Shopify GraphQL reads | ~3 analytics/report calls | included in Shopify plan | **$0 API** |

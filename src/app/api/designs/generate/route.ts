@@ -13,10 +13,11 @@ import {
 import { upsertDesignResult } from '@/services/designs/persist'
 import { ensureDefaultCatalog } from '@/services/catalog/defaults'
 import { DESIGN_PROMPT_VERSION } from '@/services/designs/types'
+import { resolveConfiguredImageModel } from '@/providers/image/google'
 import type { Niche } from '@/types'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 120
 
 export async function POST(request: Request) {
   const session = await getSessionFromCookies()
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
     niche,
     slogan,
     concept: illustrationConcept,
+    model: resolveConfiguredImageModel(),
   })
 
   if (!force) {
