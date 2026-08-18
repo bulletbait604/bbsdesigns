@@ -53,9 +53,16 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         fromCache?: boolean
         error?: string
         message?: string
+        details?: { googleMessage?: string; model?: string; status?: number }
       }
       if (!res.ok || !data.ok || !data.previewUrl) {
-        setError(data.message || data.error || 'Generation failed')
+        const googleHint = data.details?.googleMessage
+        const modelHint = data.details?.model ? ` (model ${data.details.model})` : ''
+        setError(
+          googleHint
+            ? `${data.message || data.error || 'Generation failed'}${modelHint}`
+            : data.message || data.error || 'Generation failed'
+        )
         return
       }
 

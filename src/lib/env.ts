@@ -28,7 +28,7 @@ const envSchema = z.object({
 
   IMAGE_PROVIDER: z.string().optional().default(''),
   IMAGE_API_KEY: z.string().optional().default(''),
-  /** Optional override, default gemini-2.5-flash-image */
+  /** Optional override, default gemini-3.1-flash-image */
   IMAGE_MODEL: z.string().optional().default(''),
 
   /** SerpAPI key for Google Trends / Shopping trend research */

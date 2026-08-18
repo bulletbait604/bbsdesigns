@@ -118,6 +118,17 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    return NextResponse.json({ error: message }, { status: 502 })
+    const details =
+      error instanceof Error && 'details' in error
+        ? (error as { details?: unknown }).details
+        : undefined
+    return NextResponse.json(
+      {
+        error: message,
+        message,
+        details,
+      },
+      { status: 502 }
+    )
   }
 }

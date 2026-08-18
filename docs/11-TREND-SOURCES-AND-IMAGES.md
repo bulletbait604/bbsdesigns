@@ -37,7 +37,7 @@ Requires working Mongo (same SDHQ cluster / `bbsdesigns` database is fine).
 2. Vercel env:
    - `IMAGE_PROVIDER=google` (or rely on auto-detect when `GEMINI_API` is set)
    - `IMAGE_API_KEY` or `GEMINI_API` = your Gemini API key
-   - optional `IMAGE_MODEL=gemini-2.5-flash-image`
+   - optional `IMAGE_MODEL=gemini-3.1-flash-image` (default; falls back to `gemini-2.5-flash-image`)
 3. Redeploy
 4. Designs page → **Generate AI design (Google)** for flashy/pop merch art
 
