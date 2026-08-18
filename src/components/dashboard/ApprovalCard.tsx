@@ -26,9 +26,35 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
   const mock =
     item.mockupUrl || (item.designPreviewId ? mockupUrl(item.designPreviewId) : null)
 
-  function act(action: 'approve' | 'reject') {
+  function act(action: 'approve' | 'reject' | 'create_draft') {
     setMessage(null)
     startTransition(async () => {
+      if (action === 'create_draft') {
+        const res = await fetch('/api/publishing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create_draft_from_idea', ideaId: item.id }),
+        })
+        const data = (await res.json()) as {
+          ok?: boolean
+          error?: string
+          message?: string
+          item?: { status?: string; tags?: string[] }
+        }
+        if (!res.ok || !data.ok) {
+          setMessage(data.message || data.error || 'Draft failed')
+          return
+        }
+        setMessage(
+          `Shopify draft ${data.item?.status || 'created'}${
+            data.item?.tags?.find((t) => t.startsWith('shopify:'))
+              ? ` · ${data.item.tags.find((t) => t.startsWith('shopify:'))}`
+              : ''
+          }`
+        )
+        return
+      }
+
       const res = await fetch('/api/safety', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -159,6 +185,19 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
           title="Regenerate arrives with design API"
         >
           Regenerate
+        </button>
+        <button
+          type="button"
+          disabled={
+            rejected ||
+            pending ||
+            (status !== 'approved' && item.safetyDecision !== 'PASS')
+          }
+          onClick={() => act('create_draft')}
+          className="rounded-md border border-accent/50 px-3 py-2 text-sm text-accent disabled:opacity-40"
+          title="Creates a Shopify DRAFT only — never ACTIVE while AUTO_PUBLISH=false"
+        >
+          Create Shopify draft
         </button>
         <button
           type="button"

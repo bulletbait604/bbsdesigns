@@ -81,8 +81,11 @@ export function runSecurityPass(env = getEnv()): SecurityCheck[] {
   checks.push({
     id: 'webhook-verification',
     area: 'webhook verification',
-    status: 'WARNING',
-    detail: 'Shopify/Printify webhook HMAC verification not wired yet — add before live order webhooks.',
+    status:
+      env.SHOPIFY_WEBHOOK_SECRET || env.PRINTIFY_WEBHOOK_SECRET ? 'PASS' : 'WARNING',
+    detail: env.SHOPIFY_WEBHOOK_SECRET
+      ? 'Shopify HMAC verification wired at /api/webhooks/shopify.'
+      : 'Set SHOPIFY_WEBHOOK_SECRET (and optional PRINTIFY_WEBHOOK_SECRET) for live order webhooks.',
   })
 
   checks.push({
@@ -95,8 +98,14 @@ export function runSecurityPass(env = getEnv()): SecurityCheck[] {
   checks.push({
     id: 'file-upload',
     area: 'file upload validation',
-    status: 'WARNING',
-    detail: 'Design previews are generated SVG; R2 upload validation pending until image storage is live.',
+    status:
+      env.R2_ACCOUNT_ID && env.R2_ACCESS_KEY_ID && env.R2_BUCKET_NAME && env.R2_PUBLIC_URL
+        ? 'PASS'
+        : 'WARNING',
+    detail:
+      env.R2_BUCKET_NAME && env.R2_PUBLIC_URL
+        ? 'R2 storage registered when credentials are present.'
+        : 'Design previews use SVG/Mongo; configure R2_* for durable public asset URLs.',
   })
 
   checks.push({

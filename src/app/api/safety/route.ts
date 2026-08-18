@@ -52,19 +52,38 @@ export async function POST(request: Request) {
     idea.provenance.publishStatus = status
     if (action === 'reject') {
       idea.provenance.safetyDecision = 'REJECT'
+    } else {
+      // Human approval elevates REVIEW → PASS for draft eligibility
+      idea.provenance.safetyDecision = 'PASS'
     }
   }
   await idea.save()
 
-  await Design.updateMany(
-    { ideaId: String(idea._id) },
-    {
-      $set: {
-        status: action === 'approve' ? 'approved' : 'rejected',
-        'provenance.publishStatus': status,
-      },
-    }
-  )
+  if (action === 'approve') {
+    await Design.updateMany(
+      { ideaId: String(idea._id) },
+      {
+        $set: {
+          status: 'approved',
+          imageReviewDecision: 'PASS',
+          'provenance.publishStatus': 'approved',
+          'provenance.safetyDecision': 'PASS',
+        },
+      }
+    )
+  } else {
+    await Design.updateMany(
+      { ideaId: String(idea._id) },
+      {
+        $set: {
+          status: 'rejected',
+          imageReviewDecision: 'REJECT',
+          'provenance.publishStatus': 'rejected',
+          'provenance.safetyDecision': 'REJECT',
+        },
+      }
+    )
+  }
 
   await AuditLog.create({
     storeId: idea.storeId,

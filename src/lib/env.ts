@@ -44,6 +44,11 @@ const envSchema = z.object({
   R2_BUCKET_NAME: z.string().optional().default(''),
   R2_PUBLIC_URL: z.string().optional().default(''),
 
+  /** Shopify webhook HMAC secret (Admin API → Notifications → Webhooks) */
+  SHOPIFY_WEBHOOK_SECRET: z.string().optional().default(''),
+  /** Optional shared secret for Printify webhook Authorization/X-Printify-Secret */
+  PRINTIFY_WEBHOOK_SECRET: z.string().optional().default(''),
+
   AUTH_SECRET: z.string().optional().default(''),
   /** One-time bootstrap secret required to set the Admin password the first time. */
   ADMIN_SETUP_TOKEN: z.string().optional().default(''),
@@ -91,6 +96,8 @@ function readProcessEnv(): Record<string, string | undefined> {
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
     R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
     R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
+    SHOPIFY_WEBHOOK_SECRET: process.env.SHOPIFY_WEBHOOK_SECRET,
+    PRINTIFY_WEBHOOK_SECRET: process.env.PRINTIFY_WEBHOOK_SECRET,
     AUTH_SECRET: process.env.AUTH_SECRET,
     ADMIN_SETUP_TOKEN: process.env.ADMIN_SETUP_TOKEN,
     HUMAN_APPROVAL: process.env.HUMAN_APPROVAL,

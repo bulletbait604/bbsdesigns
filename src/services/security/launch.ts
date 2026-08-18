@@ -90,8 +90,10 @@ export function buildLaunchReport(): LaunchReport {
     {
       id: 'webhooks',
       label: 'Webhook verification',
-      status: 'WARNING',
-      detail: 'HMAC verification pending before trusting live order webhooks.',
+      status: env.SHOPIFY_WEBHOOK_SECRET ? 'PASS' : 'WARNING',
+      detail: env.SHOPIFY_WEBHOOK_SECRET
+        ? 'Shopify HMAC at /api/webhooks/shopify; optional Printify secret at /api/webhooks/printify.'
+        : 'Set SHOPIFY_WEBHOOK_SECRET before trusting live order webhooks.',
     },
     {
       id: 'backups',

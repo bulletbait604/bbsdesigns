@@ -24,7 +24,10 @@ Complete these in order.
 20. Testing
 21. Vercel deployment
 22. Controlled launch
-23. Live pipeline wiring (prompt 019) — persist + automation handlers + approval UI
+23. Live pipeline wiring (prompt 019)
+24. Cloudflare R2 storage (prompt 020)
+25. Shopify draft from approval (prompt 021)
+26. Webhook verification (prompt 022)
 
 Do not skip the safety engine.
 Do not enable automatic publishing during initial development.

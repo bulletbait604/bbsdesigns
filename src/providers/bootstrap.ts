@@ -13,11 +13,12 @@ import {
 } from '@/providers/printify/api'
 import { createConfiguredTrendProvider } from '@/providers/trend'
 import { createGoogleImageProvider } from '@/providers/image/google'
+import { createR2StorageProvider, shouldUseR2Storage } from '@/providers/storage/r2'
 import { clearProviders, registerProvider } from '@/providers/registry'
 
 /**
  * Boots the provider registry.
- * Real Shopify/Printify/trend/image adapters replace stubs when credentials exist.
+ * Real Shopify/Printify/trend/image/storage adapters replace stubs when credentials exist.
  */
 export function bootstrapProviders(): void {
   clearProviders()
@@ -43,7 +44,10 @@ export function bootstrapProviders(): void {
   )
 
   registerProvider('trend', createConfiguredTrendProvider())
-  registerProvider('storage', createStubStorageProvider())
+  registerProvider(
+    'storage',
+    shouldUseR2Storage() ? createR2StorageProvider() : createStubStorageProvider()
+  )
 
   const shopifyReady = Boolean(env.SHOPIFY_STORE_DOMAIN && env.SHOPIFY_ADMIN_ACCESS_TOKEN)
   registerProvider(
