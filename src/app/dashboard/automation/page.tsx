@@ -1,12 +1,18 @@
-import { PlaceholderPanel } from '@/components/dashboard/PlaceholderPanel'
+import { DashboardShell } from '@/components/dashboard/DashboardShell'
+import { AutomationConsole } from '@/components/dashboard/AutomationConsole'
+import { AUTOMATION_JOBS, listJobStates, listRuns } from '@/services/automation'
 
 export default function AutomationPage() {
+  const states = listJobStates()
+  const runs = listRuns()
+
   return (
-    <PlaceholderPanel
+    <DashboardShell
       activePath="/dashboard/automation"
       title="Automation"
-      subtitle="Scheduled runs for trends, scoring, and queue processing."
-      bullets={['Idempotency keys on every run', 'Manual trigger support', 'Skipped while keys are missing']}
-    />
+      subtitle="Scheduled pipeline jobs — unique IDs, idempotent, logged, retryable. Publishing stays gated by HUMAN_APPROVAL."
+    >
+      <AutomationConsole jobs={AUTOMATION_JOBS} initialStates={states} initialRuns={runs} />
+    </DashboardShell>
   )
 }

@@ -7,6 +7,7 @@ import {
   Idea,
   Order,
   Product,
+  ProductLifecycleDecision,
   ProductVariant,
   Provider,
   PublishingJob,
@@ -16,6 +17,7 @@ import {
   Store,
   TrendScore,
   TrendSignal,
+  WeeklyAnalyticsReport,
 } from '@/models'
 
 const requiredModels = [
@@ -32,6 +34,8 @@ const requiredModels = [
   ['PublishingJob', PublishingJob],
   ['Order', Order],
   ['SalesMetric', SalesMetric],
+  ['ProductLifecycleDecision', ProductLifecycleDecision],
+  ['WeeklyAnalyticsReport', WeeklyAnalyticsReport],
   ['AutomationRun', AutomationRun],
   ['AuditLog', AuditLog],
   ['Settings', Settings],

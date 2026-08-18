@@ -12,6 +12,14 @@ export { Provider, type ProviderDoc } from '@/models/Provider'
 export { PublishingJob, type PublishingJobDoc } from '@/models/PublishingJob'
 export { Order, type OrderDoc } from '@/models/Order'
 export { SalesMetric, type SalesMetricDoc } from '@/models/SalesMetric'
+export {
+  ProductLifecycleDecision,
+  type ProductLifecycleDecisionDoc,
+} from '@/models/ProductLifecycleDecision'
+export {
+  WeeklyAnalyticsReport,
+  type WeeklyAnalyticsReportDoc,
+} from '@/models/WeeklyAnalyticsReport'
 export { AutomationRun, type AutomationRunDoc } from '@/models/AutomationRun'
 export { AuditLog, type AuditLogDoc } from '@/models/AuditLog'
 export { Settings, type SettingsDoc } from '@/models/Settings'

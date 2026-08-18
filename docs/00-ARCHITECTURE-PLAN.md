@@ -22,7 +22,11 @@ Shopify-first POD pipeline: trends → score → slogans → safety → designs 
 6. Image generation + review ✅
 7. Shopify GraphQL drafts ✅
 8. Printify + publishing queue ✅
-9. Analytics, retirement, scheduler, tests, launch
+9. Analytics, retirement candidates, scheduler, tests, launch
+   - Analytics engine ✅ (KEEP / OPTIMIZE / RETIRE_CANDIDATE; no auto-delete)
+   - Automation scheduler ✅ (idempotent jobs, HUMAN_APPROVAL gate on publishing)
+   - Security pass + launch report ✅ (FAIL blocks “production-ready”)
+
 
 ## Non-negotiables
 - No hard-coded secrets
