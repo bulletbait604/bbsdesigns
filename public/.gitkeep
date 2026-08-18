@@ -1,0 +1,2 @@
+# Static assets for Next.js (favicon, robots, etc.). Keep this folder even if empty.
+# Do NOT set Vercel "Output Directory" to "public" — Next.js uses its own build output.
