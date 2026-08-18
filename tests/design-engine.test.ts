@@ -51,7 +51,7 @@ describe('design engine', () => {
     expect(result.design.promptVersion).toContain('viral-max')
     expect(result.design.prompt.toLowerCase()).toContain('flash formula')
     expect(result.design.sourceIdeaId).toBe('idea-demo-1')
-    expect(result.design.assetUrl).toBeTruthy()
+    expect(result.design.assetUrl).toBeDefined()
     expect(result.design.width).toBeGreaterThan(0)
     expect(result.design.createdAt).toBeTruthy()
     expect(result.publishAllowed).toBe(false)

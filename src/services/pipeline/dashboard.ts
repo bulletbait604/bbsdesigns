@@ -6,15 +6,29 @@ import { DEMO_IDEAS, DEMO_DESIGNS, type DemoIdea, type DemoDesign } from '@/lib/
 import { DEMO_APPROVALS, DEMO_STATS, DEMO_TRENDS, type PipelineStat, type QueueItem } from '@/lib/dashboardData'
 import type { Niche, SafetyDecision } from '@/types'
 
+function isBrowserSafeAssetUrl(url?: string | null): boolean {
+  if (!url) return false
+  if (url.startsWith('/api/design-assets/') || url.startsWith('/api/design-preview')) return true
+  if (url.startsWith('local://')) return false
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return false
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host === 'example.invalid' || host.endsWith('.invalid') || host === 'localhost') return false
+    return true
+  } catch {
+    return false
+  }
+}
+
 function previewArtwork(slogan: string, niche: Niche, assetUrl?: string | null): string {
-  if (assetUrl?.startsWith('/api/') || assetUrl?.startsWith('http')) return assetUrl
+  if (isBrowserSafeAssetUrl(assetUrl)) return assetUrl as string
   const q = new URLSearchParams({ slogan, niche, view: 'artwork' })
   return `/api/design-preview?${q.toString()}`
 }
 
 function previewMockup(slogan: string, niche: Niche, mockupKeys?: string[] | null): string {
   const first = mockupKeys?.[0]
-  if (first?.startsWith('/api/') || first?.startsWith('http')) return first
+  if (isBrowserSafeAssetUrl(first)) return first as string
   const q = new URLSearchParams({ slogan, niche, view: 'mockup' })
   return `/api/design-preview?${q.toString()}`
 }
@@ -203,11 +217,16 @@ export async function loadDesignsForDashboard(): Promise<{
       Boolean(doc.promptVersion) && doc.promptVersion !== DESIGN_PROMPT_VERSION
     const isPlaceholder =
       (doc.provider || '').includes('svg') ||
+      (doc.provider || '').includes('stub') ||
       (doc.model || '').includes('lite') ||
+      (doc.model || '').includes('stub') ||
       doc.mimeType === 'image/svg+xml' ||
       assetUrl.includes('design-preview') ||
+      assetUrl.startsWith('local://') ||
+      assetUrl.includes('example.invalid') ||
       missingRaster ||
-      stalePrompt
+      stalePrompt ||
+      !assetUrl
     return {
       id: mongoId,
       ideaId: String(doc.ideaId),

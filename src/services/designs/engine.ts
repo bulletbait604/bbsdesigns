@@ -47,11 +47,16 @@ export async function runDesignEngine(
   )
 
   const key = `designs/${input.niche}/${slug(input.slogan)}-${Date.now()}.png`
-  let assetUrl = `local://${key}`
+  // Dashboard serves via /api/design-assets after Mongo cache; never leave stub/local URLs.
+  let assetUrl = ''
   let assetKey = key
 
   const storage = tryGetProvider('storage')
-  if (storage && storage.validateConfig().ok) {
+  const storageOk =
+    storage &&
+    storage.validateConfig().ok &&
+    !storage.name.toLowerCase().includes('stub')
+  if (storageOk) {
     const stored = await callProvider(
       () =>
         storage.putObject({

@@ -19,6 +19,8 @@ import type { Niche, SafetyDecision } from '@/types'
 /** Make media URLs absolute for Shopify (relative /api paths need APP_URL). */
 export function toAbsoluteMediaUrl(url: string): string {
   if (!url) return url
+  const lower = url.toLowerCase()
+  if (lower.startsWith('local://') || lower.includes('example.invalid')) return ''
   if (/^https?:\/\//i.test(url)) return url
   const base = getEnv().APP_URL.replace(/\/$/, '')
   return `${base}${url.startsWith('/') ? '' : '/'}${url}`

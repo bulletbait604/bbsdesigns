@@ -42,14 +42,18 @@ function isSvgPlaceholderDesign(doc: {
 }): boolean {
   const provider = (doc.provider || '').toLowerCase()
   const model = (doc.model || '').toLowerCase()
-  const url = doc.assetUrl || ''
+  const url = (doc.assetUrl || '').toLowerCase()
   const stalePrompt = Boolean(doc.promptVersion) && doc.promptVersion !== DESIGN_PROMPT_VERSION
   return (
     provider.includes('svg') ||
+    provider.includes('stub') ||
     model.includes('svg') ||
     model.includes('lite') ||
+    model.includes('stub') ||
     doc.mimeType === 'image/svg+xml' ||
     url.includes('/api/design-preview') ||
+    url.startsWith('local://') ||
+    url.includes('example.invalid') ||
     stalePrompt
   )
 }

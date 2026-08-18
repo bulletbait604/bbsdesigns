@@ -88,8 +88,10 @@ export function createStubStorageProvider(name = 'stub-storage'): StorageProvide
   return {
     kind: 'storage',
     name,
-    validateConfig: () => missingConfig([]),
-    healthCheck: async () => health('storage', name, true, 'stub ready'),
+    // Never "configured" — otherwise the design engine persists example.invalid URLs
+    validateConfig: () => missingConfig(['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME']),
+    healthCheck: async () =>
+      health('storage', name, false, 'Stub only — configure Cloudflare R2 for public asset URLs'),
     putObject: async ({ key }) => ({
       key,
       url: `https://example.invalid/${key}`,
