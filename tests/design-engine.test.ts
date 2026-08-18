@@ -1,26 +1,35 @@
 import { describe, expect, it } from 'vitest'
-import { buildDesignPrompt } from '@/services/designs/prompt'
+import { buildDesignPrompt, selectFlashFormula } from '@/services/designs/prompt'
 import { runDesignEngine } from '@/services/designs/engine'
 import { bootstrapProviders } from '@/providers/bootstrap'
 import { clearProviders } from '@/providers/registry'
 
 describe('design engine', () => {
-  it('builds one-shot viral prompts with imagery and slogan text integrated', () => {
+  it('builds flash-merch prompts with inseparable art+text formulas', () => {
     const built = buildDesignPrompt({
       niche: 'gaming',
       slogan: 'Lag Is A Lifestyle',
       concept:
         'Self-roast. Visual: chubby cartoon Wi-Fi ghost dripping delay clocks, neon outline.',
     })
-    expect(built.promptVersion).toContain('viral-integrated')
+    expect(built.promptVersion).toContain('flash-merch')
     expect(built.prompt.toLowerCase()).toContain('no logos')
     expect(built.prompt.toLowerCase()).toContain('no copyrighted characters')
-    expect(built.prompt.toLowerCase()).toContain('viral')
-    expect(built.prompt.toLowerCase()).toContain('integrated')
+    expect(built.prompt.toLowerCase()).toContain('flash formula')
+    expect(built.prompt.toLowerCase()).toContain('inseparable')
     expect(built.prompt.toLowerCase()).toContain('wi-fi ghost')
     expect(built.prompt).toContain('Lag Is A Lifestyle')
-    expect(built.prompt.toLowerCase()).toMatch(/slogan text|lettering/)
+    expect(built.prompt.toLowerCase()).toMatch(/lettering|slogan/)
     expect(built.negativePrompt.toLowerCase()).toMatch(/boring|art without any text|text without illustration/)
+  })
+
+  it('rotates flash formulas by slogan seed', () => {
+    const a = selectFlashFormula({ niche: 'gaming', slogan: 'Lag Is A Lifestyle' })
+    const b = selectFlashFormula({ niche: 'gaming', slogan: 'Lag Is A Lifestyle' })
+    const c = selectFlashFormula({ niche: 'baseball', slogan: 'I Only Swing At Bad Ideas' })
+    expect(a).toBe(b)
+    expect(['letter_as_icon', 'prop_locked_text', 'kinetic_type_block', 'arched_hero_frame']).toContain(a)
+    expect(['letter_as_icon', 'prop_locked_text', 'kinetic_type_block', 'arched_hero_frame']).toContain(c)
   })
 
   it('stores provider/model/prompt provenance and never allows publish', async () => {
@@ -38,7 +47,8 @@ describe('design engine', () => {
     expect(result.design.model).toBeTruthy()
     expect(result.design.model).not.toContain('compose-typo')
     expect(result.design.prompt).toContain('Sunburnt')
-    expect(result.design.promptVersion).toContain('viral-integrated')
+    expect(result.design.promptVersion).toContain('flash-merch')
+    expect(result.design.prompt.toLowerCase()).toContain('flash formula')
     expect(result.design.sourceIdeaId).toBe('idea-demo-1')
     expect(result.design.assetUrl).toBeTruthy()
     expect(result.design.width).toBeGreaterThan(0)

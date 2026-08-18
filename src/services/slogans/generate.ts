@@ -223,10 +223,10 @@ function buildSloganUserPrompt(input: {
     '- 3 to 8 words (or two short punchy sentences with periods)',
     '- max 48 characters preferred',
     '- specific joke, not generic "I love [sport/gaming]"',
-    '- printable as secondary tee lettering',
+    '- printable as bold flashy tee lettering woven into a graphic',
     '- avoid: Mode Activated, vibes, it\'s giving, main character, CEO of, Live Laugh, hashtags',
     'Rules for concept: one sentence explaining the joke.',
-    'Rules for visual: one concrete illustration brief (subject + action + style) an artist could draw without reading the slogan — no text in the visual description except optional tiny prop labels.',
+    'Rules for visual: one concrete FLASHY illustration brief for a viral tee — subject that can lock into lettering (mascot with headband/banner, icon that can replace a letter, bolt/bat/mitt that can weave through stacked type). Include color vibe (neon, candy, athletic yellow). No real people photos. No logos.',
   ]
     .filter(Boolean)
     .join('\n')

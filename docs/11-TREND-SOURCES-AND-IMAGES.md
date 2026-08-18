@@ -44,6 +44,6 @@ Matches starter package prompt 009: **original artwork + clean typography** in *
 3. Redeploy
 4. Designs → **Generate viral design (art + text)**
 
-**Pipeline:** Gemini creates a single scroll-stopping merch graphic with the cartoon hero **and** the exact slogan lettering integrated together — not text-only posters, not art with a separate type overlay.
+**Pipeline:** Gemini creates a single flashy merch graphic using rotating formulas (letter-as-icon, prop-locked text, kinetic type block, arched hero frame) so slogan lettering and illustration are inseparable — like bestselling streetwear tees, not text-only posters.
 
 Automation `design_generation` creates up to `MAX_AI_DESIGNS_PER_RUN` (default 5) per run and upgrades old SVG placeholders.

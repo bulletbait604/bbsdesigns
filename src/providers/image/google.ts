@@ -267,13 +267,12 @@ export function createGoogleImageProvider(name = 'google-gemini-image'): ImagePr
         })
       }
 
-      // Keep negatives short — long "avoid X" lists often get drawn anyway.
       const prompt = [
         request.prompt,
         request.negativePrompt
           ? `Keep the artwork free of: ${request.negativePrompt}.`
           : '',
-        `Square ${resolveAspectRatio(request.aspectRatio)} print graphic, high clarity.`,
+        'Output a single square flashy merch graphic: bold illustration locked together with readable slogan lettering, high contrast, print-ready.',
       ]
         .filter(Boolean)
         .join(' ')

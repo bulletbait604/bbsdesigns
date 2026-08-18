@@ -13,7 +13,7 @@ export default async function DesignsPage() {
       title="Designs"
       subtitle={
         source === 'mongo'
-          ? 'Each design is one viral AI image: cartoon imagery + slogan text integrated together — not text-only posters.'
+          ? 'Each design is one flashy viral tee graphic: cartoon imagery locked together with slogan lettering (not text-only, not boring stickers).'
           : 'Catalog previews (SVG placeholders). Connect Mongo + Gemini, then run design_generation for real AI designs.'
       }
     >

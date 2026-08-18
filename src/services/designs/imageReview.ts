@@ -90,7 +90,7 @@ export function reviewGeneratedImage(input: {
   if (input.hasCompositedTypography) {
     qualityScore = Math.min(100, qualityScore + 2)
   }
-  if (promptLower.includes('viral') || promptLower.includes('eye-catching') || promptLower.includes('integrated')) {
+  if (promptLower.includes('viral') || promptLower.includes('flash') || promptLower.includes('inseparable') || promptLower.includes('integrated')) {
     qualityScore = Math.min(100, qualityScore + 2)
   }
 
