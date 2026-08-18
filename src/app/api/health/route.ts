@@ -4,6 +4,7 @@ import { isMongoConfigured } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { bootstrapProviders } from '@/providers/bootstrap'
 import { healthCheckAll, listProviders } from '@/providers/registry'
+import { assessAutonomyReadiness } from '@/services/automation/readiness'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,7 @@ export async function GET() {
     const env = getEnv()
     bootstrapProviders()
     const providerHealth = await healthCheckAll()
+    const autonomy = assessAutonomyReadiness()
 
     return NextResponse.json({
       ok: true,
@@ -22,6 +24,7 @@ export async function GET() {
       missingIntegrations: missingOptionalIntegrations(env),
       providers: listProviders().map((p) => p.kind),
       providerHealth,
+      autonomy,
     })
   } catch (error) {
     logger.error('healthcheck_failed', { error: error instanceof Error ? error.message : String(error) })

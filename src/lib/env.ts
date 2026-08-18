@@ -127,15 +127,28 @@ export function resetEnvCache(): void {
   cached = null
 }
 
+function hasGeminiFamilyKey(env: AppEnv): boolean {
+  return Boolean(
+    (env.AI_TEXT_API_KEY || '').trim() ||
+      (env.IMAGE_API_KEY || '').trim() ||
+      (process.env.GOOGLE_API_KEY || '').trim() ||
+      (process.env.GEMINI_API_KEY || '').trim() ||
+      (process.env.GEMINI_API || '').trim()
+  )
+}
+
 /** Soft check for optional integrations — foundation boot does not require them. */
 export function missingOptionalIntegrations(env: AppEnv = getEnv()): string[] {
   const missing: string[] = []
   if (!env.MONGODB_URI) missing.push('MONGODB_URI')
   if (!env.SHOPIFY_STORE_DOMAIN || !env.SHOPIFY_ADMIN_ACCESS_TOKEN) missing.push('SHOPIFY')
   if (!env.PRINTIFY_API_TOKEN) missing.push('PRINTIFY_API_TOKEN')
-  if (!env.AI_TEXT_API_KEY) missing.push('AI_TEXT_API_KEY')
-  if (!env.IMAGE_API_KEY) missing.push('IMAGE_API_KEY')
+  // Text + image both accept GEMINI_API / GOOGLE_API_KEY aliases
+  if (!hasGeminiFamilyKey(env)) {
+    missing.push('GEMINI_API_OR_IMAGE_API_KEY')
+  }
   if (!env.SERPAPI_API_KEY) missing.push('SERPAPI_API_KEY')
   if (!env.ETSY_API_KEY || !env.ETSY_SHARED_SECRET) missing.push('ETSY')
+  if (!(process.env.CRON_SECRET || '').trim()) missing.push('CRON_SECRET')
   return missing
 }
