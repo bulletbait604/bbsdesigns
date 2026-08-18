@@ -35,6 +35,10 @@ const envSchema = z.object({
   R2_BUCKET_NAME: z.string().optional().default(''),
   R2_PUBLIC_URL: z.string().optional().default(''),
 
+  AUTH_SECRET: z.string().optional().default(''),
+  /** One-time bootstrap secret required to set the Admin password the first time. */
+  ADMIN_SETUP_TOKEN: z.string().optional().default(''),
+
   HUMAN_APPROVAL: boolFromEnv.default(true),
   AUTO_PUBLISH: boolFromEnv.default(false),
   MIN_DESIGN_QUALITY_SCORE: z.coerce.number().min(0).max(100).default(85),

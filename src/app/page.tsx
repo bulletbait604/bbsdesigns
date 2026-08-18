@@ -15,13 +15,13 @@ export default function HomePage() {
         </p>
         <div className="animate-rise-delay mt-8 flex flex-wrap gap-3">
           <Link
-            href="/dashboard"
+            href="/login"
             className="rounded-md bg-accent px-5 py-3 text-sm font-semibold text-ink transition hover:brightness-110"
           >
-            Open operator dashboard
+            Admin login
           </Link>
           <Link
-            href="/dashboard/providers"
+            href="/login?next=/dashboard/providers"
             className="rounded-md border border-line px-5 py-3 text-sm text-text transition hover:border-accent/50"
           >
             Connect Shopify & Printify

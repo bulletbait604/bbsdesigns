@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { DASHBOARD_NAV } from '@/lib/dashboardData'
+import { LogoutButton } from '@/components/dashboard/LogoutButton'
 
 export function DashboardShell({
   title,
@@ -20,6 +21,7 @@ export function DashboardShell({
             bbsdesigns
           </Link>
           <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted">Merch Factory Ops</p>
+          <p className="mt-2 text-xs text-accent-2">Signed in as Admin</p>
           <nav className="mt-8 flex flex-row gap-2 overflow-x-auto pb-2 md:flex-col md:overflow-visible md:pb-0">
             {DASHBOARD_NAV.map((item) => {
               const active = activePath === item.href
@@ -38,6 +40,7 @@ export function DashboardShell({
               )
             })}
           </nav>
+          <LogoutButton />
           <div className="mt-8 hidden rounded-md border border-line bg-panel/70 p-3 text-xs text-muted md:block">
             <p className="flex items-center gap-2 text-accent">
               <span className="live-dot inline-block h-2 w-2 rounded-full bg-accent" />

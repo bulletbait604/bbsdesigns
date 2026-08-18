@@ -1,16 +1,19 @@
-import { PlaceholderPanel } from '@/components/dashboard/PlaceholderPanel'
+import { DashboardShell } from '@/components/dashboard/DashboardShell'
+import { DesignGalleryCard } from '@/components/dashboard/DesignGalleryCard'
+import { DEMO_DESIGNS } from '@/lib/demoCatalog'
 
 export default function DesignsPage() {
   return (
-    <PlaceholderPanel
+    <DashboardShell
       activePath="/dashboard/designs"
       title="Designs"
-      subtitle="Generated artwork and mockups for approved ideas."
-      bullets={[
-        'No franchise characters, logos, or celebrity likenesses',
-        'Quality score gate before listing prep',
-        'Image + review engines land in prompts 009–010',
-      ]}
-    />
+      subtitle="Artwork and apparel mockups for each concept. Previews render live from the design catalog."
+    >
+      <div className="space-y-6">
+        {DEMO_DESIGNS.map((design) => (
+          <DesignGalleryCard key={design.id} design={design} />
+        ))}
+      </div>
+    </DashboardShell>
   )
 }

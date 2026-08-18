@@ -44,6 +44,8 @@ export type QueueItem = {
   designLabel: string
   mockupLabel: string
   status: string
+  /** Links to SVG preview catalog when artwork exists */
+  designPreviewId?: 'lag-lifestyle' | 'sunburnt-softball' | 'swing-bad-ideas' | 'cleats-dignity'
 }
 
 /** Demo ops data so the dashboard renders before Mongo/API wiring. */
@@ -73,6 +75,7 @@ export const DEMO_APPROVALS: QueueItem[] = [
     designLabel: 'Type-led dugout mark',
     mockupLabel: 'Black tee · front print',
     status: 'awaiting_approval',
+    designPreviewId: 'sunburnt-softball',
   },
   {
     id: 'appr-002',
@@ -91,6 +94,7 @@ export const DEMO_APPROVALS: QueueItem[] = [
     designLabel: 'Pixel-noise wordmark',
     mockupLabel: 'Navy hoodie · chest print',
     status: 'awaiting_approval',
+    designPreviewId: 'lag-lifestyle',
   },
   {
     id: 'appr-003',

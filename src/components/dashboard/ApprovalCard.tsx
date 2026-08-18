@@ -1,4 +1,5 @@
 import type { QueueItem } from '@/lib/dashboardData'
+import { artworkUrl, mockupUrl } from '@/lib/demoCatalog'
 
 function Score({ label, value, warn }: { label: string; value: number; warn?: boolean }) {
   return (
@@ -13,6 +14,7 @@ function Score({ label, value, warn }: { label: string; value: number; warn?: bo
 
 export function ApprovalCard({ item }: { item: QueueItem }) {
   const rejected = item.safetyDecision === 'REJECT'
+  const previewId = item.designPreviewId
 
   return (
     <article className="rounded-md border border-line bg-panel/80 p-5">
@@ -30,6 +32,37 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
           {item.safetyDecision}
         </span>
       </div>
+
+      {previewId ? (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="relative aspect-square overflow-hidden rounded-md border border-line bg-ink">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={artworkUrl(previewId)}
+              alt={`Design for ${item.title}`}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <span className="absolute left-2 top-2 rounded bg-ink/80 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-accent">
+              Design
+            </span>
+          </div>
+          <div className="relative aspect-square overflow-hidden rounded-md border border-line bg-ink">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mockupUrl(previewId)}
+              alt={`Mockup for ${item.title}`}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <span className="absolute left-2 top-2 rounded bg-ink/80 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-accent-2">
+              Mockup
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-5 rounded-md border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
+          No design/mockup — safety REJECT blocked generation.
+        </div>
+      )}
 
       <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
         <div>
