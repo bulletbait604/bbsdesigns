@@ -4,7 +4,7 @@ import { tryGetProvider } from '@/providers/registry'
 import { logger } from '@/lib/logger'
 import { activeOccasionBrief } from '@/services/trends/viralAlgorithm'
 
-export const SLOGAN_PROMPT_VERSION = 'slogan-engine-v4-viral-flash'
+export const SLOGAN_PROMPT_VERSION = 'slogan-engine-v5-viral-social'
 
 type Template = {
   niche: Niche
@@ -86,12 +86,90 @@ const TEMPLATES: Template[] = [
     concept:
       'Post-game priorities. Visual: pizza slice wearing a tiny catcher helmet on a scoreboard that reads LATER, warm comedy colors.',
   },
+  {
+    niche: 'pets',
+    slogan: 'Dog Hair Is My Glitter',
+    concept:
+      'Pet-parent flex. Visual: fluffy cartoon dog shedding neon glitter stars onto a sparkly sweater, bubble type energy.',
+  },
+  {
+    niche: 'pets',
+    slogan: 'Chaos Coordinator (Pet Edition)',
+    concept:
+      'Household zoo sarcasm. Visual: cat and dog tangled in a yarn tornado with sunglasses, maximalist pop colors.',
+  },
+  {
+    niche: 'teacher',
+    slogan: 'Powered By Coffee & Glue Sticks',
+    concept:
+      'Classroom survival humor. Visual: exploding coffee cup with glue-stick rockets, chalk dust sparks, loud outlines.',
+  },
+  {
+    niche: 'teacher',
+    slogan: 'Too Blessed To Be Stressed? Debatable.',
+    concept:
+      'Educator sarcasm. Visual: smiling apple mascot with cracked halo and sticky-note armor, neon accents.',
+  },
+  {
+    niche: 'nurse',
+    slogan: 'Scrubs On. Patience Loading.',
+    concept:
+      'Shift humor. Visual: cartoon stethoscope coiled like a snake wearing tiny sneakers, loading bar, cyan neon.',
+  },
+  {
+    niche: 'nurse',
+    slogan: 'Code Brown Survivor',
+    concept:
+      'Healthcare dark-light humor (keep tasteful). Visual: heroic rubber glove cape character, comic burst, no gore.',
+  },
+  {
+    niche: 'humor',
+    slogan: 'Currently Unavailable Emotionally',
+    concept:
+      'Viral sarcastic energy. Visual: broken heart vending machine flashing SOLD OUT, kinetic multi-color type.',
+  },
+  {
+    niche: 'humor',
+    slogan: 'Running On Sarcasm & Snacks',
+    concept:
+      'Shareable lifestyle joke. Visual: snack bag rocket blasting past a sarcasm meter in the red, festival tee punch.',
+  },
+  {
+    niche: 'retro',
+    slogan: 'Hot & Flashy Forever',
+    concept:
+      'Y2K wordmark flex. Visual: bubbly multi-color letters with a daisy replacing O, heavy drop shadows, dark void.',
+  },
+  {
+    niche: 'retro',
+    slogan: 'Dial-Up Heart Forever Online',
+    concept:
+      'Nostalgia humor. Visual: chunky retro phone melting into neon hearts, chrome highlights, maximalist poster type.',
+  },
+  {
+    niche: 'bookish',
+    slogan: 'One More Chapter Liar',
+    concept:
+      'Reader self-roast. Visual: chubby book mascot with raccoon eyes and a glowing chapter counter, candy colors.',
+  },
+  {
+    niche: 'bookish',
+    slogan: 'Plot Twist: I Need A Nap',
+    concept:
+      'Bookish sarcasm. Visual: plot-twist tornado of pages swirling around a sleepy moon bookmark, bold comic ink.',
+  },
 ]
 
 const GOOD_EXAMPLES: Record<Niche, string[]> = {
   gaming: ['Lag Is A Lifestyle', 'I Queue Therefore I Suffer', 'Respawned But Emotionally Not'],
   baseball: ['I Only Swing At Bad Ideas', 'Sunflower Seeds & Bad Decisions', 'Error 6 Mentality'],
   softball: ['Sunburnt. Competitive. Still Here.', 'Cleats On. Dignity Optional.', 'Pizza First. Standings Later.'],
+  pets: ['Dog Hair Is My Glitter', 'Chaos Coordinator (Pet Edition)'],
+  teacher: ['Powered By Coffee & Glue Sticks', 'Too Blessed To Be Stressed? Debatable.'],
+  nurse: ['Scrubs On. Patience Loading.', 'Code Brown Survivor'],
+  humor: ['Currently Unavailable Emotionally', 'Running On Sarcasm & Snacks'],
+  retro: ['Hot & Flashy Forever', 'Dial-Up Heart Forever Online'],
+  bookish: ['One More Chapter Liar', 'Plot Twist: I Need A Nap'],
 }
 
 /** Cheap patterns that produce unbuyable / cringe merch copy. */

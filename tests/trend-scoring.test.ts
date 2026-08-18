@@ -14,7 +14,8 @@ describe('trend scoring', () => {
   it('uses Viral Flash default weights', () => {
     expect(DEFAULT_TREND_WEIGHTS).toMatchObject({ ...VIRAL_TREND_WEIGHTS })
     expect(DEFAULT_TREND_WEIGHTS.commercialIntent).toBe(0.2)
-    expect(DEFAULT_TREND_WEIGHTS.seasonality).toBe(0.18)
+    expect(DEFAULT_TREND_WEIGHTS.seasonality).toBe(0.16)
+    expect(DEFAULT_TREND_WEIGHTS.virality).toBe(0.24)
   })
 
   it('normalizes custom weights to sum to 1', () => {

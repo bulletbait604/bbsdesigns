@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getDemoDesign, type DesignPreviewId } from '@/lib/demoCatalog'
 import { buildArtworkSvg, buildMockupSvg, buildLiveMerchDesign } from '@/lib/svgMerch'
+import { isNiche } from '@/lib/niches'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,10 +18,10 @@ export async function GET(request: Request) {
   const nicheParam = searchParams.get('niche')
   const view = searchParams.get('view') === 'mockup' ? 'mockup' : 'artwork'
 
-  if (slogan && nicheParam && ['gaming', 'baseball', 'softball'].includes(nicheParam)) {
+  if (slogan && nicheParam && isNiche(nicheParam)) {
     const design = buildLiveMerchDesign({
       slogan,
-      niche: nicheParam as 'gaming' | 'baseball' | 'softball',
+      niche: nicheParam,
     })
     const svg = view === 'mockup' ? buildMockupSvg(design) : buildArtworkSvg(design)
     return new NextResponse(svg, { headers: SVG_HEADERS })

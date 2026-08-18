@@ -1,5 +1,6 @@
 import { Schema, models, model, type InferSchemaType, type Model } from 'mongoose'
 import { provenanceSchema } from '@/models/provenance'
+import { NICHE_ENUM } from '@/lib/niches'
 
 const ideaSchema = new Schema(
   {
@@ -7,7 +8,7 @@ const ideaSchema = new Schema(
     brandId: { type: Schema.Types.ObjectId, ref: 'Brand', required: true, index: true },
     niche: {
       type: String,
-      enum: ['gaming', 'baseball', 'softball'],
+      enum: NICHE_ENUM,
       required: true,
     },
     slogan: { type: String, required: true, trim: true },

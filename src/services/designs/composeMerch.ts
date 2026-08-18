@@ -29,6 +29,12 @@ const ACCENT: Record<Niche, string> = {
   gaming: '#5eead4',
   baseball: '#86efac',
   softball: '#f0abfc',
+  pets: '#fb923c',
+  teacher: '#fbbf24',
+  nurse: '#22d3ee',
+  humor: '#f472b6',
+  retro: '#c084fc',
+  bookish: '#f59e0b',
 }
 
 /**

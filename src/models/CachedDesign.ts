@@ -1,4 +1,5 @@
 import { Schema, models, model, type InferSchemaType, type Model } from 'mongoose'
+import { NICHE_ENUM } from '@/lib/niches'
 
 /**
  * Cached AI design assets — avoids re-calling Gemini for the same slogan/concept.
@@ -9,7 +10,7 @@ const cachedDesignSchema = new Schema(
     cacheKey: { type: String, required: true, unique: true, index: true },
     niche: {
       type: String,
-      enum: ['gaming', 'baseball', 'softball'],
+      enum: NICHE_ENUM,
       required: true,
       index: true,
     },

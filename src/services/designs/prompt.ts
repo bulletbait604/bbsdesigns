@@ -56,6 +56,18 @@ const NICHE_HEROES: Record<Niche, string> = {
     'original cartoon hero: swagger baseball with shades, bat mid-chaos spark, diving mitt catching lightning — invent marks, never a real team or jersey',
   softball:
     'original cartoon hero: sunburnt mitt with attitude, pizza-helmet catcher, cleats kicking glitter fireworks — invent marks, never a real team',
+  pets:
+    'original cartoon hero: fluffy dog shedding glitter, smug cat in sunglasses, tangled leash tornado creature — invent marks, never a real brand mascot',
+  teacher:
+    'original cartoon hero: exploding coffee cup rocket, glue-stick missile, grinning apple with sticky-note armor — invent marks, never a real school logo',
+  nurse:
+    'original cartoon hero: heroic stethoscope creature, rubber-glove cape hero, calm chaos heart monitor spark — invent marks, never a hospital logo',
+  humor:
+    'original cartoon hero: sarcasm vending machine, snack-rocket mascot, exploding emoji storm (original shapes only) — maximalist festival tee energy',
+  retro:
+    'original cartoon hero: melting retro phone heart, chrome daisy bolt, Y2K bubble creature — invent shapes, never copyrighted 90s characters',
+  bookish:
+    'original cartoon hero: chubby book with raccoon eyes, page tornado moon bookmark, plot-twist whirlwind — invent marks, never publisher logos',
 }
 
 function pickFlashFormula(slogan: string, niche: Niche): FlashFormulaId {
@@ -98,7 +110,7 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
 
   const prompt = [
     'Create ONE square print-ready T-SHIRT GRAPHIC (the print artwork only — no shirt mockup, no photo of a person wearing a tee).',
-    'GOAL: a MAXIMALIST FLASHY viral merch design like a bestselling Etsy / Shopify / festival streetwear tee — loud, dense, colorful, scroll-stopping, gift-ready. If it looks calm, minimal, corporate, or “clean poster,” it FAILED.',
+    'GOAL: a MAXIMALIST FLASHY viral merch design like a bestselling Etsy / TikTok / Shopify streetwear tee — loud, dense, colorful, scroll-stopping, gift-ready. If it looks calm, minimal, corporate, or “clean poster,” it FAILED. Think festival merch people screenshot and share.',
     `SEASONAL / OCCASION CONTEXT (inspire vibe only, do not print these words unless they appear in the slogan): ${occasion}.`,
     `FLASH FORMULA (${formula.name}): ${formula.layout}`,
     `REFERENCE VIBE: ${formula.vibe}. MUST use retro/Y2K bubble type OR kinetic multi-color stacked type OR athletic neon varsity — heavy drop shadows, layered offsets, saturated candy/neon palette.`,

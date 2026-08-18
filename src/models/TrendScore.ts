@@ -1,4 +1,5 @@
 import { Schema, models, model, type InferSchemaType, type Model } from 'mongoose'
+import { NICHE_ENUM } from '@/lib/niches'
 
 const scoreComponentsSchema = new Schema(
   {
@@ -25,7 +26,7 @@ const trendScoreSchema = new Schema(
     },
     niche: {
       type: String,
-      enum: ['gaming', 'baseball', 'softball'],
+      enum: NICHE_ENUM,
       required: true,
     },
     score: { type: Number, required: true, min: 0, max: 100, index: true },

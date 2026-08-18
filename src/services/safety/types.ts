@@ -1,3 +1,5 @@
+import type { Niche } from '@/lib/niches'
+
 export const SAFETY_POLICY_VERSION = 'safety-policy-v1'
 
 export type SafetyDecision = 'PASS' | 'REVIEW' | 'REJECT'
@@ -19,7 +21,7 @@ export type SafetyStageResult = {
 
 export type SafetyReviewInput = {
   text: string
-  niche?: 'gaming' | 'baseball' | 'softball'
+  niche?: Niche
   imageSummary?: string
   imageBytesLength?: number
   imageMimeType?: string

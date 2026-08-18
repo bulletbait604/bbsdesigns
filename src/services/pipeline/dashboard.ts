@@ -242,7 +242,24 @@ export async function loadDesignsForDashboard(): Promise<{
       palette: {
         bg: '#0b1220',
         ink: '#f4f7fb',
-        accent: niche === 'gaming' ? '#5eead4' : niche === 'baseball' ? '#86efac' : '#f0abfc',
+        accent:
+          niche === 'gaming'
+            ? '#5eead4'
+            : niche === 'baseball'
+              ? '#86efac'
+              : niche === 'softball'
+                ? '#f0abfc'
+                : niche === 'pets'
+                  ? '#fb923c'
+                  : niche === 'teacher'
+                    ? '#fbbf24'
+                    : niche === 'nurse'
+                      ? '#22d3ee'
+                      : niche === 'retro'
+                        ? '#c084fc'
+                        : niche === 'bookish'
+                          ? '#f59e0b'
+                          : '#f472b6',
         shirt: '#1e293b',
       },
       source: 'mongo',

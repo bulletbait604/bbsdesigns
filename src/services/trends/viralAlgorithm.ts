@@ -1,25 +1,21 @@
-import type { Niche } from '@/types'
+import type { Niche } from '@/lib/niches'
+import { NICHES } from '@/lib/niches'
 
 /** Bump this to invalidate old viral-research caches and scoring provenance. */
-export const VIRAL_ALGORITHM_VERSION = 'viral-v1-flash-2026-08-r1'
+export const VIRAL_ALGORITHM_VERSION = 'viral-v2-social-etsy-2026-08'
 
 /**
- * Viral Flash Merch Algorithm (2026 research — Etsy/Shopify/POD public reports + SerpAPI/Etsy APIs):
- * - Identity × Interest × Occasion beats generic "funny shirt"
- * - Holiday/occasion windows spike gift demand (list 4–8 weeks early)
- * - Flash aesthetics: retro/Y2K bubble type, maximalist neon, varsity arches, sarcastic humor graphics
- * - Flash design fit: inseparable art+text (letter-as-icon, prop text, kinetic type, arched frame)
- * - Marketplace commercial intent from Shopping/Etsy demand
- * - Never bypasses IP/safety
+ * Viral Flash Merch Algorithm v2:
+ * Research what people love on Etsy, Google Shopping, and social-discovery queries
+ * (TikTok/Instagram merch language via SerpAPI — no ToS-violating HTML scrapes).
  *
- * Sources: SerpAPI Google Shopping + Google Trends, Etsy Open API, curated viral seeds.
- * No ToS-violating HTML scrapes of Etsy/Shopify storefronts.
+ * Niches: gaming, baseball, softball + pets, teacher, nurse, humor, retro, bookish.
+ * Design goal: maximalist flashy inseparable art+text graphics.
  */
 
 export type HolidayWindow = {
   id: string
   label: string
-  /** Inclusive month-day windows as MM-DD (UTC), may wrap year */
   startMd: string
   endMd: string
   keywords: string[]
@@ -27,7 +23,6 @@ export type HolidayWindow = {
   leadWeeks: number
 }
 
-/** Active gift/occasion calendar for merch planning. */
 export const HOLIDAY_WINDOWS: HolidayWindow[] = [
   {
     id: 'back_to_school',
@@ -98,7 +93,7 @@ export const HOLIDAY_WINDOWS: HolidayWindow[] = [
     startMd: '04-15',
     endMd: '06-20',
     keywords: ["father's day", 'dad gift', 'papa'],
-    niches: ['gaming', 'baseball', 'softball'],
+    niches: ['all'],
     leadWeeks: 6,
   },
   {
@@ -119,15 +114,6 @@ export const HOLIDAY_WINDOWS: HolidayWindow[] = [
     niches: ['baseball', 'softball'],
     leadWeeks: 2,
   },
-  {
-    id: 'holiday_gaming',
-    label: 'Holiday gaming gift',
-    startMd: '10-15',
-    endMd: '12-31',
-    keywords: ['gamer gift', 'christmas gamer', 'holiday gaming'],
-    niches: ['gaming'],
-    leadWeeks: 6,
-  },
 ]
 
 function mdToOrdinal(md: string): number {
@@ -141,7 +127,6 @@ function dateToOrdinal(d: Date): number {
 
 function inWindow(ord: number, start: number, end: number): boolean {
   if (start <= end) return ord >= start && ord <= end
-  // wraps year (e.g. Dec 15 → Jan 10)
   return ord >= start || ord <= end
 }
 
@@ -168,7 +153,6 @@ export function holidayBoostForText(text: string, niche: Niche, now = new Date()
       matched.push(w.id)
       score += 18
     } else {
-      // Soft boost during active window even without keyword (plan ahead)
       score += 6
     }
   }
@@ -197,6 +181,9 @@ const FLASH_DESIGN_TERMS = [
   'joke',
   'spooky',
   'halloween',
+  'viral',
+  'tiktok',
+  'etsy',
   'tee',
   'tshirt',
   't-shirt',
@@ -209,6 +196,11 @@ const IDENTITY_TERMS = [
   'mama',
   'papa',
   'teacher',
+  'nurse',
+  'dog mom',
+  'cat mom',
+  'book',
+  'reader',
   'coach',
   'beer league',
   'gamer',
@@ -216,26 +208,25 @@ const IDENTITY_TERMS = [
   'dugout',
   'night owl',
   'team mom',
+  'plant mom',
 ]
 
-/** How well a theme supports flashy inseparable art+text merch. */
 export function scoreFlashDesignFit(text: string): number {
   const lower = text.toLowerCase()
   const hits = FLASH_DESIGN_TERMS.reduce((n, t) => (lower.includes(t) ? n + 1 : n), 0)
-  // Generic "shirt" alone is weak; specificity + humor/graphic language wins
   let score = 40 + Math.min(45, hits * 8)
   if (/\b(official|licensed|authentic)\b/i.test(lower)) score -= 25
   if (/\b(minimal|plain text|quote only)\b/i.test(lower)) score -= 20
-  if (/\b(gamer dad|beer league|dugout|lag|respawn|softball mom|baseball dad)\b/i.test(lower)) {
+  if (
+    /\b(gamer dad|beer league|dugout|lag|respawn|softball mom|dog mom|teacher|nurse|bookish)\b/i.test(
+      lower
+    )
+  ) {
     score += 12
   }
   return Math.max(0, Math.min(100, Math.round(score)))
 }
 
-/**
- * Identity × Interest specificity (2026 Etsy/POD pattern).
- * Hyper-specific roles beat generic "funny tee".
- */
 export function scoreIdentitySpecificity(text: string, niche: Niche): number {
   const lower = text.toLowerCase()
   const identityHits = IDENTITY_TERMS.reduce((n, t) => (lower.includes(t) ? n + 1 : n), 0)
@@ -248,7 +239,6 @@ export function scoreIdentitySpecificity(text: string, niche: Niche): number {
   return Math.max(0, Math.min(100, Math.round(score)))
 }
 
-/** Active occasion labels for slogan/design briefs. */
 export function activeOccasionBrief(niche: Niche, now = new Date()): string {
   const active = getActiveHolidayWindows(now).filter(
     (w) => w.niches.includes('all') || w.niches.includes(niche)
@@ -256,47 +246,112 @@ export function activeOccasionBrief(niche: Niche, now = new Date()): string {
   if (!active.length) return 'Evergreen identity humor (no peak holiday window).'
   return active
     .slice(0, 3)
-    .map((w) => `${w.label} (list ~${w.leadWeeks}w early; keywords: ${w.keywords.slice(0, 3).join(', ')})`)
+    .map(
+      (w) =>
+        `${w.label} (list ~${w.leadWeeks}w early; keywords: ${w.keywords.slice(0, 3).join(', ')})`
+    )
     .join(' | ')
 }
 
-/**
- * Default weights for viral flash merch opportunity (sums to 1).
- * Emphasizes marketplace demand + flash design fit + holiday seasonality.
- */
 export const VIRAL_TREND_WEIGHTS = {
-  virality: 0.22,
-  growth: 0.12,
+  virality: 0.24,
+  growth: 0.14,
   commercialIntent: 0.2,
   audienceFit: 0.12,
-  seasonality: 0.18,
+  seasonality: 0.16,
   evergreenPotential: 0.06,
-  competition: 0.1,
+  competition: 0.08,
 } as const
 
-/** Research query packs — SerpAPI/Etsy use these (themes only, never copy art). */
+/** Cross-marketplace / social-discovery queries (themes only). */
+export function viralMarketplaceQueries(now = new Date()): string[] {
+  const occasion = getActiveHolidayWindows(now)
+    .slice(0, 2)
+    .flatMap((w) => [
+      `viral ${w.keywords[0]} funny tshirt`,
+      `etsy bestselling ${w.keywords[0]} graphic tee`,
+    ])
+  return [
+    'viral funny graphic tshirt tiktok',
+    'etsy bestselling funny tshirt',
+    'trending sarcastic graphic tee',
+    'retro y2k bubble letter tshirt',
+    'dog mom funny shirt viral',
+    'teacher humor graphic tee',
+    'nurse funny shirt etsy',
+    'book lover funny tshirt graphic',
+    'halloween funny graphic tee viral',
+    ...occasion,
+  ].slice(0, 10)
+}
+
+/** Map a marketplace title to the best matching niche. */
+export function inferNicheFromText(text: string): Niche {
+  const lower = text.toLowerCase()
+  if (/\b(softball)\b/.test(lower)) return 'softball'
+  if (/\b(baseball|dugout|homer)\b/.test(lower)) return 'baseball'
+  if (/\b(gamer|gaming|controller|lag|respawn|pixel)\b/.test(lower)) return 'gaming'
+  if (/\b(teacher|educator|classroom|principal)\b/.test(lower)) return 'teacher'
+  if (/\b(nurse|rn\b|healthcare|scrubs)\b/.test(lower)) return 'nurse'
+  if (/\b(dog|cat|pet|puppy|kitten|golden retriever)\b/.test(lower)) return 'pets'
+  if (/\b(book|reader|library|novel|bookish)\b/.test(lower)) return 'bookish'
+  if (/\b(retro|vintage|y2k|90s|80s)\b/.test(lower)) return 'retro'
+  return 'humor'
+}
+
+/** Research query packs per niche — SerpAPI/Etsy (themes only, never copy art). */
 export function viralSearchQueries(niche: Niche, now = new Date()): string[] {
   const base: Record<Niche, string[]> = {
     gaming: [
-      'funny gaming tshirt',
-      'gamer humor shirt flashy graphic',
-      'retro gamer bubble typography tee',
-      'lag joke merch',
-      'christmas gamer gift shirt',
+      'funny gaming tshirt viral',
+      'gamer humor flashy graphic tee',
+      'retro gamer bubble typography shirt',
     ],
     baseball: [
-      'funny baseball tshirt',
-      'beer league baseball shirt',
-      'retro baseball varsity graphic tee',
+      'funny baseball tshirt viral',
+      'beer league baseball graphic tee',
       'baseball dad joke merch',
-      'fathers day baseball shirt',
     ],
     softball: [
-      'funny softball tshirt',
+      'funny softball tshirt viral',
+      'softball mom humor graphic tee',
       'beer league softball shirt',
-      'softball mom humor tee',
-      'softball tournament shirt funny',
-      'halloween softball shirt',
+    ],
+    pets: [
+      'funny dog mom tshirt etsy',
+      'viral pet parent graphic tee',
+      'sarcastic cat mom shirt flashy',
+      'breed specific dog humor tee',
+    ],
+    teacher: [
+      'funny teacher tshirt etsy',
+      'viral teacher humor graphic tee',
+      'back to school teacher shirt funny',
+      'sarcastic educator merch',
+    ],
+    nurse: [
+      'funny nurse tshirt etsy',
+      'viral nurse humor graphic tee',
+      'sarcastic healthcare worker shirt',
+      'nurse appreciation funny tee',
+    ],
+    humor: [
+      'viral funny graphic tshirt tiktok',
+      'etsy bestselling sarcastic tee',
+      'trending flashy cartoon merch shirt',
+      'maximalist funny streetwear tee',
+    ],
+    retro: [
+      'retro y2k graphic tshirt viral',
+      'vintage bubble letter tee etsy',
+      '90s flashy cartoon merch shirt',
+      'neon retro typography tshirt',
+    ],
+    bookish: [
+      'funny book lover tshirt etsy',
+      'viral reader humor graphic tee',
+      'bookish sarcastic shirt flashy',
+      'library humor cartoon merch',
     ],
   }
 
@@ -304,12 +359,22 @@ export function viralSearchQueries(niche: Niche, now = new Date()): string[] {
   for (const w of getActiveHolidayWindows(now)) {
     if (!(w.niches.includes('all') || w.niches.includes(niche))) continue
     occasion.push(`funny ${niche} ${w.keywords[0]} tshirt`)
-    occasion.push(`${niche} ${w.keywords[0]} graphic tee`)
+    occasion.push(`${niche} ${w.keywords[0]} viral graphic tee`)
   }
 
-  return [...base[niche], ...occasion].slice(0, 8)
+  // Always mix in one social/marketplace discovery query
+  const social = [
+    `${niche} funny shirt tiktok`,
+    `etsy ${niche} bestselling tshirt`,
+  ]
+
+  return [...base[niche], ...social, ...occasion].slice(0, 8)
 }
 
 export function primaryViralQuery(niche: Niche, now = new Date()): string {
   return viralSearchQueries(niche, now)[0]
+}
+
+export function allResearchNiches(): Niche[] {
+  return [...NICHES]
 }

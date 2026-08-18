@@ -2,7 +2,8 @@
 
 export type SafetyDecision = 'PASS' | 'REVIEW' | 'REJECT'
 
-export type Niche = 'gaming' | 'baseball' | 'softball'
+export type { Niche } from '@/lib/niches'
+export { NICHES, NICHE_ENUM, isNiche, NICHE_LABELS } from '@/lib/niches'
 
 export type PublishStatus =
   | 'draft_idea'

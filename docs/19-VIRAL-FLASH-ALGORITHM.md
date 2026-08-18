@@ -6,9 +6,13 @@ Keep every generated design **flashy, viral, gift-ready** by scoring themes for 
 
 ## Version
 
-`VIRAL_ALGORITHM_VERSION = viral-v1-flash-2026-08-r1`  
+`VIRAL_ALGORITHM_VERSION = viral-v2-social-etsy-2026-08`  
 Design prompts: `design-prompt-v9-viral-max`  
-Slogan prompts: `slogan-engine-v4-viral-flash`
+Slogan prompts: `slogan-engine-v5-viral-social`
+
+Niches researched: gaming, baseball, softball, **pets, teacher, nurse, humor, retro, bookish**.
+
+Cross-niche viral marketplace queries (TikTok/Etsy/Shopping language via SerpAPI) run every trend pass.
 
 ## Inputs (APIs only)
 

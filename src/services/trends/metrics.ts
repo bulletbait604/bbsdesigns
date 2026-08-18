@@ -47,6 +47,12 @@ const NICHE_KEYWORDS: Record<Niche, string[]> = {
     'plate',
     'tournament',
   ],
+  pets: ['dog', 'cat', 'pet', 'puppy', 'kitten', 'dog mom', 'cat mom', 'paw'],
+  teacher: ['teacher', 'classroom', 'educator', 'glue stick', 'school', 'principal'],
+  nurse: ['nurse', 'scrubs', 'stethoscope', 'healthcare', 'rn', 'shift'],
+  humor: ['funny', 'sarcastic', 'viral', 'tiktok', 'joke', 'humor', 'snacks'],
+  retro: ['retro', 'vintage', 'y2k', '90s', '80s', 'neon', 'bubble'],
+  bookish: ['book', 'reader', 'library', 'novel', 'chapter', 'bookish'],
 }
 
 const IP_RISK_TERMS = [

@@ -3,6 +3,7 @@ import { Store } from '@/models/Store'
 import { Brand } from '@/models/Brand'
 import { getEnv } from '@/lib/env'
 import { logger } from '@/lib/logger'
+import { NICHE_ENUM } from '@/lib/niches'
 
 export type DefaultCatalogContext = {
   storeId: string
@@ -39,11 +40,19 @@ export async function ensureDefaultCatalog(): Promise<DefaultCatalogContext | nu
       storeId,
       name: 'BBS Main',
       slug: 'bbs-main',
-      niches: ['gaming', 'baseball', 'softball'],
+      niches: [...NICHE_ENUM],
       status: 'active',
-      voice: 'funny, sarcastic, cheeky',
+      voice: 'funny, sarcastic, cheeky, viral flashy merch',
     })
     logger.info('default_brand_created', { id: String(brand._id) })
+  } else if (
+    !Array.isArray(brand.niches) ||
+    brand.niches.length < NICHE_ENUM.length
+  ) {
+    brand.niches = [...NICHE_ENUM]
+    brand.voice = brand.voice || 'funny, sarcastic, cheeky, viral flashy merch'
+    await brand.save()
+    logger.info('default_brand_niches_expanded', { id: String(brand._id) })
   }
 
   return {

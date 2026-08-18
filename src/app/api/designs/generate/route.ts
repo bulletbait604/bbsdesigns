@@ -14,6 +14,7 @@ import { upsertDesignResult } from '@/services/designs/persist'
 import { ensureDefaultCatalog } from '@/services/catalog/defaults'
 import { DESIGN_PROMPT_VERSION } from '@/services/designs/types'
 import { resolveConfiguredImageModel } from '@/providers/image/google'
+import { isNiche } from '@/lib/niches'
 import type { Niche } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -45,9 +46,12 @@ export async function POST(request: Request) {
       : ''
   const force = Boolean((body as { force?: boolean }).force)
 
-  if (!slogan || !niche || !['gaming', 'baseball', 'softball'].includes(niche)) {
+  if (!slogan || !niche || !isNiche(niche)) {
     return NextResponse.json(
-      { error: 'slogan and niche (gaming|baseball|softball) required' },
+      {
+        error:
+          'slogan and niche required (gaming|baseball|softball|pets|teacher|nurse|humor|retro|bookish)',
+      },
       { status: 400 }
     )
   }

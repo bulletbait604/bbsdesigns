@@ -25,6 +25,12 @@ const NICHE_PALETTE: Record<
   gaming: { bg: '#0b1220', ink: '#f4f7fb', accent: '#5eead4', shirt: '#1e293b' },
   baseball: { bg: '#102018', ink: '#f8fafc', accent: '#86efac', shirt: '#14532d' },
   softball: { bg: '#1a1420', ink: '#fdf4ff', accent: '#f0abfc', shirt: '#3b0764' },
+  pets: { bg: '#1a1208', ink: '#fff7ed', accent: '#fb923c', shirt: '#7c2d12' },
+  teacher: { bg: '#0f172a', ink: '#f8fafc', accent: '#fbbf24', shirt: '#1e3a5f' },
+  nurse: { bg: '#0c1929', ink: '#ecfeff', accent: '#22d3ee', shirt: '#164e63' },
+  humor: { bg: '#1a0b16', ink: '#fdf4ff', accent: '#f472b6', shirt: '#4a044e' },
+  retro: { bg: '#150b1f', ink: '#faf5ff', accent: '#c084fc', shirt: '#3b0764' },
+  bookish: { bg: '#1c1408', ink: '#fffbeb', accent: '#f59e0b', shirt: '#78350f' },
 }
 
 /** Simple niche illustration motif so SVG placeholders are not word-only. */
@@ -45,11 +51,18 @@ function nicheMotifSvg(niche: Niche, accent: string): string {
   <path d="M420 420 Q512 360 604 420" fill="none" stroke="${accent}" stroke-width="8"/>
   <rect x="250" y="470" width="220" height="18" rx="8" fill="${accent}" transform="rotate(-35 360 479)"/>`
   }
-  return `
+  if (niche === 'softball') {
+    return `
   <circle cx="512" cy="350" r="110" fill="#fdf4ff" opacity="0.92"/>
   <path d="M430 300 Q512 350 594 300" fill="none" stroke="${accent}" stroke-width="7"/>
   <path d="M430 400 Q512 350 594 400" fill="none" stroke="${accent}" stroke-width="7"/>
   <ellipse cx="512" cy="500" rx="140" ry="28" fill="${accent}" opacity="0.35"/>`
+  }
+  // Default flashy badge for lifestyle niches
+  return `
+  <circle cx="512" cy="360" r="130" fill="${accent}" opacity="0.85"/>
+  <circle cx="512" cy="360" r="78" fill="#0b1220" opacity="0.55"/>
+  <path d="M512 250 L540 330 L625 330 L555 380 L580 460 L512 410 L444 460 L469 380 L399 330 L484 330 Z" fill="#f8fafc" opacity="0.9"/>`
 }
 
 /** Build a DemoDesign-shaped object for live SVG previews (non-catalog). */

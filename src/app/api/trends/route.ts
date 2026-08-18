@@ -3,6 +3,7 @@ import { getSessionFromCookies } from '@/lib/auth/session'
 import { bootstrapProviders } from '@/providers/bootstrap'
 import { tryGetProvider } from '@/providers/registry'
 import { runTrendEngine } from '@/services/trends/engine'
+import { isNiche } from '@/lib/niches'
 import type { Niche } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -14,17 +15,15 @@ export async function GET(request: Request) {
   bootstrapProviders()
 
   const { searchParams } = new URL(request.url)
-  const nicheParam = searchParams.get('niche') as Niche | null
-  const niches =
-    nicheParam && ['gaming', 'baseball', 'softball'].includes(nicheParam)
-      ? [nicheParam]
-      : undefined
+  const nicheParam = searchParams.get('niche')
+  const niches = nicheParam && isNiche(nicheParam) ? ([nicheParam] as Niche[]) : undefined
 
   const scored = await runTrendEngine({
     niches,
     includeCurated: searchParams.get('curated') !== '0',
     includeRegisteredTrendProvider: true,
-    limitPerNiche: Number(searchParams.get('limit') || 5) || 5,
+    includeViralMarketplace: searchParams.get('viral') !== '0',
+    limitPerNiche: Number(searchParams.get('limit') || 3) || 3,
   })
 
   const trendProvider = tryGetProvider('trend')

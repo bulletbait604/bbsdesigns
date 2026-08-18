@@ -90,7 +90,7 @@ async function fetchShopifyOrders(limit = 50): Promise<ShopifyOrderNode[]> {
 
 type Agg = {
   title: string
-  niche: 'gaming' | 'baseball' | 'softball' | 'unknown'
+  niche: import('@/lib/niches').Niche | 'unknown'
   orders: number
   revenueCents: number
   units: number

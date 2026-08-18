@@ -1,3 +1,5 @@
+import type { Niche } from '@/lib/niches'
+
 export type NavItem = {
   href: string
   label: string
@@ -29,7 +31,7 @@ export type PipelineStat = {
 
 export type QueueItem = {
   id: string
-  niche: 'gaming' | 'baseball' | 'softball'
+  niche: Niche
   trend: string
   slogan: string
   title: string

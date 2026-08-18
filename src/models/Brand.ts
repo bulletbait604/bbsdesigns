@@ -1,4 +1,5 @@
 import { Schema, models, model, type InferSchemaType, type Model } from 'mongoose'
+import { NICHE_ENUM } from '@/lib/niches'
 
 const brandSchema = new Schema(
   {
@@ -9,10 +10,10 @@ const brandSchema = new Schema(
       type: [
         {
           type: String,
-          enum: ['gaming', 'baseball', 'softball'],
+          enum: NICHE_ENUM,
         },
       ],
-      default: ['gaming', 'baseball', 'softball'],
+      default: [...NICHE_ENUM],
     },
     status: {
       type: String,

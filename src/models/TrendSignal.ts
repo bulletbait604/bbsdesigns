@@ -1,4 +1,5 @@
 import { Schema, models, model, type InferSchemaType, type Model } from 'mongoose'
+import { NICHE_ENUM } from '@/lib/niches'
 
 const trendSignalSchema = new Schema(
   {
@@ -6,7 +7,7 @@ const trendSignalSchema = new Schema(
     brandId: { type: Schema.Types.ObjectId, ref: 'Brand', index: true },
     niche: {
       type: String,
-      enum: ['gaming', 'baseball', 'softball'],
+      enum: NICHE_ENUM,
       required: true,
       index: true,
     },

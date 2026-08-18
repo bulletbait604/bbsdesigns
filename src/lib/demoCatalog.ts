@@ -1,3 +1,5 @@
+import type { Niche } from '@/lib/niches'
+
 export type DesignPreviewId =
   | 'lag-lifestyle'
   | 'sunburnt-softball'
@@ -7,7 +9,7 @@ export type DesignPreviewId =
 
 export type DemoIdea = {
   id: string
-  niche: 'gaming' | 'baseball' | 'softball'
+  niche: Niche
   slogan: string
   concept: string
   status: 'draft' | 'awaiting_approval' | 'approved' | 'rejected'
@@ -21,7 +23,7 @@ export type DemoDesign = {
   /** Demo catalog preview id, or live Mongo Design _id */
   id: DesignPreviewId | string
   ideaId: string
-  niche: 'gaming' | 'baseball' | 'softball'
+  niche: Niche
   title: string
   slogan: string
   style: string

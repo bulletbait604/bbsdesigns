@@ -1,3 +1,5 @@
+import type { Niche } from '@/lib/niches'
+
 export type TrafficSource =
   | 'organic'
   | 'paid'
@@ -12,7 +14,7 @@ export type LifecycleDecision = 'KEEP' | 'OPTIMIZE' | 'RETIRE_CANDIDATE'
 export type ProductMetricSnapshot = {
   productKey: string
   title: string
-  niche?: 'gaming' | 'baseball' | 'softball' | 'unknown'
+  niche?: Niche | 'unknown'
   periodStart: string
   periodEnd: string
   views: number
