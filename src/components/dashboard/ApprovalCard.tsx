@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import type { QueueItem } from '@/lib/dashboardData'
-import { artworkUrl, mockupUrl } from '@/lib/demoCatalog'
+import { artworkDataUri, mockupDataUri, buildLiveMerchDesign } from '@/lib/svgMerch'
 
 function Score({ label, value, warn }: { label: string; value: number; warn?: boolean }) {
   return (
@@ -21,10 +21,18 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
   const [message, setMessage] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
-  const art =
-    item.artworkUrl || (item.designPreviewId ? artworkUrl(item.designPreviewId) : null)
-  const mock =
-    item.mockupUrl || (item.designPreviewId ? mockupUrl(item.designPreviewId) : null)
+  const livePreview = useMemo(() => {
+    if (rejected) return null
+    const design = buildLiveMerchDesign({
+      slogan: item.slogan,
+      niche: item.niche,
+      title: item.title,
+    })
+    return { art: artworkDataUri(design), mock: mockupDataUri(design) }
+  }, [item.slogan, item.niche, item.title, rejected])
+
+  const art = item.artworkUrl || livePreview?.art || null
+  const mock = item.mockupUrl || livePreview?.mock || null
 
   function act(action: 'approve' | 'reject' | 'create_draft') {
     setMessage(null)

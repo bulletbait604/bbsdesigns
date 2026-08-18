@@ -109,3 +109,16 @@ export function buildMockupSvg(design: DemoDesign): string {
   <text x="400" y="860" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="${accent}">${escapeXml(design.mockupLabel)}</text>
 </svg>`
 }
+
+/** Data URI for reliable <img> rendering without hitting the API. */
+export function svgToDataUri(svg: string): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
+export function artworkDataUri(design: DemoDesign): string {
+  return svgToDataUri(buildArtworkSvg(design))
+}
+
+export function mockupDataUri(design: DemoDesign): string {
+  return svgToDataUri(buildMockupSvg(design))
+}

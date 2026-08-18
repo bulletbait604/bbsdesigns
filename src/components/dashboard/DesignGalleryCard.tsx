@@ -1,19 +1,44 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { artworkUrl, mockupUrl, type DemoDesign } from '@/lib/demoCatalog'
+import { useEffect, useMemo, useState, useTransition } from 'react'
+import type { DemoDesign } from '@/lib/demoCatalog'
+import { artworkDataUri, mockupDataUri } from '@/lib/svgMerch'
+import type { LiveDesignCard } from '@/services/pipeline/dashboard'
 
-export function DesignGalleryCard({ design }: { design: DemoDesign }) {
-  const [aiPreview, setAiPreview] = useState<string | null>(null)
+type CardDesign = DemoDesign | LiveDesignCard
+
+function isLive(design: CardDesign): design is LiveDesignCard {
+  return 'source' in design
+}
+
+export function DesignGalleryCard({ design }: { design: CardDesign }) {
+  const fallbackArt = useMemo(() => artworkDataUri(design), [design])
+  const fallbackMock = useMemo(() => mockupDataUri(design), [design])
+
+  const [artSrc, setArtSrc] = useState(
+    () => (isLive(design) && design.artworkSrc) || fallbackArt
+  )
+  const [mockSrc, setMockSrc] = useState(
+    () => (isLive(design) && design.mockupSrc) || fallbackMock
+  )
   const [fromCache, setFromCache] = useState(false)
+  const [isAi, setIsAi] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    setArtSrc((isLive(design) && design.artworkSrc) || fallbackArt)
+    setMockSrc((isLive(design) && design.mockupSrc) || fallbackMock)
+    setIsAi(false)
+    setFromCache(false)
+  }, [design, fallbackArt, fallbackMock])
 
   function generateAi(force = false) {
     setError(null)
     startTransition(async () => {
       const res = await fetch('/api/designs/generate', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slogan: design.slogan,
@@ -33,8 +58,22 @@ export function DesignGalleryCard({ design }: { design: DemoDesign }) {
         setError(data.message || data.error || 'Generation failed')
         return
       }
-      setFromCache(Boolean(data.fromCache))
-      setAiPreview(data.previewUrl)
+
+      // Fetch with session cookies, then show as blob so <img> never hits a 401
+      try {
+        const imgRes = await fetch(data.previewUrl, { credentials: 'same-origin' })
+        if (!imgRes.ok) throw new Error(`Asset ${imgRes.status}`)
+        const blob = await imgRes.blob()
+        const objectUrl = URL.createObjectURL(blob)
+        setArtSrc(objectUrl)
+        setIsAi(true)
+        setFromCache(Boolean(data.fromCache))
+      } catch {
+        // Fall back to URL (may work when cookies attach to <img>)
+        setArtSrc(data.previewUrl)
+        setIsAi(true)
+        setFromCache(Boolean(data.fromCache))
+      }
     })
   }
 
@@ -44,20 +83,22 @@ export function DesignGalleryCard({ design }: { design: DemoDesign }) {
         <div className="relative aspect-square bg-ink">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={aiPreview || artworkUrl(design.id)}
+            src={artSrc}
             alt={`Artwork: ${design.slogan}`}
             className="absolute inset-0 h-full w-full object-cover"
+            onError={() => setArtSrc(fallbackArt)}
           />
           <span className="absolute left-3 top-3 rounded bg-ink/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-accent">
-            {aiPreview ? (fromCache ? 'Cached AI art' : 'AI artwork') : 'Artwork'}
+            {isAi ? (fromCache ? 'Cached AI art' : 'AI artwork') : 'Artwork'}
           </span>
         </div>
         <div className="relative aspect-square bg-ink-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={mockupUrl(design.id)}
+            src={mockSrc}
             alt={`Mockup: ${design.title}`}
             className="absolute inset-0 h-full w-full object-cover"
+            onError={() => setMockSrc(fallbackMock)}
           />
           <span className="absolute left-3 top-3 rounded bg-ink/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-accent-2">
             Mockup
@@ -85,6 +126,7 @@ export function DesignGalleryCard({ design }: { design: DemoDesign }) {
         </div>
         <p className="text-sm text-muted">
           {design.style} · {design.mockupLabel}
+          {isLive(design) && design.source === 'mongo' ? ' · Mongo' : ''}
         </p>
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <button
@@ -93,9 +135,9 @@ export function DesignGalleryCard({ design }: { design: DemoDesign }) {
             onClick={() => generateAi(false)}
             className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-ink disabled:opacity-50"
           >
-            {pending ? 'Working…' : aiPreview ? 'Load cached / generate' : 'Generate AI design (Google)'}
+            {pending ? 'Working…' : isAi ? 'Load cached / generate' : 'Generate AI design (Google)'}
           </button>
-          {aiPreview ? (
+          {isAi ? (
             <button
               type="button"
               disabled={pending}

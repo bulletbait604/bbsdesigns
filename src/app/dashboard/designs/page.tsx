@@ -1,17 +1,25 @@
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { DesignGalleryCard } from '@/components/dashboard/DesignGalleryCard'
-import { DEMO_DESIGNS } from '@/lib/demoCatalog'
+import { loadDesignsForDashboard } from '@/services/pipeline/dashboard'
 
-export default function DesignsPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function DesignsPage() {
+  const { designs, source } = await loadDesignsForDashboard()
+
   return (
     <DashboardShell
       activePath="/dashboard/designs"
       title="Designs"
-      subtitle="Artwork and apparel mockups for each concept. Previews render live from the design catalog."
+      subtitle={
+        source === 'mongo'
+          ? 'Live designs from Mongo — artwork + tee mockups. Generate Google AI art when ready.'
+          : 'Catalog previews (SVG). Run Automation → design generation after Mongo is connected for live rows.'
+      }
     >
       <div className="space-y-6">
-        {DEMO_DESIGNS.map((design) => (
-          <DesignGalleryCard key={design.id} design={design} />
+        {designs.map((design) => (
+          <DesignGalleryCard key={design.mongoId || design.id + design.slogan} design={design} />
         ))}
       </div>
     </DashboardShell>

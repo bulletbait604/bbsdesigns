@@ -1,19 +1,25 @@
 import Link from 'next/link'
-import { artworkUrl, type DemoIdea, getDemoDesign } from '@/lib/demoCatalog'
+import type { DemoIdea } from '@/lib/demoCatalog'
+import { artworkDataUri, buildLiveMerchDesign } from '@/lib/svgMerch'
 import type { LiveIdeaCard } from '@/services/pipeline/dashboard'
 
 export function IdeaCard({ idea }: { idea: DemoIdea | LiveIdeaCard }) {
   const live = idea as LiveIdeaCard
-  const design = idea.designId ? getDemoDesign(idea.designId) : undefined
-  const src = live.artworkUrl || (design ? artworkUrl(design.id) : null)
+  const preview =
+    live.artworkUrl ||
+    (idea.safetyDecision === 'REJECT'
+      ? null
+      : artworkDataUri(
+          buildLiveMerchDesign({ slogan: idea.slogan, niche: idea.niche, title: idea.slogan })
+        ))
 
   return (
     <article className="overflow-hidden rounded-md border border-line bg-panel/80">
       <div className="relative aspect-[4/3] bg-ink">
-        {src ? (
+        {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={src}
+            src={preview}
             alt={`Idea artwork: ${idea.slogan}`}
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -21,11 +27,7 @@ export function IdeaCard({ idea }: { idea: DemoIdea | LiveIdeaCard }) {
           <div className="flex h-full items-center justify-center p-6 text-center">
             <div>
               <p className="font-display text-lg font-bold text-danger">No artwork</p>
-              <p className="mt-2 text-sm text-muted">
-                {idea.safetyDecision === 'REJECT'
-                  ? 'Blocked by safety — design not generated.'
-                  : 'Waiting for design engine.'}
-              </p>
+              <p className="mt-2 text-sm text-muted">Blocked by safety — design not generated.</p>
             </div>
           </div>
         )}
@@ -49,7 +51,7 @@ export function IdeaCard({ idea }: { idea: DemoIdea | LiveIdeaCard }) {
           <span>
             Trend <strong className="text-accent">{idea.trendScore}</strong> · {idea.status}
           </span>
-          {src ? (
+          {preview ? (
             <Link href="/dashboard/designs" className="text-accent hover:underline">
               View design & mockup
             </Link>

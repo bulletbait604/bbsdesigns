@@ -1,7 +1,7 @@
 import { isMongoConfigured, connectMongo } from '@/lib/db'
 import { Idea } from '@/models/Idea'
 import { Design } from '@/models/Design'
-import { DEMO_IDEAS, type DemoIdea } from '@/lib/demoCatalog'
+import { DEMO_IDEAS, DEMO_DESIGNS, type DemoIdea, type DemoDesign } from '@/lib/demoCatalog'
 import { DEMO_APPROVALS, type QueueItem } from '@/lib/dashboardData'
 import type { Niche, SafetyDecision } from '@/types'
 
@@ -64,7 +64,7 @@ export async function loadIdeasForDashboard(): Promise<{
         ? previewArtwork(doc.slogan, niche, design.assetUrl)
         : decision === 'REJECT'
           ? null
-          : null,
+          : previewArtwork(doc.slogan, niche),
       source: 'mongo',
     }
   })
@@ -135,4 +135,72 @@ export async function loadSafetyQueueForDashboard(): Promise<{
   })
 
   return { items, source: 'mongo' }
+}
+
+export type LiveDesignCard = DemoDesign & {
+  source: 'mongo' | 'demo'
+  artworkSrc?: string
+  mockupSrc?: string
+  mongoId?: string
+}
+
+export async function loadDesignsForDashboard(): Promise<{
+  designs: LiveDesignCard[]
+  source: 'mongo' | 'demo'
+}> {
+  if (!isMongoConfigured()) {
+    return {
+      designs: DEMO_DESIGNS.map((d) => ({ ...d, source: 'demo' as const })),
+      source: 'demo',
+    }
+  }
+
+  await connectMongo()
+  const docs = await Design.find({ status: { $ne: 'rejected' } })
+    .sort({ createdAt: -1 })
+    .limit(40)
+    .lean()
+
+  if (!docs.length) {
+    return {
+      designs: DEMO_DESIGNS.map((d) => ({ ...d, source: 'demo' as const })),
+      source: 'demo',
+    }
+  }
+
+  const designs: LiveDesignCard[] = docs.map((doc) => {
+    const niche = doc.niche as Niche
+    const slogan = doc.slogan || doc.title
+    const decision = (doc.imageReviewDecision ||
+      doc.provenance?.safetyDecision ||
+      'REVIEW') as SafetyDecision
+    return {
+      id: 'lag-lifestyle',
+      ideaId: String(doc.ideaId),
+      niche,
+      title: doc.title || slogan,
+      slogan,
+      style: `${doc.provider} · ${doc.model}`,
+      mockupLabel: doc.mockupKeys?.length ? 'Tee mockup ready' : 'Mockup preview',
+      qualityScore: Math.round(doc.qualityScore ?? 70),
+      ipRisk: Math.round(doc.ipRisk ?? 5),
+      safetyDecision: decision,
+      status: (doc.status as DemoDesign['status']) || 'review',
+      palette: {
+        bg: '#0b1220',
+        ink: '#f4f7fb',
+        accent: niche === 'gaming' ? '#5eead4' : niche === 'baseball' ? '#86efac' : '#f0abfc',
+        shirt: '#1e293b',
+      },
+      source: 'mongo',
+      mongoId: String(doc._id),
+      artworkSrc:
+        doc.assetUrl?.startsWith('http') || doc.assetUrl?.startsWith('/api/')
+          ? doc.assetUrl
+          : previewArtwork(slogan, niche, doc.assetUrl),
+      mockupSrc: previewMockup(slogan, niche, doc.mockupKeys),
+    }
+  })
+
+  return { designs, source: 'mongo' }
 }
