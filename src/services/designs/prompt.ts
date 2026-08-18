@@ -26,9 +26,10 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
     `Primary short slogan text on the design: "${input.slogan}".`,
     `Concept: ${concept}.`,
     'The design MUST include a dominant original illustration or graphic motif (characters, objects, icons, scenes) — not typography-only / text-only layout.',
-    'Slogan text should be secondary to the illustration and remain short and readable.',
+    'Visual style: trendy, flashy, high-pop streetwear energy — bold shapes, saturated accent colors, strong contrast, punchy composition that pops on a t-shirt from across the room.',
+    'Keep it modern merch / drip aesthetic (clean edges, poster-like impact) while staying shirt-print friendly with usable negative space.',
+    'Slogan text should be secondary to the illustration, short, and highly readable.',
     `Requirements: ${SAFETY_REQUIREMENTS.join('; ')}.`,
-    'Prefer strong contrast, simple shapes, shirt-friendly negative space, trendy merch aesthetic.',
   ].join(' ')
 
   const negativePrompt = [
@@ -48,13 +49,16 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
     'text only design',
     'typography only',
     'words without illustration',
+    'muddy colors',
+    'flat boring layout',
+    'tiny unreadable text',
   ].join(', ')
 
   return {
     prompt,
     negativePrompt,
     promptVersion: DESIGN_PROMPT_VERSION,
-    width: 2048,
-    height: 2048,
+    width: 1024,
+    height: 1024,
   }
 }

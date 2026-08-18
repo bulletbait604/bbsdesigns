@@ -1,6 +1,6 @@
 import type { Niche, SafetyDecision } from '@/types'
 
-export const DESIGN_PROMPT_VERSION = 'design-prompt-v1'
+export const DESIGN_PROMPT_VERSION = 'design-prompt-v2-pop'
 
 export type DesignPromptInput = {
   niche: Niche
@@ -50,4 +50,6 @@ export type DesignPipelineResult = {
   design: GeneratedDesignRecord
   review: ImageReviewResult
   publishAllowed: false
+  /** Raw image bytes for dashboard preview / asset store */
+  bytes: Buffer
 }

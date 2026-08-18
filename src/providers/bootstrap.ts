@@ -12,18 +12,28 @@ import {
   createUnconfiguredPrintifyProvider,
 } from '@/providers/printify/api'
 import { createConfiguredTrendProvider } from '@/providers/trend'
+import { createGoogleImageProvider } from '@/providers/image/google'
 import { clearProviders, registerProvider } from '@/providers/registry'
 
 /**
  * Boots the provider registry.
- * Real Shopify/Printify/trend adapters replace stubs when credentials exist.
+ * Real Shopify/Printify/trend/image adapters replace stubs when credentials exist.
  */
 export function bootstrapProviders(): void {
   clearProviders()
   const env = getEnv()
 
   registerProvider('ai_text', createStubAiTextProvider())
-  registerProvider('image', createStubImageProvider())
+
+  const imageProviderName = (env.IMAGE_PROVIDER || '').trim().toLowerCase()
+  const googleImageReady =
+    (imageProviderName === 'google' || imageProviderName === 'gemini') &&
+    Boolean(env.IMAGE_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)
+  registerProvider(
+    'image',
+    googleImageReady ? createGoogleImageProvider() : createStubImageProvider()
+  )
+
   registerProvider('trend', createConfiguredTrendProvider())
   registerProvider('storage', createStubStorageProvider())
 

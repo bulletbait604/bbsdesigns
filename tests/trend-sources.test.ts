@@ -131,6 +131,7 @@ describe('design prompt graphics', () => {
       concept: 'high ping humor',
     })
     expect(built.prompt).toMatch(/illustration|graphic motif/i)
+    expect(built.prompt).toMatch(/flashy|high-pop|pops/i)
     expect(built.negativePrompt).toMatch(/text only/i)
   })
 })

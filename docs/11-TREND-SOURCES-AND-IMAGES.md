@@ -21,6 +21,14 @@
 - `GET /api/trends` — admin session required
 - Automation **trend_ingestion** / **trend_scoring** runs `runTrendEngine`
 
-## Design prompts
+## Graphic AI designs (Google Gemini)
 
-`buildDesignPrompt` requires a **dominant illustration**, not typography-only layouts.
+1. Open [Google AI Studio](https://aistudio.google.com/apikey) → **Create API key**
+2. Vercel env:
+   - `IMAGE_PROVIDER=google`
+   - `IMAGE_API_KEY=` your Gemini API key
+   - optional `IMAGE_MODEL=gemini-2.5-flash-image`
+3. Redeploy
+4. Designs page → **Generate AI design (Google)** for flashy/pop merch art
+
+Prompts request dominant illustration + high-pop streetwear energy (not text-only).

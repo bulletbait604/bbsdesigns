@@ -103,5 +103,6 @@ export async function runDesignEngine(
     design,
     review,
     publishAllowed: false,
+    bytes: image.bytes,
   }
 }

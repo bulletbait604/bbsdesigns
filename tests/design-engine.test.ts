@@ -41,5 +41,6 @@ describe('design engine', () => {
     expect(result.design.createdAt).toBeTruthy()
     expect(result.publishAllowed).toBe(false)
     expect(result.review.decision).not.toBeUndefined()
+    expect(result.bytes.length).toBeGreaterThan(0)
   })
 })

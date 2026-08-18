@@ -28,6 +28,8 @@ const envSchema = z.object({
 
   IMAGE_PROVIDER: z.string().optional().default(''),
   IMAGE_API_KEY: z.string().optional().default(''),
+  /** Optional override, default gemini-2.5-flash-image */
+  IMAGE_MODEL: z.string().optional().default(''),
 
   /** SerpAPI key for Google Trends / Shopping trend research */
   SERPAPI_API_KEY: z.string().optional().default(''),
@@ -76,6 +78,7 @@ function readProcessEnv(): Record<string, string | undefined> {
     AI_TEXT_API_KEY: process.env.AI_TEXT_API_KEY,
     IMAGE_PROVIDER: process.env.IMAGE_PROVIDER,
     IMAGE_API_KEY: process.env.IMAGE_API_KEY,
+    IMAGE_MODEL: process.env.IMAGE_MODEL,
     SERPAPI_API_KEY: process.env.SERPAPI_API_KEY,
     ETSY_API_KEY: process.env.ETSY_API_KEY,
     ETSY_SHARED_SECRET: process.env.ETSY_SHARED_SECRET,
