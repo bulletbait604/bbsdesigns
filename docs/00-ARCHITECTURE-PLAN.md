@@ -26,6 +26,7 @@ Shopify-first POD pipeline: trends → score → slogans → safety → designs 
    - Analytics engine ✅ (KEEP / OPTIMIZE / RETIRE_CANDIDATE; no auto-delete)
    - Automation scheduler ✅ (idempotent jobs, HUMAN_APPROVAL gate on publishing)
    - Security pass + launch report ✅ (FAIL blocks “production-ready”)
+   - Trend research: SerpAPI + Etsy adapters ✅ (themes only; Reddit deferred)
 
 
 ## Non-negotiables

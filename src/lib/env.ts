@@ -29,6 +29,13 @@ const envSchema = z.object({
   IMAGE_PROVIDER: z.string().optional().default(''),
   IMAGE_API_KEY: z.string().optional().default(''),
 
+  /** SerpAPI key for Google Trends / Shopping trend research */
+  SERPAPI_API_KEY: z.string().optional().default(''),
+  /** Etsy Open API keystring */
+  ETSY_API_KEY: z.string().optional().default(''),
+  /** Etsy shared secret — combined as keystring:secret for x-api-key */
+  ETSY_SHARED_SECRET: z.string().optional().default(''),
+
   R2_ACCOUNT_ID: z.string().optional().default(''),
   R2_ACCESS_KEY_ID: z.string().optional().default(''),
   R2_SECRET_ACCESS_KEY: z.string().optional().default(''),
@@ -69,6 +76,9 @@ function readProcessEnv(): Record<string, string | undefined> {
     AI_TEXT_API_KEY: process.env.AI_TEXT_API_KEY,
     IMAGE_PROVIDER: process.env.IMAGE_PROVIDER,
     IMAGE_API_KEY: process.env.IMAGE_API_KEY,
+    SERPAPI_API_KEY: process.env.SERPAPI_API_KEY,
+    ETSY_API_KEY: process.env.ETSY_API_KEY,
+    ETSY_SHARED_SECRET: process.env.ETSY_SHARED_SECRET,
     R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
     R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
     R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
@@ -111,5 +121,7 @@ export function missingOptionalIntegrations(env: AppEnv = getEnv()): string[] {
   if (!env.PRINTIFY_API_TOKEN) missing.push('PRINTIFY_API_TOKEN')
   if (!env.AI_TEXT_API_KEY) missing.push('AI_TEXT_API_KEY')
   if (!env.IMAGE_API_KEY) missing.push('IMAGE_API_KEY')
+  if (!env.SERPAPI_API_KEY) missing.push('SERPAPI_API_KEY')
+  if (!env.ETSY_API_KEY || !env.ETSY_SHARED_SECRET) missing.push('ETSY')
   return missing
 }

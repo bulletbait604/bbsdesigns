@@ -67,6 +67,28 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
       appendLog(run, `execute:${jobName}`)
 
       switch (jobName) {
+        case 'trend_ingestion':
+        case 'trend_scoring': {
+          const { bootstrapProviders } = await import('@/providers/bootstrap')
+          const { runTrendEngine } = await import('@/services/trends/engine')
+          bootstrapProviders()
+          const scored = await runTrendEngine({
+            includeCurated: true,
+            includeRegisteredTrendProvider: true,
+            limitPerNiche: 5,
+          })
+          run.stats = {
+            count: scored.length,
+            top: scored.slice(0, 5).map((t) => ({
+              title: t.signal.title,
+              score: t.score,
+              source: t.signal.source,
+            })),
+          }
+          run.summary = `Scored ${scored.length} trend signal(s) from configured sources`
+          appendLog(run, `trends:${scored.length}`)
+          break
+        }
         case 'analytics_sync': {
           const report = seedDemoAnalytics()
           run.stats = { products: report.products.length, orders: report.totals.orders }

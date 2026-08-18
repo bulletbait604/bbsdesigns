@@ -23,10 +23,12 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
   const concept = input.concept?.trim() || 'bold humorous apparel graphic'
   const prompt = [
     `Create original print-ready merch artwork for the ${input.niche} humor niche.`,
-    `Primary text on the design: "${input.slogan}".`,
+    `Primary short slogan text on the design: "${input.slogan}".`,
     `Concept: ${concept}.`,
+    'The design MUST include a dominant original illustration or graphic motif (characters, objects, icons, scenes) — not typography-only / text-only layout.',
+    'Slogan text should be secondary to the illustration and remain short and readable.',
     `Requirements: ${SAFETY_REQUIREMENTS.join('; ')}.`,
-    'Prefer strong contrast, simple shapes, and shirt-friendly negative space.',
+    'Prefer strong contrast, simple shapes, shirt-friendly negative space, trendy merch aesthetic.',
   ].join(' ')
 
   const negativePrompt = [
@@ -43,6 +45,9 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
     'low resolution',
     'blurry text',
     'misspelled text',
+    'text only design',
+    'typography only',
+    'words without illustration',
   ].join(', ')
 
   return {

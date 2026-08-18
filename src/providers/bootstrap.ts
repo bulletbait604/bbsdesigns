@@ -3,7 +3,6 @@ import {
   createStubAiTextProvider,
   createStubImageProvider,
   createStubStorageProvider,
-  createStubTrendProvider,
   createStubPodProvider,
   createUnconfiguredShopifyProvider,
 } from '@/providers/stubs'
@@ -12,11 +11,12 @@ import {
   createPrintifyProvider,
   createUnconfiguredPrintifyProvider,
 } from '@/providers/printify/api'
+import { createConfiguredTrendProvider } from '@/providers/trend'
 import { clearProviders, registerProvider } from '@/providers/registry'
 
 /**
  * Boots the provider registry.
- * Real Shopify/Printify adapters replace stubs when credentials exist.
+ * Real Shopify/Printify/trend adapters replace stubs when credentials exist.
  */
 export function bootstrapProviders(): void {
   clearProviders()
@@ -24,7 +24,7 @@ export function bootstrapProviders(): void {
 
   registerProvider('ai_text', createStubAiTextProvider())
   registerProvider('image', createStubImageProvider())
-  registerProvider('trend', createStubTrendProvider())
+  registerProvider('trend', createConfiguredTrendProvider())
   registerProvider('storage', createStubStorageProvider())
 
   const shopifyReady = Boolean(env.SHOPIFY_STORE_DOMAIN && env.SHOPIFY_ADMIN_ACCESS_TOKEN)
@@ -36,13 +36,9 @@ export function bootstrapProviders(): void {
   const printifyReady = Boolean(env.PRINTIFY_API_TOKEN)
   registerProvider(
     'printify',
-    printifyReady
-      ? // Prefer real API; fall back to stub methods only when token missing.
-        createPrintifyProvider()
-      : createUnconfiguredPrintifyProvider()
+    printifyReady ? createPrintifyProvider() : createUnconfiguredPrintifyProvider()
   )
 
-  // Keep a stub available for local offline product mapping tests via env override
   if (process.env.PRINTIFY_USE_STUB === 'true') {
     registerProvider('printify', createStubPodProvider())
   }
