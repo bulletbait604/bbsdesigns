@@ -16,11 +16,15 @@ export function storeDesignAsset(input: {
   mimeType: string
   slogan: string
   niche: string
+  /** Prefer Mongo document id when persisting */
+  id?: string
 }): StoredAsset {
-  const id = createHash('sha256')
-    .update(`${input.slogan}|${input.niche}|${Date.now()}|${input.bytes.length}`)
-    .digest('hex')
-    .slice(0, 24)
+  const id =
+    input.id ||
+    createHash('sha256')
+      .update(`${input.slogan}|${input.niche}|${Date.now()}|${input.bytes.length}`)
+      .digest('hex')
+      .slice(0, 24)
 
   const asset: StoredAsset = {
     id,
@@ -32,7 +36,6 @@ export function storeDesignAsset(input: {
   }
   assets.set(id, asset)
 
-  // Cap memory in serverless / long-running processes
   if (assets.size > 40) {
     const oldest = [...assets.keys()].slice(0, assets.size - 40)
     for (const key of oldest) assets.delete(key)

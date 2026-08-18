@@ -69,24 +69,63 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
       switch (jobName) {
         case 'trend_ingestion':
         case 'trend_scoring': {
-          const { bootstrapProviders } = await import('@/providers/bootstrap')
-          const { runTrendEngine } = await import('@/services/trends/engine')
-          bootstrapProviders()
-          const scored = await runTrendEngine({
-            includeCurated: true,
-            includeRegisteredTrendProvider: true,
-            limitPerNiche: 5,
-          })
-          run.stats = {
-            count: scored.length,
-            top: scored.slice(0, 5).map((t) => ({
-              title: t.signal.title,
-              score: t.score,
-              source: t.signal.source,
-            })),
-          }
-          run.summary = `Scored ${scored.length} trend signal(s) from configured sources`
-          appendLog(run, `trends:${scored.length}`)
+          const { runTrendPersistJob } = await import('@/services/pipeline/jobs')
+          const stats = await runTrendPersistJob()
+          run.stats = stats
+          run.summary = `Scored ${stats.scored ?? 0} trend(s); persisted ${stats.persisted ?? 0}`
+          appendLog(run, `trends:${stats.scored}`)
+          break
+        }
+        case 'idea_generation': {
+          const { runIdeaGenerationJob } = await import('@/services/pipeline/jobs')
+          const stats = await runIdeaGenerationJob()
+          run.stats = stats
+          run.summary = `Generated ${stats.generated ?? 0} slogans; accepted ${stats.accepted ?? 0}; persisted ${stats.persisted ?? 0}`
+          break
+        }
+        case 'safety_review': {
+          const { runSafetyReviewJob } = await import('@/services/pipeline/jobs')
+          const stats = await runSafetyReviewJob()
+          run.stats = stats
+          run.summary = stats.skipped
+            ? 'Safety review skipped (Mongo not configured)'
+            : `Reviewed ${stats.reviewed ?? 0} ideas (PASS ${stats.pass} / REVIEW ${stats.review} / REJECT ${stats.reject})`
+          break
+        }
+        case 'design_generation': {
+          const { runDesignGenerationJob } = await import('@/services/pipeline/jobs')
+          const stats = await runDesignGenerationJob()
+          run.stats = stats
+          run.summary = stats.skipped
+            ? 'Design generation skipped (Mongo not configured)'
+            : `Created ${stats.created ?? 0} designs (AI ${stats.aiUsed}, cache ${stats.cached}, SVG ${stats.svgFallback})`
+          break
+        }
+        case 'image_review': {
+          const { runImageReviewJob } = await import('@/services/pipeline/jobs')
+          const stats = await runImageReviewJob()
+          run.stats = stats
+          run.summary = stats.skipped
+            ? 'Image review skipped (Mongo not configured)'
+            : `Reviewed ${stats.reviewed ?? 0} designs`
+          break
+        }
+        case 'mockups': {
+          const { runMockupsJob } = await import('@/services/pipeline/jobs')
+          const stats = await runMockupsJob()
+          run.stats = stats
+          run.summary = stats.skipped
+            ? 'Mockups skipped (Mongo not configured)'
+            : `Updated mockups on ${stats.updated ?? 0} design(s)`
+          break
+        }
+        case 'listing_preparation': {
+          const { runListingPreparationJob } = await import('@/services/pipeline/jobs')
+          const stats = await runListingPreparationJob()
+          run.stats = stats
+          run.summary = stats.skipped
+            ? 'Listing prep skipped (Mongo not configured)'
+            : `Enqueued ${stats.enqueued ?? 0} listing(s); ${stats.ready ?? 0} READY_FOR_REVIEW`
           break
         }
         case 'analytics_sync': {
@@ -110,13 +149,15 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
           break
         }
         case 'publishing': {
-          run.summary = 'Publishing handler ready (manual approval path)'
-          run.stats = { autoPublish: env.AUTO_PUBLISH }
+          const { runPublishingGateJob } = await import('@/services/pipeline/jobs')
+          const stats = await runPublishingGateJob()
+          run.stats = stats
+          run.summary = 'Publishing gated — manual approval required (AUTO_PUBLISH=false)'
           break
         }
         default: {
-          run.summary = `${def.label} completed (stub pipeline step)`
-          run.stats = { stub: true }
+          run.summary = `${def.label} completed`
+          run.stats = {}
           break
         }
       }

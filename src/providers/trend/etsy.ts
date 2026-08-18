@@ -154,11 +154,21 @@ export function createEtsyTrendProvider(name = 'etsy'): TrendProvider {
       }
 
       const limit = request.limit ?? 6
+
+      const { findCachedTrendSignals, saveCachedTrendSignals } = await import(
+        '@/services/trends/cache'
+      )
+      const cached = await findCachedTrendSignals(request.niche, 'etsy')
+      if (cached?.length) return cached.slice(0, limit)
+
       const listings = await etsyFetchListings(primaryTrendQuery(request.niche), limit + 4)
-      return listings
+      const signals = listings
         .map((listing) => listingToSignal(request.niche, listing))
         .filter((s): s is TrendSignalDto => Boolean(s))
-        .slice(0, limit)
+        .slice(0, Math.max(limit, 8))
+
+      await saveCachedTrendSignals(request.niche, 'etsy', signals)
+      return signals.slice(0, limit)
     },
   }
 }

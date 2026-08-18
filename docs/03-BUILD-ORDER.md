@@ -24,6 +24,7 @@ Complete these in order.
 20. Testing
 21. Vercel deployment
 22. Controlled launch
+23. Live pipeline wiring (prompt 019) — persist + automation handlers + approval UI
 
 Do not skip the safety engine.
 Do not enable automatic publishing during initial development.

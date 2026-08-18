@@ -166,6 +166,13 @@ export function createSerpApiTrendProvider(name = 'serpapi'): TrendProvider {
 
       const niche = request.niche
       const limit = request.limit ?? 6
+
+      const { findCachedTrendSignals, saveCachedTrendSignals } = await import(
+        '@/services/trends/cache'
+      )
+      const cached = await findCachedTrendSignals(niche, 'serpapi')
+      if (cached?.length) return cached.slice(0, limit)
+
       const query = primaryTrendQuery(niche)
       const signals: TrendSignalDto[] = []
 
@@ -201,7 +208,9 @@ export function createSerpApiTrendProvider(name = 'serpapi'): TrendProvider {
         // optional
       }
 
-      return signals.slice(0, limit)
+      const sliced = signals.slice(0, Math.max(limit, 8))
+      await saveCachedTrendSignals(niche, 'serpapi', sliced)
+      return sliced.slice(0, limit)
     },
   }
 }

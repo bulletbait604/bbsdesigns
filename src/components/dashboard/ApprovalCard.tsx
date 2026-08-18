@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useTransition } from 'react'
 import type { QueueItem } from '@/lib/dashboardData'
 import { artworkUrl, mockupUrl } from '@/lib/demoCatalog'
 
@@ -14,7 +17,32 @@ function Score({ label, value, warn }: { label: string; value: number; warn?: bo
 
 export function ApprovalCard({ item }: { item: QueueItem }) {
   const rejected = item.safetyDecision === 'REJECT'
-  const previewId = item.designPreviewId
+  const [status, setStatus] = useState(item.status)
+  const [message, setMessage] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  const art =
+    item.artworkUrl || (item.designPreviewId ? artworkUrl(item.designPreviewId) : null)
+  const mock =
+    item.mockupUrl || (item.designPreviewId ? mockupUrl(item.designPreviewId) : null)
+
+  function act(action: 'approve' | 'reject') {
+    setMessage(null)
+    startTransition(async () => {
+      const res = await fetch('/api/safety', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ideaId: item.id, action }),
+      })
+      const data = (await res.json()) as { ok?: boolean; status?: string; error?: string }
+      if (!res.ok || !data.ok) {
+        setMessage(data.error || 'Action failed')
+        return
+      }
+      setStatus(data.status || action)
+      setMessage(action === 'approve' ? 'Approved (publish still locked)' : 'Rejected')
+    })
+  }
 
   return (
     <article className="rounded-md border border-line bg-panel/80 p-5">
@@ -33,12 +61,12 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
         </span>
       </div>
 
-      {previewId ? (
+      {art ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="relative aspect-square overflow-hidden rounded-md border border-line bg-ink">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={artworkUrl(previewId)}
+              src={art}
               alt={`Design for ${item.title}`}
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -49,7 +77,7 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
           <div className="relative aspect-square overflow-hidden rounded-md border border-line bg-ink">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={mockupUrl(previewId)}
+              src={mock || art}
               alt={`Mockup for ${item.title}`}
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -70,9 +98,9 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
           <dd className="mt-1 text-text">{item.trend}</dd>
         </div>
         <div>
-          <dt className="text-muted">Design / mockup</dt>
+          <dt className="text-muted">Design / mockup · status</dt>
           <dd className="mt-1 text-text">
-            {item.designLabel} · {item.mockupLabel}
+            {item.designLabel} · {item.mockupLabel} · {status}
           </dd>
         </div>
         <div className="sm:col-span-2">
@@ -102,21 +130,34 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
       <div className="mt-5 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={rejected}
+          disabled={rejected || pending || status === 'approved'}
+          onClick={() => act('approve')}
           className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40"
         >
           Approve
         </button>
         <button
           type="button"
-          className="rounded-md border border-danger/40 px-3 py-2 text-sm text-danger"
+          disabled={pending || status === 'rejected'}
+          onClick={() => act('reject')}
+          className="rounded-md border border-danger/40 px-3 py-2 text-sm text-danger disabled:opacity-40"
         >
           Reject
         </button>
-        <button type="button" className="rounded-md border border-line px-3 py-2 text-sm text-text">
+        <button
+          type="button"
+          disabled
+          className="rounded-md border border-line px-3 py-2 text-sm text-muted disabled:opacity-50"
+          title="Edit arrives in a later pass"
+        >
           Edit
         </button>
-        <button type="button" className="rounded-md border border-line px-3 py-2 text-sm text-text">
+        <button
+          type="button"
+          disabled
+          className="rounded-md border border-line px-3 py-2 text-sm text-muted disabled:opacity-50"
+          title="Regenerate arrives with design API"
+        >
           Regenerate
         </button>
         <button
@@ -128,6 +169,7 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
           Publish (locked)
         </button>
       </div>
+      {message ? <p className="mt-3 text-sm text-muted">{message}</p> : null}
     </article>
   )
 }

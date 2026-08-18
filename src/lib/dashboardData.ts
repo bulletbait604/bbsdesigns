@@ -46,6 +46,9 @@ export type QueueItem = {
   status: string
   /** Links to SVG preview catalog when artwork exists */
   designPreviewId?: 'lag-lifestyle' | 'sunburnt-softball' | 'swing-bad-ideas' | 'cleats-dignity'
+  /** Live preview URLs (Mongo pipeline) */
+  artworkUrl?: string
+  mockupUrl?: string
 }
 
 /** Demo ops data so the dashboard renders before Mongo/API wiring. */

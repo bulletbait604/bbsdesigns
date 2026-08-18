@@ -1,16 +1,32 @@
 import { NextResponse } from 'next/server'
 import { getDemoDesign, type DesignPreviewId } from '@/lib/demoCatalog'
-import { buildArtworkSvg, buildMockupSvg } from '@/lib/svgMerch'
+import { buildArtworkSvg, buildMockupSvg, buildLiveMerchDesign } from '@/lib/svgMerch'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id') as DesignPreviewId | null
+  const slogan = searchParams.get('slogan')
+  const nicheParam = searchParams.get('niche')
   const view = searchParams.get('view') === 'mockup' ? 'mockup' : 'artwork'
 
+  if (slogan && nicheParam && ['gaming', 'baseball', 'softball'].includes(nicheParam)) {
+    const design = buildLiveMerchDesign({
+      slogan,
+      niche: nicheParam as 'gaming' | 'baseball' | 'softball',
+    })
+    const svg = view === 'mockup' ? buildMockupSvg(design) : buildArtworkSvg(design)
+    return new NextResponse(svg, {
+      headers: {
+        'Content-Type': 'image/svg+xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=120',
+      },
+    })
+  }
+
   if (!id) {
-    return NextResponse.json({ error: 'id required' }, { status: 400 })
+    return NextResponse.json({ error: 'id or slogan+niche required' }, { status: 400 })
   }
 
   const design = getDemoDesign(id)

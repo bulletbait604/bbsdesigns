@@ -1,16 +1,19 @@
 import Link from 'next/link'
 import { artworkUrl, type DemoIdea, getDemoDesign } from '@/lib/demoCatalog'
+import type { LiveIdeaCard } from '@/services/pipeline/dashboard'
 
-export function IdeaCard({ idea }: { idea: DemoIdea }) {
+export function IdeaCard({ idea }: { idea: DemoIdea | LiveIdeaCard }) {
+  const live = idea as LiveIdeaCard
   const design = idea.designId ? getDemoDesign(idea.designId) : undefined
+  const src = live.artworkUrl || (design ? artworkUrl(design.id) : null)
 
   return (
     <article className="overflow-hidden rounded-md border border-line bg-panel/80">
       <div className="relative aspect-[4/3] bg-ink">
-        {design ? (
+        {src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={artworkUrl(design.id)}
+            src={src}
             alt={`Idea artwork: ${idea.slogan}`}
             className="absolute inset-0 h-full w-full object-cover"
           />
@@ -46,7 +49,7 @@ export function IdeaCard({ idea }: { idea: DemoIdea }) {
           <span>
             Trend <strong className="text-accent">{idea.trendScore}</strong> · {idea.status}
           </span>
-          {design ? (
+          {src ? (
             <Link href="/dashboard/designs" className="text-accent hover:underline">
               View design & mockup
             </Link>

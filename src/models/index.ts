@@ -20,6 +20,8 @@ export {
   WeeklyAnalyticsReport,
   type WeeklyAnalyticsReportDoc,
 } from '@/models/WeeklyAnalyticsReport'
+export { CachedDesign, type CachedDesignDoc } from '@/models/CachedDesign'
+export { CachedTrendBatch, type CachedTrendBatchDoc } from '@/models/CachedTrendBatch'
 export { AutomationRun, type AutomationRunDoc } from '@/models/AutomationRun'
 export { AuditLog, type AuditLogDoc } from '@/models/AuditLog'
 export { Settings, type SettingsDoc } from '@/models/Settings'

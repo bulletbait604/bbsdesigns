@@ -1,16 +1,24 @@
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { IdeaCard } from '@/components/dashboard/IdeaCard'
-import { DEMO_IDEAS } from '@/lib/demoCatalog'
+import { loadIdeasForDashboard } from '@/services/pipeline/dashboard'
 
-export default function IdeasPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function IdeasPage() {
+  const { ideas, source } = await loadIdeasForDashboard()
+
   return (
     <DashboardShell
       activePath="/dashboard/ideas"
       title="Ideas"
-      subtitle="Slogan concepts with linked artwork when safety allows a design to be generated."
+      subtitle={
+        source === 'mongo'
+          ? 'Live slogan concepts from Mongo (automation idea_generation).'
+          : 'Demo catalog — run Automation → Idea generation after Mongo is connected.'
+      }
     >
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {DEMO_IDEAS.map((idea) => (
+        {ideas.map((idea) => (
           <IdeaCard key={idea.id} idea={idea} />
         ))}
       </div>

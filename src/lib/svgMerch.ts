@@ -1,4 +1,5 @@
 import type { DemoDesign } from '@/lib/demoCatalog'
+import type { Niche } from '@/types'
 
 function escapeXml(text: string): string {
   return text
@@ -15,6 +16,37 @@ function splitSlogan(slogan: string): string[] {
   if (words.length <= 3) return [slogan]
   const mid = Math.ceil(words.length / 2)
   return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')]
+}
+
+const NICHE_PALETTE: Record<
+  Niche,
+  { bg: string; ink: string; accent: string; shirt: string }
+> = {
+  gaming: { bg: '#0b1220', ink: '#f4f7fb', accent: '#5eead4', shirt: '#1e293b' },
+  baseball: { bg: '#102018', ink: '#f8fafc', accent: '#86efac', shirt: '#14532d' },
+  softball: { bg: '#1a1420', ink: '#fdf4ff', accent: '#f0abfc', shirt: '#3b0764' },
+}
+
+/** Build a DemoDesign-shaped object for live SVG previews (non-catalog). */
+export function buildLiveMerchDesign(input: {
+  slogan: string
+  niche: Niche
+  title?: string
+}): DemoDesign {
+  return {
+    id: 'lag-lifestyle',
+    ideaId: 'live',
+    niche: input.niche,
+    title: input.title || input.slogan,
+    slogan: input.slogan,
+    style: 'Live SVG preview',
+    mockupLabel: 'Black tee · front print',
+    qualityScore: 70,
+    ipRisk: 5,
+    safetyDecision: 'PASS',
+    status: 'review',
+    palette: NICHE_PALETTE[input.niche],
+  }
 }
 
 /** Print-ready artwork SVG for dashboard preview. */

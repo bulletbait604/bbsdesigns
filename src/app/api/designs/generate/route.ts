@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
 import { getSessionFromCookies } from '@/lib/auth/session'
+import { isMongoConfigured } from '@/lib/db'
 import { bootstrapProviders } from '@/providers/bootstrap'
 import { tryGetProvider } from '@/providers/registry'
 import { runDesignEngine } from '@/services/designs/engine'
 import { storeDesignAsset } from '@/services/designs/assetStore'
+import {
+  buildDesignCacheKey,
+  findCachedDesign,
+  saveCachedDesign,
+} from '@/services/designs/cache'
 import type { Niche } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -29,12 +35,39 @@ export async function POST(request: Request) {
     typeof (body as { concept?: string }).concept === 'string'
       ? (body as { concept: string }).concept.trim()
       : undefined
+  const force = Boolean((body as { force?: boolean }).force)
 
   if (!slogan || !niche || !['gaming', 'baseball', 'softball'].includes(niche)) {
     return NextResponse.json(
       { error: 'slogan and niche (gaming|baseball|softball) required' },
       { status: 400 }
     )
+  }
+
+  const cacheKey = buildDesignCacheKey({ niche, slogan, concept })
+
+  if (!force) {
+    const cached = await findCachedDesign(cacheKey)
+    if (cached) {
+      // Warm in-memory map for this instance
+      storeDesignAsset({
+        bytes: cached.bytes,
+        mimeType: cached.design.mimeType,
+        slogan,
+        niche,
+        id: cached.id,
+      })
+      return NextResponse.json({
+        ok: true,
+        fromCache: true,
+        mongoCaching: isMongoConfigured(),
+        design: cached.design,
+        review: cached.review,
+        publishAllowed: false,
+        previewUrl: cached.previewUrl,
+        cacheKey,
+      })
+    }
   }
 
   bootstrapProviders()
@@ -44,7 +77,7 @@ export async function POST(request: Request) {
       {
         error: 'image_provider_not_configured',
         message:
-          'Set IMAGE_PROVIDER=google and IMAGE_API_KEY to your Gemini API key from Google AI Studio, then redeploy.',
+          'Set IMAGE_PROVIDER=google and IMAGE_API_KEY / GEMINI_API, then redeploy. Mongo cache only helps after the first successful generate.',
       },
       { status: 503 }
     )
@@ -52,11 +85,21 @@ export async function POST(request: Request) {
 
   try {
     const result = await runDesignEngine({ slogan, niche, concept })
+    const mongoId = await saveCachedDesign({
+      cacheKey,
+      niche,
+      slogan,
+      concept,
+      result,
+    })
+
+    const assetId = mongoId || undefined
     const stored = storeDesignAsset({
       bytes: result.bytes,
       mimeType: result.design.mimeType,
       slogan,
       niche,
+      id: assetId,
     })
 
     const previewUrl = `/api/design-assets/${stored.id}`
@@ -65,10 +108,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
+      fromCache: false,
+      mongoCaching: Boolean(mongoId),
       design: result.design,
       review: result.review,
       publishAllowed: false,
       previewUrl,
+      cacheKey,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
