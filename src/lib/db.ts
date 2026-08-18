@@ -15,7 +15,8 @@ const cache: MongooseCache = global.__mongooseCache ?? { conn: null, promise: nu
 global.__mongooseCache = cache
 
 export function isMongoConfigured(uri = getEnv().MONGODB_URI): boolean {
-  return Boolean(uri && uri.trim().length > 0)
+  const raw = (process.env.MONGODB_URI || uri || '').trim()
+  return raw.length > 0
 }
 
 /**

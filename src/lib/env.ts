@@ -49,9 +49,44 @@ export type AppEnv = z.infer<typeof envSchema>
 
 let cached: AppEnv | null = null
 
+/**
+ * Explicit process.env.* reads so Next.js/Vercel keep these server env vars
+ * available at runtime (dynamic process.env access alone can miss them).
+ */
+function readProcessEnv(): Record<string, string | undefined> {
+  return {
+    NODE_ENV: process.env.NODE_ENV,
+    APP_URL: process.env.APP_URL,
+    MONGODB_URI: process.env.MONGODB_URI,
+    SHOPIFY_STORE_DOMAIN: process.env.SHOPIFY_STORE_DOMAIN,
+    SHOPIFY_ADMIN_ACCESS_TOKEN: process.env.SHOPIFY_ADMIN_ACCESS_TOKEN,
+    SHOPIFY_API_VERSION: process.env.SHOPIFY_API_VERSION,
+    PRINTIFY_API_TOKEN: process.env.PRINTIFY_API_TOKEN,
+    PRINTIFY_SHOP_ID: process.env.PRINTIFY_SHOP_ID,
+    PRINTIFY_BLUEPRINT_ID: process.env.PRINTIFY_BLUEPRINT_ID,
+    PRINTIFY_PRINT_PROVIDER_ID: process.env.PRINTIFY_PRINT_PROVIDER_ID,
+    AI_TEXT_PROVIDER: process.env.AI_TEXT_PROVIDER,
+    AI_TEXT_API_KEY: process.env.AI_TEXT_API_KEY,
+    IMAGE_PROVIDER: process.env.IMAGE_PROVIDER,
+    IMAGE_API_KEY: process.env.IMAGE_API_KEY,
+    R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+    R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+    R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
+    R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
+    AUTH_SECRET: process.env.AUTH_SECRET,
+    ADMIN_SETUP_TOKEN: process.env.ADMIN_SETUP_TOKEN,
+    HUMAN_APPROVAL: process.env.HUMAN_APPROVAL,
+    AUTO_PUBLISH: process.env.AUTO_PUBLISH,
+    MIN_DESIGN_QUALITY_SCORE: process.env.MIN_DESIGN_QUALITY_SCORE,
+    MIN_SAFETY_SCORE: process.env.MIN_SAFETY_SCORE,
+    CRON_SECRET: process.env.CRON_SECRET,
+  }
+}
+
 export function getEnv(): AppEnv {
   if (cached) return cached
-  const parsed = envSchema.safeParse(process.env)
+  const parsed = envSchema.safeParse(readProcessEnv())
   if (!parsed.success) {
     const details = parsed.error.issues
       .map((i) => `${i.path.join('.')}: ${i.message}`)
@@ -61,6 +96,7 @@ export function getEnv(): AppEnv {
   cached = parsed.data
   return cached
 }
+
 
 /** Clears cached env — for tests only. */
 export function resetEnvCache(): void {

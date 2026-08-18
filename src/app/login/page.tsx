@@ -99,7 +99,7 @@ export default function LoginPage() {
         {blocked ? (
           <div className="mt-5 rounded-md border border-warn/40 bg-warn/10 p-3 text-sm text-warn">
             {!status?.mongoConfigured
-              ? 'Set MONGODB_URI in Vercel, then redeploy.'
+              ? 'MongoDB is not connected. In Vercel → Settings → Environment Variables, add MONGODB_URI for Production (exact name), save, then Redeploy. Atlas Network Access must allow 0.0.0.0/0 (or Vercel IPs).'
               : status.authSecretReady === false
                 ? 'Set AUTH_SECRET (32+ random characters) in Vercel, then redeploy.'
                 : 'Set ADMIN_SETUP_TOKEN (16+ random characters) in Vercel before first password setup, then redeploy.'}
