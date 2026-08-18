@@ -23,8 +23,9 @@ import { getEnv } from '@/lib/env'
 import { logger } from '@/lib/logger'
 import type { Niche } from '@/types'
 import type { SafetyDecision } from '@/types'
+import { DESIGN_PROMPT_VERSION } from '@/services/designs/types'
 
-const DEFAULT_MAX_AI_DESIGNS_PER_RUN = 5
+const DEFAULT_MAX_AI_DESIGNS_PER_RUN = 10
 
 function maxAiDesignsPerRun(): number {
   const raw = Number(process.env.MAX_AI_DESIGNS_PER_RUN || DEFAULT_MAX_AI_DESIGNS_PER_RUN)
@@ -37,15 +38,19 @@ function isSvgPlaceholderDesign(doc: {
   mimeType?: string | null
   assetUrl?: string | null
   model?: string | null
+  promptVersion?: string | null
 }): boolean {
   const provider = (doc.provider || '').toLowerCase()
   const model = (doc.model || '').toLowerCase()
   const url = doc.assetUrl || ''
+  const stalePrompt = Boolean(doc.promptVersion) && doc.promptVersion !== DESIGN_PROMPT_VERSION
   return (
     provider.includes('svg') ||
     model.includes('svg') ||
+    model.includes('lite') ||
     doc.mimeType === 'image/svg+xml' ||
-    url.includes('/api/design-preview')
+    url.includes('/api/design-preview') ||
+    stalePrompt
   )
 }
 
@@ -271,11 +276,15 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
     const slogan = idea.slogan
     const concept =
       idea.concept ||
-      `Visual: bold original ${niche} cartoon hero object with attitude, thick outlines, premium POD streetwear print energy.`
+      `Visual: maximalist original ${niche} cartoon hero locked into flashy bubble/varsity lettering — inseparable art+text, neon accents, heavy drop shadows.`
     const cacheKey = buildDesignCacheKey({ niche, slogan, concept })
 
     const hit = await findCachedDesign(cacheKey)
-    if (hit && hit.design.mimeType !== 'image/svg+xml') {
+    if (
+      hit &&
+      hit.design.mimeType !== 'image/svg+xml' &&
+      hit.design.promptVersion === DESIGN_PROMPT_VERSION
+    ) {
       storeDesignAsset({
         bytes: hit.bytes,
         mimeType: hit.design.mimeType,
@@ -306,12 +315,15 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
           ideaId,
         })
         const mongoId = await saveCachedDesign({ cacheKey, niche, slogan, concept, result })
+        if (!mongoId) {
+          throw new Error('design_cache_save_failed')
+        }
         const stored = storeDesignAsset({
           bytes: result.bytes,
           mimeType: result.design.mimeType,
           slogan,
           niche,
-          id: mongoId || undefined,
+          id: mongoId,
         })
         result.design.assetUrl = `/api/design-assets/${stored.id}`
         result.design.assetKey = stored.id
@@ -339,7 +351,14 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
       continue
     }
 
-    // SVG illustrated placeholder — last resort when AI unavailable/exhausted/failed
+    // When AI is configured, never persist boring SVG stand-ins — leave the idea for a later run
+    if (canAi) {
+      logger.info('design_generation_deferred_no_svg', { ideaId, reason: 'ai_budget_or_failure' })
+      skippedExisting += 1
+      continue
+    }
+
+    // SVG illustrated placeholder — last resort only when AI is unavailable
     const artwork = previewUrlFor(slogan, niche, 'artwork')
     const mockup = previewUrlFor(slogan, niche, 'mockup')
     await Design.create({

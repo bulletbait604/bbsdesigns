@@ -7,7 +7,7 @@ Keep every generated design **flashy, viral, gift-ready** by scoring themes for 
 ## Version
 
 `VIRAL_ALGORITHM_VERSION = viral-v1-flash-2026-08-r1`  
-Design prompts: `design-prompt-v8-viral-flash`  
+Design prompts: `design-prompt-v9-viral-max`  
 Slogan prompts: `slogan-engine-v4-viral-flash`
 
 ## Inputs (APIs only)

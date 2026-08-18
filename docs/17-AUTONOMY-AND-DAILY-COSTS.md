@@ -36,7 +36,7 @@ Optional: `MAX_AI_DESIGNS_PER_RUN=5`, `IMAGE_MODEL=gemini-3.1-flash-image`, `IMA
 ## Text + image confirmation
 
 - **Text:** `idea_generation` → Mongo `Idea` slogans/concepts (`slogan-engine-v4-viral-flash`, Gemini `gemini-2.5-flash`).
-- **Image:** `design_generation` → one flashy Gemini design with imagery + slogan locked together (`design-prompt-v8-viral-flash` at 2K). SVG is placeholder only when AI is unavailable.
+- **Image:** `design_generation` → one flashy Gemini design with imagery + slogan locked together (`design-prompt-v9-viral-max` at 2K). SVG is placeholder only when AI is unavailable.
 
 ## Predicted daily API costs (steady state)
 

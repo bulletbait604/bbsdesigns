@@ -145,10 +145,55 @@ export async function getCachedDesignBytes(id: string): Promise<{
   if (!isMongoConfigured()) return null
   await connectMongo()
 
-  const doc = await CachedDesign.findById(id).lean()
-  if (!doc?.imageBytes) return null
-  const bytes = Buffer.isBuffer(doc.imageBytes)
-    ? doc.imageBytes
-    : Buffer.from(doc.imageBytes as unknown as ArrayBuffer)
-  return { bytes, mimeType: doc.mimeType || 'image/png' }
+  const byId = await CachedDesign.findById(id).lean()
+  if (byId?.imageBytes) {
+    const bytes = Buffer.isBuffer(byId.imageBytes)
+      ? byId.imageBytes
+      : Buffer.from(byId.imageBytes as unknown as ArrayBuffer)
+    return { bytes, mimeType: byId.mimeType || 'image/png' }
+  }
+
+  // Recover after cold starts / id drift: Design.assetKey → latest raster cache for slogan
+  const { Design } = await import('@/models/Design')
+  const design = await Design.findOne({
+    $or: [{ assetKey: id }, { 'provenance.imageAssetKey': id }],
+  })
+    .select({ slogan: 1, niche: 1, promptVersion: 1 })
+    .lean()
+
+  if (!design?.slogan) return null
+
+  const bySlogan = await CachedDesign.findOne({
+    slogan: design.slogan,
+    niche: design.niche,
+    mimeType: { $ne: 'image/svg+xml' },
+    imageBytes: { $exists: true },
+  })
+    .sort({ updatedAt: -1 })
+    .lean()
+
+  if (!bySlogan?.imageBytes) return null
+
+  const bytes = Buffer.isBuffer(bySlogan.imageBytes)
+    ? bySlogan.imageBytes
+    : Buffer.from(bySlogan.imageBytes as unknown as ArrayBuffer)
+  return { bytes, mimeType: bySlogan.mimeType || 'image/png' }
+}
+
+/** True when a CachedDesign document still has raster bytes for this asset id. */
+export async function cachedDesignIdsWithBytes(ids: string[]): Promise<Set<string>> {
+  const out = new Set<string>()
+  if (!isMongoConfigured() || !ids.length) return out
+  await connectMongo()
+  const unique = [...new Set(ids.filter((id) => Boolean(id) && /^[a-f\d]{24}$/i.test(id)))]
+  if (!unique.length) return out
+  const docs = await CachedDesign.find()
+    .where('_id')
+    .in(unique)
+    .where('imageBytes')
+    .exists(true)
+    .select({ _id: 1 })
+    .lean()
+  for (const d of docs) out.add(String(d._id))
+  return out
 }

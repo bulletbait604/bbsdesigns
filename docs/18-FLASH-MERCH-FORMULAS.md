@@ -1,6 +1,6 @@
 # 18 — Flash merch design formulas
 
-Design generation uses `design-prompt-v8-viral-flash` and rotates among four inseparable art+text formulas (seeded by niche+slogan). Occasion context from the Viral Flash algorithm is injected into the prompt (vibe only).
+Design generation uses `design-prompt-v9-viral-max` and rotates among four inseparable art+text formulas (seeded by niche+slogan). Occasion context from the Viral Flash algorithm is injected into the prompt (vibe only).
 
 | Formula | Pattern (from viral streetwear / user refs) |
 |---|---|

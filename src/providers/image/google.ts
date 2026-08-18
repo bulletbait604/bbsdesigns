@@ -13,12 +13,8 @@ import type {
 const DEFAULT_MODEL = 'gemini-3.1-flash-image'
 const DEFAULT_IMAGE_SIZE = '2K'
 
-/** Tried in order when the primary model returns a model-related 400/404. Lite last (weaker art). */
-const FALLBACK_MODELS = [
-  'gemini-3.1-flash-image',
-  'gemini-2.5-flash-image',
-  'gemini-3.1-flash-lite-image',
-]
+/** Tried in order when the primary model returns a model-related 400/404. No lite — it produces weak/boring art. */
+const FALLBACK_MODELS = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image']
 
 function resolveImageSize(requestSize?: string): string {
   const raw = (requestSize || process.env.IMAGE_SIZE || DEFAULT_IMAGE_SIZE).trim().toUpperCase()

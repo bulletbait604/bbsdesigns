@@ -181,6 +181,13 @@ export async function loadDesignsForDashboard(): Promise<{
     : []
   const conceptByIdea = new Map(ideas.map((i) => [String(i._id), i.concept || '']))
 
+  const { cachedDesignIdsWithBytes } = await import('@/services/designs/cache')
+  const { DESIGN_PROMPT_VERSION } = await import('@/services/designs/types')
+  const assetIds = docs
+    .map((d) => d.assetKey)
+    .filter((k): k is string => Boolean(k) && !String(k).startsWith('svg:'))
+  const cachedIds = await cachedDesignIdsWithBytes(assetIds)
+
   const designs: LiveDesignCard[] = docs.map((doc) => {
     const niche = doc.niche as Niche
     const slogan = doc.slogan || doc.title
@@ -188,10 +195,19 @@ export async function loadDesignsForDashboard(): Promise<{
       doc.provenance?.safetyDecision ||
       'REVIEW') as SafetyDecision
     const mongoId = String(doc._id)
+    const assetKey = doc.assetKey || ''
+    const assetUrl = doc.assetUrl || ''
+    const missingRaster =
+      assetUrl.includes('/api/design-assets/') && assetKey && !cachedIds.has(assetKey)
+    const stalePrompt =
+      Boolean(doc.promptVersion) && doc.promptVersion !== DESIGN_PROMPT_VERSION
     const isPlaceholder =
       (doc.provider || '').includes('svg') ||
+      (doc.model || '').includes('lite') ||
       doc.mimeType === 'image/svg+xml' ||
-      (doc.assetUrl || '').includes('design-preview')
+      assetUrl.includes('design-preview') ||
+      missingRaster ||
+      stalePrompt
     return {
       id: mongoId,
       ideaId: String(doc.ideaId),
@@ -215,7 +231,9 @@ export async function loadDesignsForDashboard(): Promise<{
       ideaIdMongo: String(doc.ideaId),
       isPlaceholder,
       concept: conceptByIdea.get(String(doc.ideaId)) || '',
-      artworkSrc: previewArtwork(slogan, niche, doc.assetUrl),
+      artworkSrc: isPlaceholder
+        ? previewArtwork(slogan, niche)
+        : previewArtwork(slogan, niche, doc.assetUrl),
       mockupSrc: previewMockup(slogan, niche, doc.mockupKeys),
     }
   })

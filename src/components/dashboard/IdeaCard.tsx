@@ -2,24 +2,25 @@ import Link from 'next/link'
 import type { DemoIdea } from '@/lib/demoCatalog'
 import { artworkDataUri, buildLiveMerchDesign } from '@/lib/svgMerch'
 import type { LiveIdeaCard } from '@/services/pipeline/dashboard'
+import { AuthImage } from '@/components/dashboard/AuthImage'
 
 export function IdeaCard({ idea }: { idea: DemoIdea | LiveIdeaCard }) {
   const live = idea as LiveIdeaCard
-  const preview =
-    live.artworkUrl ||
-    (idea.safetyDecision === 'REJECT'
+  const fallback =
+    idea.safetyDecision === 'REJECT'
       ? null
       : artworkDataUri(
           buildLiveMerchDesign({ slogan: idea.slogan, niche: idea.niche, title: idea.slogan })
-        ))
+        )
+  const preview = live.artworkUrl || fallback
 
   return (
     <article className="overflow-hidden rounded-md border border-line bg-panel/80">
       <div className="relative aspect-[4/3] bg-ink">
         {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <AuthImage
             src={preview}
+            fallbackSrc={fallback || undefined}
             alt={`Idea artwork: ${idea.slogan}`}
             className="absolute inset-0 h-full w-full object-cover"
           />

@@ -98,21 +98,26 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
 
   const prompt = [
     'Create ONE square print-ready T-SHIRT GRAPHIC (the print artwork only — no shirt mockup, no photo of a person wearing a tee).',
-    'GOAL: a FLASHY viral merch design that looks like a bestselling Etsy / Shopify / festival streetwear tee — loud, colorful, scroll-stopping, gift-ready.',
+    'GOAL: a MAXIMALIST FLASHY viral merch design like a bestselling Etsy / Shopify / festival streetwear tee — loud, dense, colorful, scroll-stopping, gift-ready. If it looks calm, minimal, corporate, or “clean poster,” it FAILED.',
     `SEASONAL / OCCASION CONTEXT (inspire vibe only, do not print these words unless they appear in the slogan): ${occasion}.`,
     `FLASH FORMULA (${formula.name}): ${formula.layout}`,
-    `REFERENCE VIBE: ${formula.vibe}. Prefer retro/Y2K bubble type, maximalist neon, or athletic varsity energy — never boring minimal.`,
-    `HERO / ICON SUBJECT: ${hero}.`,
-    `SLOGAN (exact spelling, no extra words, no typos): "${slogan}".`,
-    'INTEGRATION RULE (non-negotiable): the slogan lettering and the illustration must be ONE inseparable design — text woven into art, art woven into text. Forbidden: plain centered slogan under a floating sticker; forbidden: empty text poster; forbidden: art with no letters.',
-    'TYPE LOOK: thick display lettering, high contrast, saturated multi-color accents OR neon athletic yellow, optional heavy drop shadows / layered 3D offset for depth. Spelling must be perfect.',
-    'COLOR / CONTRAST: pop hard against a solid dark charcoal or soft void background. Clean vector-cartoon edges for DTG/screen print. Not muddy, not photoreal, not clipart mush, not boring minimal.',
+    `REFERENCE VIBE: ${formula.vibe}. MUST use retro/Y2K bubble type OR kinetic multi-color stacked type OR athletic neon varsity — heavy drop shadows, layered offsets, saturated candy/neon palette.`,
+    `HERO / ICON SUBJECT (large, chest-filling, inseparable from lettering): ${hero}.`,
+    `SLOGAN (exact spelling, no extra words, no typos — letters must be BIG and dominant): "${slogan}".`,
+    'INTEGRATION RULE (non-negotiable): slogan lettering and illustration are ONE inseparable design — text woven into art, art woven into text (letter-as-icon OR prop-locked text OR graphic through type OR arched frame). Forbidden: plain centered slogan under a floating sticker; forbidden: empty text poster; forbidden: art with no letters; forbidden: tiny subtitle text; forbidden: sparse white space.',
+    'TYPE LOOK: thick display lettering filling the composition, high contrast, saturated multi-color accents OR neon athletic yellow, heavy dark drop shadows / 3D offset layers. Spelling must be perfect and readable from across a room.',
+    'COLOR / CONTRAST: explode with color against a solid dark charcoal void. Clean vector-cartoon edges for DTG/screen print. Not muddy, not photoreal, not clipart mush, not boring minimal, not pastel-washed-out.',
     'HARD LIMITS: original artwork only; no logos; no copyrighted characters; no real video-game UI; no pro sports team marks/mascots/jerseys; no celebrity likeness; no watermarks; no real human group photos.',
   ].join(' ')
 
   const negativePrompt = [
     'boring',
-    'minimal empty poster',
+    'minimal',
+    'sparse whitespace',
+    'calm corporate poster',
+    'plain sans-serif only',
+    'tiny subtitle text',
+    'empty poster',
     'plain centered text under sticker art',
     'typography-only quote card',
     'art without any text',
@@ -128,6 +133,7 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
     'logo',
     'corporate clean sans only',
     'tiny unreadable text',
+    'pastel washed out',
   ].join(', ')
 
   return {

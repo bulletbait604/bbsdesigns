@@ -31,7 +31,7 @@ describe('ai text slogans (023)', () => {
   it('sync template helper still works', () => {
     const rows = generateSloganCandidatesSync({ niche: 'softball', limit: 2 })
     expect(rows[0]?.source).toBe('template')
-    expect(SLOGAN_PROMPT_VERSION).toContain('v3')
+    expect(SLOGAN_PROMPT_VERSION).toContain('v4')
   })
 
   it('rejects weak cringe slogans', () => {

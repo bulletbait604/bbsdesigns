@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react'
 import type { DemoDesign } from '@/lib/demoCatalog'
 import { artworkDataUri, mockupDataUri } from '@/lib/svgMerch'
 import type { LiveDesignCard } from '@/services/pipeline/dashboard'
+import { AuthImage } from '@/components/dashboard/AuthImage'
 
 type CardDesign = DemoDesign | LiveDesignCard
 
@@ -17,22 +18,23 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
   const fallbackArt = useMemo(() => artworkDataUri(design), [design])
   const fallbackMock = useMemo(() => mockupDataUri(design), [design])
 
-  const [artSrc, setArtSrc] = useState(
-    () => (live && live.artworkSrc) || fallbackArt
-  )
-  const [mockSrc, setMockSrc] = useState(
-    () => (live && live.mockupSrc) || fallbackMock
-  )
+  const [artSrc, setArtSrc] = useState(() => (live && live.artworkSrc) || fallbackArt)
+  const [mockSrc, setMockSrc] = useState(() => (live && live.mockupSrc) || fallbackMock)
   const [fromCache, setFromCache] = useState(false)
-  const [isAi, setIsAi] = useState(() => Boolean(live && !live.isPlaceholder && live.artworkSrc?.includes('/api/design-assets/')))
+  const [isAi, setIsAi] = useState(() =>
+    Boolean(live && !live.isPlaceholder && live.artworkSrc?.includes('/api/design-assets/'))
+  )
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
     setArtSrc((live && live.artworkSrc) || fallbackArt)
     setMockSrc((live && live.mockupSrc) || fallbackMock)
-    setIsAi(Boolean(live && !live.isPlaceholder && live.artworkSrc?.includes('/api/design-assets/')))
+    setIsAi(
+      Boolean(live && !live.isPlaceholder && live.artworkSrc?.includes('/api/design-assets/'))
+    )
     setFromCache(false)
+    setError(null)
   }, [design, fallbackArt, fallbackMock, live])
 
   function generateAi(force = false) {
@@ -48,7 +50,7 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
           niche: design.niche,
           concept:
             (live?.concept && live.concept.trim()) ||
-            `Visual: bold original ${design.niche} cartoon hero object with attitude, thick outlines, streetwear POD print. Secondary lettering only for the slogan.`,
+            `Visual: maximalist original ${design.niche} cartoon hero locked into flashy bubble/varsity lettering — inseparable art+text, neon accents, heavy drop shadows.`,
           ideaId: live?.ideaIdMongo || live?.ideaId || undefined,
           force: shouldForce,
         }),
@@ -73,7 +75,7 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
       }
 
       try {
-        const imgRes = await fetch(data.previewUrl, { credentials: 'same-origin' })
+        const imgRes = await fetch(data.previewUrl, { credentials: 'same-origin', cache: 'no-store' })
         if (!imgRes.ok) throw new Error(`Asset ${imgRes.status}`)
         const blob = await imgRes.blob()
         const objectUrl = URL.createObjectURL(blob)
@@ -92,17 +94,22 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
     <article className="overflow-hidden rounded-md border border-line bg-panel/80">
       <div className="grid gap-0 sm:grid-cols-2">
         <div className="relative aspect-square bg-ink">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <AuthImage
             src={artSrc}
+            fallbackSrc={fallbackArt}
             alt={`Artwork: ${design.slogan}`}
             className="absolute inset-0 h-full w-full object-cover"
-            onError={() => {
+            onLoadError={(status) => {
               if (artSrc.includes('/api/design-assets/')) {
-                setError('AI image failed to load — try Force new')
-                return
+                setError(
+                  status === 404
+                    ? 'AI image missing from storage — click Force new'
+                    : status === 401
+                      ? 'Session expired — refresh and sign in again'
+                      : 'AI image failed to load — try Force new'
+                )
+                setIsAi(false)
               }
-              setArtSrc(fallbackArt)
             }}
           />
           <span className="absolute left-3 top-3 rounded bg-ink/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-accent">
@@ -111,17 +118,16 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
                 ? 'Cached AI art'
                 : 'AI artwork'
               : isPlaceholder
-                ? 'SVG placeholder'
+                ? 'Needs flash AI'
                 : 'Artwork'}
           </span>
         </div>
         <div className="relative aspect-square bg-ink-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <AuthImage
             src={mockSrc}
+            fallbackSrc={fallbackMock}
             alt={`Mockup: ${design.title}`}
             className="absolute inset-0 h-full w-full object-cover"
-            onError={() => setMockSrc(fallbackMock)}
           />
           <span className="absolute left-3 top-3 rounded bg-ink/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-accent-2">
             Mockup
@@ -153,7 +159,7 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         </p>
         {isPlaceholder ? (
           <p className="text-sm text-warn">
-            SVG placeholder only. Generate a flashy viral tee: cartoon imagery locked together with
+            Placeholder / stale art. Generate a flashy viral tee: cartoon imagery locked together with
             the slogan lettering (not text-only).
           </p>
         ) : null}

@@ -12,6 +12,7 @@ import {
 } from '@/services/designs/cache'
 import { upsertDesignResult } from '@/services/designs/persist'
 import { ensureDefaultCatalog } from '@/services/catalog/defaults'
+import { DESIGN_PROMPT_VERSION } from '@/services/designs/types'
 import type { Niche } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
   const illustrationConcept =
     concept ||
-    `Visual: bold original ${niche} cartoon hero object with attitude, thick outlines, premium POD streetwear print. Picture first — slogan as small secondary lettering only.`
+    `Visual: maximalist original ${niche} cartoon hero locked into flashy bubble/varsity lettering — inseparable art+text, neon accents, heavy drop shadows, chest-filling POD print.`
 
   const cacheKey = buildDesignCacheKey({
     niche,
@@ -62,7 +63,11 @@ export async function POST(request: Request) {
 
   if (!force) {
     const cached = await findCachedDesign(cacheKey)
-    if (cached && cached.design.mimeType !== 'image/svg+xml') {
+    if (
+      cached &&
+      cached.design.mimeType !== 'image/svg+xml' &&
+      cached.design.promptVersion === DESIGN_PROMPT_VERSION
+    ) {
       storeDesignAsset({
         bytes: cached.bytes,
         mimeType: cached.design.mimeType,
@@ -111,13 +116,23 @@ export async function POST(request: Request) {
       result,
     })
 
-    const assetId = mongoId || undefined
+    if (!mongoId) {
+      return NextResponse.json(
+        {
+          error: 'design_cache_save_failed',
+          message:
+            'Image generated but could not be saved to Mongo — set MONGODB_URI so previews survive reloads.',
+        },
+        { status: 502 }
+      )
+    }
+
     const stored = storeDesignAsset({
       bytes: result.bytes,
       mimeType: result.design.mimeType,
       slogan,
       niche,
-      id: assetId,
+      id: mongoId,
     })
 
     const previewUrl = `/api/design-assets/${stored.id}`

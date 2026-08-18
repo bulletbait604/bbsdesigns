@@ -12,11 +12,12 @@ describe('design engine', () => {
       concept:
         'Self-roast. Visual: chubby cartoon Wi-Fi ghost dripping delay clocks, neon outline.',
     })
-    expect(built.promptVersion).toContain('flash-merch')
+    expect(built.promptVersion).toContain('viral-max')
     expect(built.prompt.toLowerCase()).toContain('no logos')
     expect(built.prompt.toLowerCase()).toContain('no copyrighted characters')
     expect(built.prompt.toLowerCase()).toContain('flash formula')
     expect(built.prompt.toLowerCase()).toContain('inseparable')
+    expect(built.prompt.toLowerCase()).toContain('maximalist')
     expect(built.prompt.toLowerCase()).toContain('wi-fi ghost')
     expect(built.prompt).toContain('Lag Is A Lifestyle')
     expect(built.prompt.toLowerCase()).toMatch(/lettering|slogan/)
@@ -47,7 +48,7 @@ describe('design engine', () => {
     expect(result.design.model).toBeTruthy()
     expect(result.design.model).not.toContain('compose-typo')
     expect(result.design.prompt).toContain('Sunburnt')
-    expect(result.design.promptVersion).toContain('flash-merch')
+    expect(result.design.promptVersion).toContain('viral-max')
     expect(result.design.prompt.toLowerCase()).toContain('flash formula')
     expect(result.design.sourceIdeaId).toBe('idea-demo-1')
     expect(result.design.assetUrl).toBeTruthy()
