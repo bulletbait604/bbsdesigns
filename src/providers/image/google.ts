@@ -25,7 +25,8 @@ function resolveApiKey(): string {
   return (
     (env.IMAGE_API_KEY || '').trim() ||
     (process.env.GOOGLE_API_KEY || '').trim() ||
-    (process.env.GEMINI_API_KEY || '').trim()
+    (process.env.GEMINI_API_KEY || '').trim() ||
+    (process.env.GEMINI_API || '').trim()
   )
 }
 

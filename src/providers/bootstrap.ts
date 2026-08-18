@@ -26,9 +26,17 @@ export function bootstrapProviders(): void {
   registerProvider('ai_text', createStubAiTextProvider())
 
   const imageProviderName = (env.IMAGE_PROVIDER || '').trim().toLowerCase()
+  const hasGoogleKey = Boolean(
+    env.IMAGE_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      process.env.GEMINI_API_KEY ||
+      process.env.GEMINI_API
+  )
   const googleImageReady =
-    (imageProviderName === 'google' || imageProviderName === 'gemini') &&
-    Boolean(env.IMAGE_API_KEY || process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY)
+    hasGoogleKey &&
+    (imageProviderName === 'google' ||
+      imageProviderName === 'gemini' ||
+      imageProviderName === '' /* auto when only Gemini key is set */)
   registerProvider(
     'image',
     googleImageReady ? createGoogleImageProvider() : createStubImageProvider()

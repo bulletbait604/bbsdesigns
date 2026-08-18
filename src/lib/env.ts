@@ -79,6 +79,10 @@ function readProcessEnv(): Record<string, string | undefined> {
     IMAGE_PROVIDER: process.env.IMAGE_PROVIDER,
     IMAGE_API_KEY: process.env.IMAGE_API_KEY,
     IMAGE_MODEL: process.env.IMAGE_MODEL,
+    // Aliases some users set in Vercel
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_API: process.env.GEMINI_API,
     SERPAPI_API_KEY: process.env.SERPAPI_API_KEY,
     ETSY_API_KEY: process.env.ETSY_API_KEY,
     ETSY_SHARED_SECRET: process.env.ETSY_SHARED_SECRET,
