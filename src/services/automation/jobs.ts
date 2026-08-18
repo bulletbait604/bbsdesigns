@@ -3,20 +3,20 @@ import type { AutomationJobDefinition, AutomationJobName } from '@/services/auto
 export const AUTOMATION_JOBS: AutomationJobDefinition[] = [
   {
     name: 'trend_ingestion',
-    label: 'Trend ingestion',
-    description: 'Collect and normalize trend signals',
+    label: 'Trend research',
+    description: 'Fetch, score, and save niche demand themes (SerpAPI/Etsy when keyed)',
     requiresHumanApprovalGate: false,
   },
   {
     name: 'trend_scoring',
-    label: 'Trend scoring',
-    description: 'Score and rank opportunities',
+    label: 'Trend scoring (alias)',
+    description: 'Same pipeline as trend research — kept for schedule compatibility; skips if research already ran today',
     requiresHumanApprovalGate: false,
   },
   {
     name: 'idea_generation',
     label: 'Idea generation',
-    description: 'Generate slogan / concept candidates',
+    description: 'Write viral slogan + visual concept candidates from top trends',
     requiresHumanApprovalGate: false,
   },
   {
@@ -28,7 +28,7 @@ export const AUTOMATION_JOBS: AutomationJobDefinition[] = [
   {
     name: 'design_generation',
     label: 'Design generation',
-    description: 'Create artwork for PASS ideas',
+    description: 'One viral AI design per idea: imagery + slogan text integrated together',
     requiresHumanApprovalGate: false,
   },
   {
@@ -52,7 +52,7 @@ export const AUTOMATION_JOBS: AutomationJobDefinition[] = [
   {
     name: 'publishing',
     label: 'Publishing',
-    description: 'Publish only when HUMAN_APPROVAL allows',
+    description: 'Gate check only while HUMAN_APPROVAL — create drafts from Publishing UI',
     requiresHumanApprovalGate: true,
   },
   {

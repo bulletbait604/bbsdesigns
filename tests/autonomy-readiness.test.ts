@@ -36,6 +36,7 @@ describe('autonomy readiness', () => {
     expect(r.mongo).toBe(true)
     expect(r.textDesigns.ready).toBe(true)
     expect(r.imageDesigns.ready).toBe(true)
+    expect(r.trendResearch).toBeTruthy()
     expect(r.readyForAutonomousGeneration).toBe(true)
     expect(r.readyForAutonomousPublish).toBe(false)
     expect(r.imageDesigns.maxAiPerRun).toBeGreaterThanOrEqual(1)

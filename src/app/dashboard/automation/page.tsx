@@ -20,7 +20,7 @@ export default async function AutomationPage() {
     <DashboardShell
       activePath="/dashboard/automation"
       title="Automation"
-      subtitle="Daily Vercel Cron fills text slogans + AI illustrations. Pause is persisted. Publishing stays gated while AUTO_PUBLISH=false."
+      subtitle="Daily cron: research themes → write slogans → generate one viral AI design (imagery + text) → human approval. Auto-publish stays off."
     >
       <section className="panel" style={{ marginBottom: 16 }}>
         <h2 className="panel-title">Autonomy check</h2>
@@ -30,9 +30,10 @@ export default async function AutomationPage() {
             {autonomy.readyForAutonomousGeneration ? 'YES' : 'NO'}
           </strong>
           {' · '}
-          Text AI: {autonomy.textDesigns.ready ? 'on' : 'off'} · Image AI:{' '}
+          Research: {autonomy.trendResearch.ready ? 'live' : 'curated/stub'} · Text AI:{' '}
+          {autonomy.textDesigns.ready ? 'on' : 'off'} · Image AI:{' '}
           {autonomy.imageDesigns.ready ? `on (≤${autonomy.imageDesigns.maxAiPerRun}/run)` : 'off'} ·
-          Auto-publish: never (human approval)
+          Auto-publish: never
         </p>
         <p className="text-muted" style={{ fontSize: 13 }}>
           Cron: {autonomy.cronConfiguredHint}

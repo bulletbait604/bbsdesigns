@@ -15,8 +15,8 @@ export default async function DashboardOverviewPage() {
       subtitle={
         source === 'mongo'
           ? empty
-            ? 'Mongo connected — live counts are zero until automation creates ideas/products.'
-            : 'Live pipeline pulse from Mongo and trend engine.'
+            ? 'Mongo connected — run Automation: trends → slogans → viral AI designs (art+text), then approve in Safety.'
+            : 'Live pulse: research → slogans → one AI design with imagery + text → human approval before drafts.'
           : 'Demo pulse until Mongo is connected. Run automation for live counts.'
       }
     >
@@ -32,7 +32,8 @@ export default async function DashboardOverviewPage() {
           </div>
           {approvals.length === 0 ? (
             <p className="mt-4 text-sm text-muted">
-              No items awaiting approval. Run trend → idea jobs from Automation when ready.
+              No items awaiting approval. Run Automation: trend research → idea_generation →
+              design_generation, then open Safety.
             </p>
           ) : (
             <ul className="mt-4 space-y-3">
@@ -95,7 +96,14 @@ export default async function DashboardOverviewPage() {
               </Link>
               .
             </li>
-            <li>Wire AI text + image keys when you are ready to generate live slogans/designs.</li>
+            <li>
+              Add <code className="text-accent-2">SERPAPI_API_KEY</code> / Etsy keys for live theme
+              research (otherwise curated seeds only).
+            </li>
+            <li>
+              Add Gemini keys for slogans and viral AI designs (imagery + slogan text in one image).
+              Publishing stays human-approved.
+            </li>
           </ol>
         </section>
       )}

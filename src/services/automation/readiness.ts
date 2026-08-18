@@ -10,6 +10,7 @@ export type AutonomyReadiness = {
   readyForAutonomousPublish: boolean
   textDesigns: { ready: boolean; provider: string; detail: string }
   imageDesigns: { ready: boolean; provider: string; detail: string; maxAiPerRun: number }
+  trendResearch: { ready: boolean; provider: string; detail: string }
   mongo: boolean
   cronConfiguredHint: string
   blockers: string[]
@@ -46,6 +47,23 @@ export function assessAutonomyReadiness(): AutonomyReadiness {
   const mongo = isMongoConfigured()
   if (!mongo) blockers.push('MONGODB_URI required for durable pipeline state')
 
+  const trend = tryGetProvider('trend')
+  const trendName = (trend?.name || '').toLowerCase()
+  const trendOk =
+    Boolean(trend) &&
+    trend!.validateConfig().ok &&
+    !trendName.includes('stub')
+  const trendResearch = {
+    ready: trendOk,
+    provider: trend?.name || 'none',
+    detail: trendOk
+      ? 'Live demand themes via SerpAPI and/or Etsy'
+      : 'Set SERPAPI_API_KEY and/or ETSY keys — otherwise curated/stub themes only',
+  }
+  if (!trendOk) {
+    notes.push('Trend research is curated/stub only until SerpAPI or Etsy keys are set')
+  }
+
   const text = tryGetProvider('ai_text')
   const textOk =
     Boolean(text) && text!.validateConfig().ok && !text!.name.toLowerCase().includes('stub')
@@ -53,7 +71,7 @@ export function assessAutonomyReadiness(): AutonomyReadiness {
     ready: textOk,
     provider: text?.name || 'none',
     detail: textOk
-      ? 'AI slogan/text ideas via Gemini'
+      ? 'AI slogan + visual concepts via Gemini'
       : 'Set GEMINI_API / AI_TEXT_API_KEY — otherwise template slogans only',
   }
   if (!textOk) blockers.push('AI text provider not configured (slogans fall back to templates)')
@@ -66,7 +84,7 @@ export function assessAutonomyReadiness(): AutonomyReadiness {
     ready: imageOk,
     provider: image?.name || 'none',
     detail: imageOk
-      ? `Google illustrated designs (up to ${maxAi} per daily design_generation run)`
+      ? `Viral AI designs with imagery + slogan text in one image (up to ${maxAi}/run)`
       : 'Set IMAGE_PROVIDER=google + GEMINI_API / IMAGE_API_KEY — otherwise SVG placeholders only',
     maxAiPerRun: maxAi,
   }
@@ -76,7 +94,7 @@ export function assessAutonomyReadiness(): AutonomyReadiness {
     notes.push('Set CRON_SECRET so Vercel Cron /api/cron/automation is authenticated')
   }
   notes.push(
-    'Vercel Cron hits GET /api/cron/automation daily (see vercel.json). Publishing stays human-approved.'
+    'Pipeline: research themes → slogans → one viral AI design (art+text) → human approval before Shopify draft.'
   )
   if (env.HUMAN_APPROVAL && !env.AUTO_PUBLISH) {
     notes.push(
@@ -88,13 +106,14 @@ export function assessAutonomyReadiness(): AutonomyReadiness {
   }
 
   const readyForAutonomousGeneration = mongo && textOk && imageOk
-  const readyForAutonomousPublish = false // product policy: never claim auto-publish while gated
+  const readyForAutonomousPublish = false
 
   return {
     readyForAutonomousGeneration,
     readyForAutonomousPublish,
     textDesigns,
     imageDesigns,
+    trendResearch,
     mongo,
     cronConfiguredHint: 'vercel.json crons → /api/cron/automation (0 14 * * *)',
     blockers,

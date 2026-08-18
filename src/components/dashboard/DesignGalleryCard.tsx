@@ -153,8 +153,8 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         </p>
         {isPlaceholder ? (
           <p className="text-sm text-warn">
-            This is a local SVG placeholder (not Google art). Click Generate AI design to create a real
-            illustration.
+            SVG placeholder only. Generate a viral AI design with cartoon imagery and the slogan text
+            integrated in one image.
           </p>
         ) : null}
         <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -165,12 +165,12 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
             className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-ink disabled:opacity-50"
           >
             {pending
-              ? 'Generating illustration…'
+              ? 'Generating viral design…'
               : isPlaceholder
-                ? 'Generate AI illustration (Google)'
+                ? 'Generate viral design (art + text)'
                 : isAi
                   ? 'Load cached / generate'
-                  : 'Generate AI design (Google)'}
+                  : 'Generate viral design (art + text)'}
           </button>
           <button
             type="button"

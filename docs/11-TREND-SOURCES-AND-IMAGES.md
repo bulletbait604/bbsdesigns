@@ -31,9 +31,9 @@ With `MONGODB_URI` set:
 
 Requires working Mongo (same SDHQ cluster / `bbsdesigns` database is fine).
 
-## Graphic AI designs (Google Gemini + typography composite)
+## Graphic AI designs (one viral image)
 
-Matches starter package prompt 009: **original artwork + clean typography**, print-ready.
+Matches starter package prompt 009: **original artwork + clean typography** in **one** AI generation.
 
 1. Open [Google AI Studio](https://aistudio.google.com/apikey) → **Create API key**
 2. Vercel env:
@@ -42,8 +42,8 @@ Matches starter package prompt 009: **original artwork + clean typography**, pri
    - optional `IMAGE_MODEL=gemini-3.1-flash-image`
    - optional `IMAGE_SIZE=2K` (default)
 3. Redeploy
-4. Designs → **Generate AI illustration**
+4. Designs → **Generate viral design (art + text)**
 
-**Pipeline:** Gemini draws the **illustration only** (no letters). The app then **composites** the exact slogan as bold type on the lower band → final PNG is always **graphic + text**, never a text-only poster.
+**Pipeline:** Gemini creates a single scroll-stopping merch graphic with the cartoon hero **and** the exact slogan lettering integrated together — not text-only posters, not art with a separate type overlay.
 
 Automation `design_generation` creates up to `MAX_AI_DESIGNS_PER_RUN` (default 5) per run and upgrades old SVG placeholders.

@@ -27,7 +27,8 @@ describe('provider architecture', () => {
     const trend = getProvider('trend')
 
     expect(ai.validateConfig().ok).toBe(true)
-    expect(trend.validateConfig().ok).toBe(true)
+    expect(trend.validateConfig().ok).toBe(false)
+    expect(trend.validateConfig().missing.length).toBeGreaterThan(0)
 
     const completion = await ai.complete({ prompt: 'hello merch' })
     expect(completion.provider).toBe('test-ai')

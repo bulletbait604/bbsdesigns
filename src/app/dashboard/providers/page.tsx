@@ -30,6 +30,9 @@ export default async function ProvidersPage() {
     env.IMAGE_API_KEY || process.env.GEMINI_API || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
   )
 
+  const serpOk = Boolean(env.SERPAPI_API_KEY)
+  const etsyOk = Boolean(env.ETSY_API_KEY && env.ETSY_SHARED_SECRET)
+
   bootstrapProviders()
   const providerHealth = await healthCheckAll()
 
@@ -65,15 +68,31 @@ export default async function ProvidersPage() {
         </div>
         <div className="rounded-md border border-line bg-panel/80 p-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-lg font-bold">AI text</h2>
-            <StatusBadge ok={aiOk} label={aiOk ? 'Configured' : 'Optional now'} />
+            <h2 className="font-display text-lg font-bold">SerpAPI research</h2>
+            <StatusBadge ok={serpOk} label={serpOk ? 'Configured' : 'Needs key'} />
           </div>
+          <p className="mt-2 text-xs text-muted">Google Trends / Shopping theme research</p>
+        </div>
+        <div className="rounded-md border border-line bg-panel/80 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-bold">Etsy research</h2>
+            <StatusBadge ok={etsyOk} label={etsyOk ? 'Configured' : 'Needs keys'} />
+          </div>
+          <p className="mt-2 text-xs text-muted">Listing demand themes (key + shared secret)</p>
+        </div>
+        <div className="rounded-md border border-line bg-panel/80 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-bold">AI text</h2>
+            <StatusBadge ok={aiOk} label={aiOk ? 'Configured' : 'Required for slogans'} />
+          </div>
+          <p className="mt-2 text-xs text-muted">Gemini slogans + visual concepts</p>
         </div>
         <div className="rounded-md border border-line bg-panel/80 p-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-bold">Image gen</h2>
-            <StatusBadge ok={imageOk} label={imageOk ? 'Configured' : 'Optional now'} />
+            <StatusBadge ok={imageOk} label={imageOk ? 'Configured' : 'Required for designs'} />
           </div>
+          <p className="mt-2 text-xs text-muted">Viral AI art + slogan text in one image</p>
         </div>
       </div>
 

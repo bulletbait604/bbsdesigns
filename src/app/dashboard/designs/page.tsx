@@ -13,8 +13,8 @@ export default async function DesignsPage() {
       title="Designs"
       subtitle={
         source === 'mongo'
-          ? 'Live designs from Mongo — artwork + tee mockups. Generate Google AI art when ready.'
-          : 'Catalog previews (SVG). Run Automation → design generation after Mongo is connected for live rows.'
+          ? 'Each design is one viral AI image: cartoon imagery + slogan text integrated together — not text-only posters.'
+          : 'Catalog previews (SVG placeholders). Connect Mongo + Gemini, then run design_generation for real AI designs.'
       }
     >
       {!designs.length ? (

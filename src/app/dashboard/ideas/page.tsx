@@ -13,7 +13,7 @@ export default async function IdeasPage() {
       title="Ideas"
       subtitle={
         source === 'mongo'
-          ? 'Live slogan concepts from Mongo (automation idea_generation).'
+          ? 'Live slogan + visual concepts from Mongo. Next step: Designs generates one viral AI image with art and text together.'
           : 'Demo catalog — run Automation → Idea generation after Mongo is connected.'
       }
     >

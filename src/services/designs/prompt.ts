@@ -6,20 +6,20 @@ import {
 
 const STYLE_BY_NICHE: Record<string, string> = {
   gaming:
-    'bold vector cartoon streetwear graphic, thick clean outlines, neon accents on deep charcoal, high-contrast flat shading, Threadless/POD tee energy',
+    'viral streetwear merch graphic — explosive neon, thick comic outlines, high-pop contrast, scroll-stopping energy like a bestselling Redbubble/Threadless tee',
   baseball:
-    'bold vector cartoon streetwear graphic, thick clean outlines, grass-green and chalk-white accents, high-contrast flat shading, premium beer-league merch energy',
+    'viral beer-league merch graphic — loud chalk-dust energy, cracked-bat sparks, high-pop contrast, scroll-stopping dugout swagger',
   softball:
-    'bold vector cartoon streetwear graphic, thick clean outlines, sunset coral and violet accents, high-contrast flat shading, weekend-warrior merch energy',
+    'viral weekend-warrior merch graphic — hot sunset pops, muddy-cleat attitude, high-pop contrast, scroll-stopping team-chat energy',
 }
 
 const SUBJECT_HINT: Record<string, string> = {
   gaming:
-    'one dominant original mascot-or-object scene (stylized controller creature, lag ghost, cracked pixel heart, or headset hero) — invent original shapes, never a real game character',
+    'one unforgettable original cartoon hero (lag ghost, exploding controller creature, cracked pixel heart with attitude) — invent original shapes, never a real game character',
   baseball:
-    'one dominant original object scene (cracked bat with sparks, diving mitt, mischievous baseball with attitude) — invent original marks, never a real team',
+    'one unforgettable original cartoon hero object (swagger baseball with shades, bat mid-chaos spark, diving mitt catching lightning) — invent original marks, never a real team',
   softball:
-    'one dominant original object scene (sunburnt mitt with sunglasses, muddy cleats kicking glitter, pizza-slice catcher) — invent original marks, never a real team',
+    'one unforgettable original cartoon hero object (sunburnt mitt with attitude, pizza-helmet catcher, cleats kicking glitter fireworks) — invent original marks, never a real team',
 }
 
 /**
@@ -41,8 +41,7 @@ export function extractVisualBrief(concept?: string, niche?: string): string {
 }
 
 /**
- * Art-only prompt for the image model. Slogan typography is composited afterward
- * (starter pack: original artwork + clean typography — never text-only posters).
+ * Single-shot viral merch design: imagery + slogan text integrated by the AI in one image.
  */
 export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
   const style = STYLE_BY_NICHE[input.niche] || STYLE_BY_NICHE.gaming
@@ -50,34 +49,32 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
   const slogan = input.slogan.trim()
 
   const prompt = [
-    'Create ONE square print-ready T-shirt GRAPHIC as a finished illustrated IMAGE.',
-    'This must be a PICTURE / cartoon illustration — not a typography poster.',
-    'SUBJECT (required hero): ' + visual + '.',
-    'The illustration fills the UPPER ~70% of the canvas, large and centered, readable from 10 feet away.',
+    'Create ONE square viral print-ready T-shirt DESIGN as a finished IMAGE.',
+    'CRITICAL: this is ONE integrated design — bold cartoon IMAGERY and the slogan TEXT must live in the same composition (not a text poster, not art with empty space for later type).',
+    'VIRAL BAR: eye-catching, loud, shareable, premium POD catalog energy. Not boring. Not corporate. Not minimal empty posters. Not clipart mush.',
+    'HERO IMAGE (required): ' + visual + ' — large, centered, dominating the canvas so the eye lands on the picture first.',
     'STYLE: ' + style + '.',
-    'COMPOSITION: single iconic focal subject, generous negative space, no collage, no photo montage, no shirt mockup (output the print artwork itself).',
-    'BACKGROUND: clean solid dark charcoal or soft gradient void.',
-    'TEXT RULE (critical): draw ZERO letters, words, slogans, captions, watermarks, or numbers in the image. Leave the bottom ~30% as clean dark empty space for typography that will be added later.',
-    `Theme context only (do not write these words in the image): humor about "${slogan}".`,
-    'QUALITY: crisp edges, saturated but print-safe colors, professional POD catalog look — not clipart, not AI mush.',
+    `SLOGAN TEXT (required, exact spelling): integrate these exact words into the design as bold display lettering that feels part of the art: "${slogan}".`,
+    'TEXT INTEGRATION: wrap, arch, stamp, or stack the lettering so it locks into the illustration (banner ribbon, exploding caption, stamped under the hero, comic burst) — spelling must be perfect, no extra words, no typos.',
+    'COMPOSITION: single iconic scene, high contrast, saturated accents, clean edges for DTG/screen print, dark or void background that makes the graphic POP. No shirt mockup. No photo collage.',
     'HARD LIMITS: original artwork only; no logos; no copyrighted characters; no real video-game UI; no pro sports team marks/mascots/jerseys; no celebrity likeness; no watermarks.',
   ].join(' ')
 
   const negativePrompt = [
-    'any text',
-    'letters',
-    'words',
-    'slogan',
-    'typography',
-    'caption',
-    'watermark',
-    'logo',
-    'typography-only poster',
-    'quote card',
-    'shirt mockup',
-    'busy collage',
+    'boring',
+    'minimal empty poster',
+    'typography-only quote card',
+    'art without any text',
+    'text without illustration',
     'blurry',
     'low detail mush',
+    'misspelled text',
+    'extra words not in slogan',
+    'watermark',
+    'logo',
+    'shirt mockup',
+    'photoreal jersey',
+    'busy unreadable collage',
   ].join(', ')
 
   return {

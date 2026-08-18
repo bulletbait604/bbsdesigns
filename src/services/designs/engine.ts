@@ -2,7 +2,6 @@ import { getEnv } from '@/lib/env'
 import { getProvider, tryGetProvider } from '@/providers/registry'
 import { callProvider } from '@/providers/call'
 import { buildDesignPrompt } from '@/services/designs/prompt'
-import { composeGraphicWithSlogan } from '@/services/designs/composeMerch'
 import { reviewGeneratedImage } from '@/services/designs/imageReview'
 import type {
   DesignPipelineResult,
@@ -19,9 +18,8 @@ function slug(text: string): string {
 }
 
 /**
- * Design engine (starter 009): AI graphic → clean typography composite → image review.
- * Always produces graphics WITH text (composited), never text-only posters.
- * Never marks designs as auto-publishable.
+ * Design engine: one AI image with imagery + slogan text integrated together.
+ * Viral / eye-catching merch — never marks designs as auto-publishable.
  */
 export async function runDesignEngine(
   input: DesignPromptInput
@@ -48,14 +46,6 @@ export async function runDesignEngine(
     }
   )
 
-  // Starter requirement: original artwork + clean typography
-  const composed = await composeGraphicWithSlogan({
-    artBytes: image.bytes,
-    slogan: input.slogan,
-    niche: input.niche,
-    size: 2048,
-  })
-
   const key = `designs/${input.niche}/${slug(input.slogan)}-${Date.now()}.png`
   let assetUrl = `local://${key}`
   let assetKey = key
@@ -66,8 +56,8 @@ export async function runDesignEngine(
       () =>
         storage.putObject({
           key,
-          body: composed.bytes,
-          contentType: composed.mimeType,
+          body: image.bytes,
+          contentType: image.mimeType,
         }),
       {
         provider: storage.name,
@@ -83,7 +73,7 @@ export async function runDesignEngine(
 
   const design: GeneratedDesignRecord = {
     provider: image.provider,
-    model: `${image.model}+compose-typo`,
+    model: image.model,
     prompt: built.prompt,
     negativePrompt: built.negativePrompt,
     promptVersion: built.promptVersion,
@@ -92,21 +82,21 @@ export async function runDesignEngine(
     niche: input.niche,
     assetKey,
     assetUrl,
-    mimeType: composed.mimeType,
-    width: composed.width,
-    height: composed.height,
+    mimeType: image.mimeType,
+    width: image.width ?? built.width,
+    height: image.height ?? built.height,
     status: 'generated',
     createdAt: new Date().toISOString(),
   }
 
   const review = reviewGeneratedImage({
     slogan: input.slogan,
-    prompt: `${built.prompt} clean typography composite graphic with text`,
+    prompt: built.prompt,
     niche: input.niche,
-    bytesLength: composed.bytes.length,
-    mimeType: composed.mimeType,
+    bytesLength: image.bytes.length,
+    mimeType: image.mimeType,
     minQuality: getEnv().MIN_DESIGN_QUALITY_SCORE,
-    hasCompositedTypography: true,
+    hasCompositedTypography: false,
   })
 
   if (review.decision === 'REJECT') design.status = 'rejected'
@@ -116,6 +106,6 @@ export async function runDesignEngine(
     design,
     review,
     publishAllowed: false,
-    bytes: composed.bytes,
+    bytes: image.bytes,
   }
 }

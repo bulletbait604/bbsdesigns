@@ -66,21 +66,32 @@ export function reviewGeneratedImage(input: {
     qualityScore -= 5
   }
 
-  // Starter 009/010: designs must be graphics with typography, not text-only
+  // Starter 009: designs must request both graphic imagery and slogan typography in one piece
   const promptLower = input.prompt.toLowerCase()
   const asksGraphic =
     promptLower.includes('illustration') ||
-    promptLower.includes('graphic') ||
+    promptLower.includes('imagery') ||
+    promptLower.includes('hero image') ||
+    promptLower.includes('cartoon') ||
     promptLower.includes('subject')
+  const asksText =
+    promptLower.includes('slogan') ||
+    promptLower.includes('lettering') ||
+    promptLower.includes('typography') ||
+    promptLower.includes('text')
   if (!asksGraphic) {
     issues.push('prompt_missing_graphic_requirement')
     qualityScore -= 15
   }
-  if (input.hasCompositedTypography) {
-    qualityScore = Math.min(100, qualityScore + 3)
-  } else if (!promptLower.includes('typography') && !promptLower.includes('lettering') && !promptLower.includes('slogan')) {
+  if (!asksText && !input.hasCompositedTypography) {
     issues.push('prompt_missing_typography')
     qualityScore -= 10
+  }
+  if (input.hasCompositedTypography) {
+    qualityScore = Math.min(100, qualityScore + 2)
+  }
+  if (promptLower.includes('viral') || promptLower.includes('eye-catching') || promptLower.includes('integrated')) {
+    qualityScore = Math.min(100, qualityScore + 2)
   }
 
   qualityScore = Math.max(0, Math.min(100, Math.round(qualityScore)))

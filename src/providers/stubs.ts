@@ -69,8 +69,10 @@ export function createStubTrendProvider(name = 'stub-trend'): TrendProvider {
   return {
     kind: 'trend',
     name,
-    validateConfig: () => missingConfig([]),
-    healthCheck: async () => health('trend', name, true, 'stub ready'),
+    // Stub is never "configured live research" — dashboards must show needs keys
+    validateConfig: () => missingConfig(['SERPAPI_API_KEY', 'ETSY_API_KEY']),
+    healthCheck: async () =>
+      health('trend', name, false, 'Stub only — set SERPAPI_API_KEY and/or ETSY keys for live research'),
     fetchSignals: async ({ niche, limit = 3 }) =>
       Array.from({ length: limit }, (_, i) => ({
         externalId: `${niche}-stub-${i + 1}`,

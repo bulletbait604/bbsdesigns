@@ -124,16 +124,16 @@ describe('configured trend provider', () => {
 })
 
 describe('design prompt graphics', () => {
-  it('requires illustration not text-only', () => {
+  it('requires integrated illustration and slogan text', () => {
     const built = buildDesignPrompt({
       niche: 'gaming',
       slogan: 'Lag Is A Lifestyle',
       concept: 'high ping humor',
     })
-    expect(built.prompt).toMatch(/illustrated|SUBJECT/i)
-    expect(built.prompt).toMatch(/streetwear|POD|vector cartoon/i)
-    expect(built.prompt).toMatch(/ZERO letters|no letters|typography that will be added/i)
-    expect(built.negativePrompt).toMatch(/text|letters|typography/i)
+    expect(built.prompt).toMatch(/viral|integrated|hero image/i)
+    expect(built.prompt).toMatch(/Lag Is A Lifestyle/)
+    expect(built.prompt).toMatch(/lettering|slogan text/i)
+    expect(built.negativePrompt).toMatch(/boring|art without any text|text without illustration/i)
   })
 })
 

@@ -13,7 +13,7 @@ export default async function SafetyQueuePage() {
       title="Safety Queue"
       subtitle={
         source === 'mongo'
-          ? 'Approve only what PASSes safety. REJECT always wins — high trend scores cannot override.'
+          ? 'Human gate: approve PASS designs before Shopify draft. Trend score never overrides safety. REJECT always wins.'
           : 'Demo queue — connect Mongo and run Automation jobs for live items. Approve/draft disabled on demo ids.'
       }
     >

@@ -87,8 +87,23 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
       appendLog(run, `execute:${jobName}`)
 
       switch (jobName) {
-        case 'trend_ingestion':
         case 'trend_scoring': {
+          // Avoid double SerpAPI/Etsy spend on the daily cron bucket
+          if (run.trigger === 'schedule') {
+            run.status = 'skipped'
+            run.summary =
+              'Alias of trend research — skipped on schedule (covered by trend_ingestion)'
+            appendLog(run, 'trends:alias_skip')
+            break
+          }
+          const { runTrendPersistJob: scoreJob } = await import('@/services/pipeline/jobs')
+          const scoreStats = await scoreJob()
+          run.stats = scoreStats
+          run.summary = `Scored ${scoreStats.scored ?? 0} trend(s); persisted ${scoreStats.persisted ?? 0}`
+          appendLog(run, `trends:${scoreStats.scored}`)
+          break
+        }
+        case 'trend_ingestion': {
           const { runTrendPersistJob } = await import('@/services/pipeline/jobs')
           const stats = await runTrendPersistJob()
           run.stats = stats
