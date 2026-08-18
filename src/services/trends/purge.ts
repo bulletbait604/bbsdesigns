@@ -7,6 +7,9 @@ import { TrendScore } from '@/models/TrendScore'
 import { Idea } from '@/models/Idea'
 import { Product } from '@/models/Product'
 import { ProductVariant } from '@/models/ProductVariant'
+import { SafetyReview } from '@/models/SafetyReview'
+import { PublishingJob } from '@/models/PublishingJob'
+import { ProductLifecycleDecision } from '@/models/ProductLifecycleDecision'
 import { SystemMeta } from '@/models/SystemMeta'
 import { VIRAL_ALGORITHM_VERSION } from '@/services/trends/viralAlgorithm'
 import { DESIGN_PROMPT_VERSION } from '@/services/designs/types'
@@ -21,11 +24,14 @@ export type ViralPurgeCounts = {
   ideas: number
   products: number
   productVariants: number
+  safetyReviews: number
+  publishingJobs: number
+  lifecycleDecisions: number
 }
 
 /**
- * Erase saved designs + viral-research algorithm state so the pipeline
- * regenerates under VIRAL_ALGORITHM_VERSION / flash merch prompts.
+ * Factory reset for creative/research pipeline data.
+ * Keeps Store, Brand, AdminAuth, Settings, Orders, analytics history.
  */
 export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
   await connectMongo()
@@ -39,6 +45,9 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
     ideas,
     products,
     productVariants,
+    safetyReviews,
+    publishingJobs,
+    lifecycleDecisions,
   ] = await Promise.all([
     Design.deleteMany({}),
     CachedDesign.deleteMany({}),
@@ -48,7 +57,17 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
     Idea.deleteMany({}),
     Product.deleteMany({}),
     ProductVariant.deleteMany({}),
+    SafetyReview.deleteMany({}),
+    PublishingJob.deleteMany({}),
+    ProductLifecycleDecision.deleteMany({}),
   ])
+
+  try {
+    const { clearPublishingQueue } = await import('@/services/publishing/queue')
+    clearPublishingQueue()
+  } catch {
+    // optional in-memory queue
+  }
 
   const counts: ViralPurgeCounts = {
     designs: designs.deletedCount ?? 0,
@@ -59,6 +78,9 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
     ideas: ideas.deletedCount ?? 0,
     products: products.deletedCount ?? 0,
     productVariants: productVariants.deletedCount ?? 0,
+    safetyReviews: safetyReviews.deletedCount ?? 0,
+    publishingJobs: publishingJobs.deletedCount ?? 0,
+    lifecycleDecisions: lifecycleDecisions.deletedCount ?? 0,
   }
 
   await SystemMeta.findOneAndUpdate(
@@ -82,7 +104,7 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
 }
 
 /**
- * On algorithm version bump (or first boot), wipe legacy design/trend state once.
+ * On algorithm version bump (or first boot), wipe legacy pipeline state once.
  */
 export async function ensureViralAlgorithmMigration(): Promise<{
   skipped?: boolean

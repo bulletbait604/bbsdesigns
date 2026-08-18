@@ -6,7 +6,7 @@ Keep every generated design **flashy, viral, gift-ready** by scoring themes for 
 
 ## Version
 
-`VIRAL_ALGORITHM_VERSION = viral-v2-social-etsy-2026-08`  
+`VIRAL_ALGORITHM_VERSION = viral-v2-social-etsy-2026-08-fresh`  
 Design prompts: `design-prompt-v9-viral-max`  
 Slogan prompts: `slogan-engine-v5-viral-social`
 
@@ -38,9 +38,12 @@ On algorithm or design-prompt version bump, `ensureViralAlgorithmMigration()` de
 
 - Design, CachedDesign
 - TrendSignal, TrendScore, CachedTrendBatch
-- Idea, Product (pipeline creative slate)
+- Idea, Product, ProductVariant
+- SafetyReview, PublishingJob, ProductLifecycleDecision
+- In-memory publishing queue
 
 Manual: `POST /api/automation` with `{ "action": "purge_viral_state" }` (admin session).
+Then run **Trend research → Idea generation → Design generation**.
 
 ## Pipeline wiring
 

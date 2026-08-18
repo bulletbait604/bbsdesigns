@@ -84,10 +84,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ run })
     }
 
-    if (action === 'purge_viral_state') {
+    if (action === 'purge_viral_state' || action === 'factory_reset') {
       const { runViralStatePurgeJob } = await import('@/services/pipeline/jobs')
       const purgeStats = await runViralStatePurgeJob()
-      return NextResponse.json({ ...(await snapshot()), purge: purgeStats })
+      return NextResponse.json({
+        ...(await snapshot()),
+        purge: purgeStats,
+        next: 'Run Trend research, then Idea generation, then Design generation for a fresh pipeline.',
+      })
     }
 
     return NextResponse.json({ error: 'unknown_action' }, { status: 400 })
