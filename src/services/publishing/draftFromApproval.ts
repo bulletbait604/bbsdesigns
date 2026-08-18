@@ -60,6 +60,9 @@ export function enqueueListingForDraft(input: {
       : `draft:${input.ideaId || listing.title}`,
     storeId: input.storeId,
     brandId: input.brandId,
+    ideaId: input.ideaId,
+    designId: input.designId,
+    niche: input.niche,
   }
 
   return enqueuePublishingCandidate(candidate)
@@ -171,7 +174,68 @@ export async function createDraftFromQueueItem(
     shopifyTag: processed.payload.tags.find((t) => t.startsWith('shopify:')),
   })
 
+  if (processed.status === 'PUBLISHED') {
+    await upsertProductFromDraft(processed)
+  }
+
   return processed
+}
+
+async function upsertProductFromDraft(item: PublishingQueueItem): Promise<void> {
+  const { isMongoConfigured, connectMongo } = await import('@/lib/db')
+  if (!isMongoConfigured()) return
+  const { Product } = await import('@/models/Product')
+  await connectMongo()
+
+  const shopifyId =
+    item.payload.tags.find((t) => t.startsWith('shopify:'))?.replace('shopify:', '') || null
+  const printifyRaw =
+    item.payload.tags.find((t) => t.startsWith('printify:'))?.replace('printify:', '') || null
+  const printifyId = printifyRaw && !printifyRaw.startsWith('printify-pending') ? printifyRaw : null
+
+  const storeId = item.payload.storeId
+  const brandId = item.payload.brandId
+  const ideaId = item.payload.ideaId
+  const designId = item.payload.designId
+  if (!storeId || !brandId || !ideaId || !designId) {
+    logger.warn('product_upsert_skipped_missing_refs', { key: item.idempotencyKey })
+    return
+  }
+
+  await Product.findOneAndUpdate(
+    { designId },
+    {
+      storeId,
+      brandId,
+      ideaId,
+      designId,
+      title: item.payload.title,
+      description: item.payload.description,
+      niche: item.payload.niche || 'gaming',
+      status: 'shopify_draft',
+      shopifyProductId: shopifyId,
+      printifyProductId: printifyId,
+      tags: item.payload.tags,
+      provenance: {
+        sourceTrendIds: [],
+        ideaId,
+        promptVersion: 'listing-v1',
+        modelProvider: 'publishing',
+        modelName: 'draft-from-approval',
+        imageAssetKey: item.payload.mediaUrls[0] || null,
+        qualityScore: item.payload.qualityScore,
+        safetyScore: 100,
+        safetyDecision: 'PASS',
+        publishStatus: 'shopify_draft',
+      },
+    },
+    { upsert: true, new: true }
+  )
+
+  logger.info('product_upserted_from_draft', {
+    title: item.payload.title,
+    shopifyId,
+  })
 }
 
 export function getPublishingQueueSnapshot() {

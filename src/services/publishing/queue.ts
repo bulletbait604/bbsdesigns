@@ -3,7 +3,7 @@ import { getEnv } from '@/lib/env'
 import { logger } from '@/lib/logger'
 import { isMongoConfigured, connectMongo } from '@/lib/db'
 import { PublishingJob } from '@/models/PublishingJob'
-import type { SafetyDecision } from '@/types'
+import type { SafetyDecision, Niche } from '@/types'
 
 export type PublishingQueueStatus =
   | 'DRAFT'
@@ -28,6 +28,9 @@ export type PublishingCandidate = {
   storeId?: string
   brandId?: string
   productId?: string
+  ideaId?: string
+  designId?: string
+  niche?: Niche
 }
 
 export type PublishingQueueItem = {

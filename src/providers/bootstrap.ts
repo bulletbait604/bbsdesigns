@@ -13,18 +13,22 @@ import {
 } from '@/providers/printify/api'
 import { createConfiguredTrendProvider } from '@/providers/trend'
 import { createGoogleImageProvider } from '@/providers/image/google'
+import { createGoogleTextProvider, shouldUseGoogleText } from '@/providers/text/google'
 import { createR2StorageProvider, shouldUseR2Storage } from '@/providers/storage/r2'
 import { clearProviders, registerProvider } from '@/providers/registry'
 
 /**
  * Boots the provider registry.
- * Real Shopify/Printify/trend/image/storage adapters replace stubs when credentials exist.
+ * Real Shopify/Printify/trend/image/storage/text adapters replace stubs when credentials exist.
  */
 export function bootstrapProviders(): void {
   clearProviders()
   const env = getEnv()
 
-  registerProvider('ai_text', createStubAiTextProvider())
+  registerProvider(
+    'ai_text',
+    shouldUseGoogleText() ? createGoogleTextProvider() : createStubAiTextProvider()
+  )
 
   const imageProviderName = (env.IMAGE_PROVIDER || '').trim().toLowerCase()
   const hasGoogleKey = Boolean(

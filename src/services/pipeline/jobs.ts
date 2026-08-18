@@ -440,6 +440,9 @@ export async function runListingPreparationJob(): Promise<PipelineJobStats> {
       idempotencyKey: `listing:${String(design._id)}`,
       storeId: String(design.storeId),
       brandId: String(design.brandId),
+      ideaId: String(design.ideaId),
+      designId: String(design._id),
+      niche: design.niche as Niche,
     })
 
     enqueued += 1

@@ -10,6 +10,12 @@ import type {
   AutomationTrigger,
 } from '@/services/automation/types'
 import { seedDemoAnalytics, buildWeeklyReport } from '@/services/analytics'
+import {
+  findAutomationRunById,
+  findAutomationRunByIdempotencyKey,
+  listAutomationRunsFromMongo,
+  persistAutomationRun,
+} from '@/services/automation/persist'
 
 const runs = new Map<string, AutomationRunRecord>()
 const jobState = new Map<AutomationJobName, AutomationJobState>()
@@ -32,6 +38,14 @@ export function clearAutomationMemory(): void {
   jobState.clear()
   for (const job of AUTOMATION_JOBS) {
     ensureJobState(job.name)
+  }
+}
+
+/** Pull recent Mongo runs into the in-memory cache (Vercel-safe list). */
+export async function hydrateAutomationRunsFromMongo(): Promise<void> {
+  const mongoRuns = await listAutomationRunsFromMongo(80)
+  for (const run of mongoRuns) {
+    if (!runs.has(run.id)) runs.set(run.id, run)
   }
 }
 
@@ -222,6 +236,7 @@ export async function enqueueJob(opts: {
       createdAt: new Date().toISOString(),
     }
     runs.set(skipped.id, skipped)
+    void persistAutomationRun(skipped)
     return skipped
   }
 
@@ -241,6 +256,19 @@ export async function enqueueJob(opts: {
     return existing
   }
 
+  const fromMongo = await findAutomationRunByIdempotencyKey(idempotencyKey)
+  if (
+    fromMongo &&
+    (fromMongo.status === 'succeeded' ||
+      fromMongo.status === 'running' ||
+      fromMongo.status === 'queued' ||
+      fromMongo.status === 'skipped')
+  ) {
+    runs.set(fromMongo.id, fromMongo)
+    logger.info('automation_idempotent_hit', { id: fromMongo.id, job: jobName, source: 'mongo' })
+    return fromMongo
+  }
+
   const run: AutomationRunRecord = {
     id: `run_${createHash('sha256').update(idempotencyKey).digest('hex').slice(0, 16)}`,
     jobName,
@@ -254,12 +282,20 @@ export async function enqueueJob(opts: {
     createdAt: new Date().toISOString(),
   }
   runs.set(run.id, run)
+  await persistAutomationRun(run)
 
   return processRun(run.id)
 }
 
 export async function processRun(runId: string): Promise<AutomationRunRecord> {
-  const run = runs.get(runId)
+  let run = runs.get(runId)
+  if (!run) {
+    const fromMongo = await findAutomationRunById(runId)
+    if (fromMongo) {
+      runs.set(fromMongo.id, fromMongo)
+      run = fromMongo
+    }
+  }
   if (!run) throw new Error(`Run not found: ${runId}`)
 
   if (run.status === 'succeeded' || run.status === 'skipped') return run
@@ -270,6 +306,7 @@ export async function processRun(runId: string): Promise<AutomationRunRecord> {
   run.startedAt = new Date().toISOString()
   run.error = null
   appendLog(run, `start attempt=${run.attempt}`)
+  await persistAutomationRun(run)
 
   try {
     await executeJob(run.jobName, run)
@@ -302,11 +339,16 @@ export async function processRun(runId: string): Promise<AutomationRunRecord> {
     trigger: run.trigger,
   })
 
+  await persistAutomationRun(run)
   return run
 }
 
 export async function retryRun(runId: string): Promise<AutomationRunRecord> {
-  const prior = runs.get(runId)
+  let prior = runs.get(runId)
+  if (!prior) {
+    prior = (await findAutomationRunById(runId)) || undefined
+    if (prior) runs.set(prior.id, prior)
+  }
   if (!prior) throw new Error(`Run not found: ${runId}`)
 
   return enqueueJob({

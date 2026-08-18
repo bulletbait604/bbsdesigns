@@ -3,20 +3,24 @@ import { Schema, models, model, type InferSchemaType, type Model } from 'mongoos
 const automationRunSchema = new Schema(
   {
     storeId: { type: Schema.Types.ObjectId, ref: 'Store', index: true },
+    runId: { type: String, required: true, unique: true, index: true },
     jobName: { type: String, required: true, index: true },
     idempotencyKey: { type: String, required: true, unique: true },
     status: {
       type: String,
-      enum: ['queued', 'running', 'succeeded', 'failed', 'skipped'],
+      enum: ['queued', 'running', 'succeeded', 'failed', 'skipped', 'paused'],
       default: 'queued',
       index: true,
     },
     trigger: {
       type: String,
-      enum: ['schedule', 'manual', 'webhook'],
+      enum: ['schedule', 'manual', 'webhook', 'retry'],
       default: 'schedule',
     },
+    attempt: { type: Number, default: 0 },
+    maxAttempts: { type: Number, default: 3 },
     summary: { type: String, default: '' },
+    logs: { type: [String], default: [] },
     stats: { type: Schema.Types.Mixed, default: {} },
     error: { type: String, default: null },
     startedAt: { type: Date, default: null },

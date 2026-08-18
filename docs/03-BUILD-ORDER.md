@@ -28,6 +28,9 @@ Complete these in order.
 24. Cloudflare R2 storage (prompt 020)
 25. Shopify draft from approval (prompt 021)
 26. Webhook verification (prompt 022)
+27. AI text slogans (prompt 023)
+28. Durable automation runs (prompt 024)
+29. Live products & orders (prompt 025)
 
 Do not skip the safety engine.
 Do not enable automatic publishing during initial development.

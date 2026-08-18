@@ -14,7 +14,7 @@ export async function runSloganEngine(input: {
   limit?: number
   runAiReview?: boolean
 }): Promise<SloganEngineResult> {
-  const raw = generateSloganCandidates({
+  const raw = await generateSloganCandidates({
     niche: input.niche,
     trendTitle: input.trendTitle,
     limit: input.limit ?? 4,
