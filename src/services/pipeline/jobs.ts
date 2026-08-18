@@ -15,7 +15,7 @@ import {
   findCachedDesign,
   saveCachedDesign,
 } from '@/services/designs/cache'
-import { persistDesignResult } from '@/services/designs/persist'
+import { upsertDesignResult } from '@/services/designs/persist'
 import { storeDesignAsset } from '@/services/designs/assetStore'
 import { prepareListing } from '@/services/listings/prepare'
 import { enqueuePublishingCandidate, listPublishingQueue } from '@/services/publishing/queue'
@@ -24,7 +24,30 @@ import { logger } from '@/lib/logger'
 import type { Niche } from '@/types'
 import type { SafetyDecision } from '@/types'
 
-const MAX_AI_DESIGNS_PER_RUN = 1
+const DEFAULT_MAX_AI_DESIGNS_PER_RUN = 5
+
+function maxAiDesignsPerRun(): number {
+  const raw = Number(process.env.MAX_AI_DESIGNS_PER_RUN || DEFAULT_MAX_AI_DESIGNS_PER_RUN)
+  if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_MAX_AI_DESIGNS_PER_RUN
+  return Math.min(20, Math.floor(raw))
+}
+
+function isSvgPlaceholderDesign(doc: {
+  provider?: string | null
+  mimeType?: string | null
+  assetUrl?: string | null
+  model?: string | null
+}): boolean {
+  const provider = (doc.provider || '').toLowerCase()
+  const model = (doc.model || '').toLowerCase()
+  const url = doc.assetUrl || ''
+  return (
+    provider.includes('svg') ||
+    model.includes('svg') ||
+    doc.mimeType === 'image/svg+xml' ||
+    url.includes('/api/design-preview')
+  )
+}
 
 export type PipelineJobStats = Record<string, unknown>
 
@@ -202,28 +225,42 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
     Boolean(image) &&
     image!.validateConfig().ok &&
     !image!.name.includes('stub')
+  const aiBudget = maxAiDesignsPerRun()
+
+  if (!canAi) {
+    logger.warn('design_generation_ai_unavailable', {
+      reason: 'image_provider_not_configured',
+      hint: 'Set IMAGE_PROVIDER=google and IMAGE_API_KEY or GEMINI_API',
+    })
+  }
 
   let created = 0
   let cached = 0
   let svgFallback = 0
   let aiUsed = 0
   let skippedExisting = 0
+  let upgradedPlaceholders = 0
 
   for (const idea of ideas) {
     const ideaId = String(idea._id)
     const existing = await Design.findOne({ ideaId }).lean()
-    if (existing) {
+    const placeholder = existing ? isSvgPlaceholderDesign(existing) : false
+
+    // Keep real AI / stored raster designs; replace SVG word placeholders when AI is available
+    if (existing && !placeholder) {
       skippedExisting += 1
       continue
     }
 
     const niche = idea.niche as Niche
     const slogan = idea.slogan
-    const concept = idea.concept || `${niche} humor merch illustration`
+    const concept =
+      idea.concept ||
+      `Dominant original ${niche} cartoon illustration with small secondary slogan lettering`
     const cacheKey = buildDesignCacheKey({ niche, slogan, concept })
 
     const hit = await findCachedDesign(cacheKey)
-    if (hit) {
+    if (hit && hit.design.mimeType !== 'image/svg+xml') {
       storeDesignAsset({
         bytes: hit.bytes,
         mimeType: hit.design.mimeType,
@@ -233,18 +270,19 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
       })
       hit.design.assetUrl = hit.previewUrl
       hit.design.assetKey = hit.id
-      await persistDesignResult({
+      await upsertDesignResult({
         result: { design: hit.design, review: hit.review, bytes: hit.bytes, publishAllowed: false },
         storeId: catalog.storeId,
         brandId: catalog.brandId,
         ideaId,
       })
+      if (placeholder) upgradedPlaceholders += 1
       cached += 1
       created += 1
       continue
     }
 
-    if (canAi && aiUsed < MAX_AI_DESIGNS_PER_RUN) {
+    if (canAi && aiUsed < aiBudget) {
       try {
         const result = await runDesignEngine({
           slogan,
@@ -262,23 +300,31 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
         })
         result.design.assetUrl = `/api/design-assets/${stored.id}`
         result.design.assetKey = stored.id
-        await persistDesignResult({
+        await upsertDesignResult({
           result,
           storeId: catalog.storeId,
           brandId: catalog.brandId,
           ideaId,
         })
+        if (placeholder) upgradedPlaceholders += 1
         aiUsed += 1
         created += 1
         continue
       } catch (error) {
         logger.warn('design_generation_ai_failed', {
+          ideaId,
           error: error instanceof Error ? error.message : String(error),
         })
       }
     }
 
-    // SVG preview fallback — no paid API call
+    // Already have a placeholder — don't duplicate
+    if (existing && placeholder) {
+      skippedExisting += 1
+      continue
+    }
+
+    // SVG illustrated placeholder — last resort when AI unavailable/exhausted/failed
     const artwork = previewUrlFor(slogan, niche, 'artwork')
     const mockup = previewUrlFor(slogan, niche, 'mockup')
     await Design.create({
@@ -290,16 +336,16 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
       slogan,
       provider: 'svg-preview',
       model: 'local-svg',
-      prompt: `SVG preview for: ${slogan}`,
+      prompt: `Illustrated SVG placeholder for: ${slogan}`,
       negativePrompt: '',
-      promptVersion: 'svg-preview-v1',
+      promptVersion: 'svg-preview-v2',
       assetKey: `svg:${ideaId}`,
       assetUrl: artwork,
       mimeType: 'image/svg+xml',
       width: 1024,
       height: 1024,
       mockupKeys: [mockup],
-      qualityScore: 70,
+      qualityScore: 55,
       ipRisk: idea.provenance?.safetyDecision === 'PASS' ? 5 : 20,
       safetyScore: idea.provenance?.safetyScore ?? 80,
       imageReviewDecision: 'REVIEW',
@@ -307,11 +353,11 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
       provenance: {
         sourceTrendIds: idea.provenance?.sourceTrendIds || [],
         ideaId,
-        promptVersion: 'svg-preview-v1',
+        promptVersion: 'svg-preview-v2',
         modelProvider: 'svg-preview',
         modelName: 'local-svg',
         imageAssetKey: `svg:${ideaId}`,
-        qualityScore: 70,
+        qualityScore: 55,
         safetyScore: idea.provenance?.safetyScore ?? null,
         safetyDecision: 'REVIEW',
         publishStatus: 'awaiting_approval',
@@ -328,7 +374,9 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
     svgFallback,
     aiUsed,
     skippedExisting,
+    upgradedPlaceholders,
     canAi,
+    aiBudget,
   }
 }
 

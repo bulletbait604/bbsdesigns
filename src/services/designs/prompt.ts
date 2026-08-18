@@ -14,25 +14,46 @@ const SAFETY_REQUIREMENTS = [
   'no watermarks',
   'no trademarks used as branding',
   'print-ready composition centered for apparel',
-  'clean readable typography',
   'high resolution',
   'funny sarcastic merch aesthetic for adults without explicit sexual content',
 ]
 
+const NICHE_MOTIFS: Record<string, string> = {
+  gaming:
+    'original neon arcade energy: stylized controller silhouette, pixel clouds, headset, joystick — invent original shapes, never copy a real franchise',
+  baseball:
+    'original ballpark energy: cracked bat sparks, dirt diamond arc, catcher mitt, stadium light flares — invent original marks, never copy real teams',
+  softball:
+    'original dugout energy: softball with exaggerated seams, sunburst, cleats, bench silhouette — invent original marks, never copy real teams',
+}
+
+/**
+ * Illustration-first merch prompt. Text is secondary to a dominant picture/graphic.
+ */
 export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
   const concept = input.concept?.trim() || 'bold humorous apparel graphic'
+  const motif = NICHE_MOTIFS[input.niche] || NICHE_MOTIFS.gaming
+
   const prompt = [
-    `Create original print-ready merch artwork for the ${input.niche} humor niche.`,
-    `Primary short slogan text on the design: "${input.slogan}".`,
+    'Create a SINGLE square print-ready T-SHIRT GRAPHIC as a full-bleed illustrated IMAGE (not a text poster).',
+    `Niche: ${input.niche} humor merch.`,
+    `Include this short slogan as SMALL secondary lettering only (under ~20% of visual weight): "${input.slogan}".`,
     `Concept: ${concept}.`,
-    'The design MUST include a dominant original illustration or graphic motif (characters, objects, icons, scenes) — not typography-only / text-only layout.',
-    'Visual style: trendy, flashy, high-pop streetwear energy — bold shapes, saturated accent colors, strong contrast, punchy composition that pops on a t-shirt from across the room.',
-    'Keep it modern merch / drip aesthetic (clean edges, poster-like impact) while staying shirt-print friendly with usable negative space.',
-    'Slogan text should be secondary to the illustration, short, and highly readable.',
+    `DOMINANT SUBJECT (required): a large original cartoon / vector illustration covering most of the canvas — ${motif}.`,
+    'Composition rule: illustration first, slogan second. The eye must land on a picture/character/object scene, NOT on words.',
+    'FORBIDDEN: typography-only layouts, wordmarks alone, blank backgrounds with centered slogan, quote-card designs, minimal text posters.',
+    'Style: trendy flashy high-pop streetwear — bold shapes, saturated accents, strong contrast, clean edges, shirt-print friendly negative space.',
+    'Output one cohesive graphic suitable for DTG/screen print on apparel.',
     `Requirements: ${SAFETY_REQUIREMENTS.join('; ')}.`,
   ].join(' ')
 
   const negativePrompt = [
+    'text only',
+    'typography only',
+    'words without illustration',
+    'slogan centered on empty background',
+    'quote card',
+    'minimal poster with just text',
     'logo',
     'trademark',
     'copyrighted character',
@@ -46,12 +67,9 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
     'low resolution',
     'blurry text',
     'misspelled text',
-    'text only design',
-    'typography only',
-    'words without illustration',
     'muddy colors',
-    'flat boring layout',
     'tiny unreadable text',
+    'photorealistic branded products',
   ].join(', ')
 
   return {

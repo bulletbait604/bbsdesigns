@@ -17,7 +17,11 @@ describe('design engine', () => {
     expect(built.prompt.toLowerCase()).toContain('no professional sports team marks')
     expect(built.prompt.toLowerCase()).toContain('no celebrity likenesses')
     expect(built.prompt.toLowerCase()).toContain('no watermarks')
+    expect(built.prompt.toLowerCase()).toContain('illustration')
+    expect(built.prompt.toLowerCase()).toContain('forbidden')
     expect(built.negativePrompt.toLowerCase()).toContain('logo')
+    expect(built.negativePrompt.toLowerCase()).toContain('text only')
+    expect(built.promptVersion).toContain('illustration')
   })
 
   it('stores provider/model/prompt provenance and never allows publish', async () => {

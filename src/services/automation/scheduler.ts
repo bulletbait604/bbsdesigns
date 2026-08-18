@@ -118,7 +118,7 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
           run.stats = stats
           run.summary = stats.skipped
             ? 'Design generation skipped (Mongo not configured)'
-            : `Created ${stats.created ?? 0} designs (AI ${stats.aiUsed}, cache ${stats.cached}, SVG ${stats.svgFallback})`
+            : `Created ${stats.created ?? 0} designs (AI ${stats.aiUsed}/${stats.aiBudget ?? '?'}, cache ${stats.cached}, upgraded ${stats.upgradedPlaceholders ?? 0}, SVG ${stats.svgFallback})`
           break
         }
         case 'image_review': {

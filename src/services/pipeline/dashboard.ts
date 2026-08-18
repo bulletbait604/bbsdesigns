@@ -147,6 +147,9 @@ export type LiveDesignCard = Omit<DemoDesign, 'id'> & {
   artworkSrc?: string
   mockupSrc?: string
   mongoId?: string
+  /** True when artwork is local SVG placeholder, not Google AI raster art */
+  isPlaceholder?: boolean
+  ideaIdMongo?: string
 }
 
 export async function loadDesignsForDashboard(): Promise<{
@@ -177,6 +180,10 @@ export async function loadDesignsForDashboard(): Promise<{
       doc.provenance?.safetyDecision ||
       'REVIEW') as SafetyDecision
     const mongoId = String(doc._id)
+    const isPlaceholder =
+      (doc.provider || '').includes('svg') ||
+      doc.mimeType === 'image/svg+xml' ||
+      (doc.assetUrl || '').includes('design-preview')
     return {
       id: mongoId,
       ideaId: String(doc.ideaId),
@@ -197,6 +204,8 @@ export async function loadDesignsForDashboard(): Promise<{
       },
       source: 'mongo',
       mongoId,
+      ideaIdMongo: String(doc.ideaId),
+      isPlaceholder,
       artworkSrc: previewArtwork(slogan, niche, doc.assetUrl),
       mockupSrc: previewMockup(slogan, niche, doc.mockupKeys),
     }

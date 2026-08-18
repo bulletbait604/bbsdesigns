@@ -10,6 +10,8 @@ import {
   findCachedDesign,
   saveCachedDesign,
 } from '@/services/designs/cache'
+import { upsertDesignResult } from '@/services/designs/persist'
+import { ensureDefaultCatalog } from '@/services/catalog/defaults'
 import type { Niche } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -35,6 +37,10 @@ export async function POST(request: Request) {
     typeof (body as { concept?: string }).concept === 'string'
       ? (body as { concept: string }).concept.trim()
       : undefined
+  const ideaId =
+    typeof (body as { ideaId?: string }).ideaId === 'string'
+      ? (body as { ideaId: string }).ideaId.trim()
+      : ''
   const force = Boolean((body as { force?: boolean }).force)
 
   if (!slogan || !niche || !['gaming', 'baseball', 'softball'].includes(niche)) {
@@ -44,12 +50,19 @@ export async function POST(request: Request) {
     )
   }
 
-  const cacheKey = buildDesignCacheKey({ niche, slogan, concept })
+  const illustrationConcept =
+    concept ||
+    `Dominant original ${niche} cartoon illustration with small secondary slogan lettering — picture first, not typography-only`
+
+  const cacheKey = buildDesignCacheKey({
+    niche,
+    slogan,
+    concept: illustrationConcept,
+  })
 
   if (!force) {
     const cached = await findCachedDesign(cacheKey)
-    if (cached) {
-      // Warm in-memory map for this instance
+    if (cached && cached.design.mimeType !== 'image/svg+xml') {
       storeDesignAsset({
         bytes: cached.bytes,
         mimeType: cached.design.mimeType,
@@ -77,19 +90,24 @@ export async function POST(request: Request) {
       {
         error: 'image_provider_not_configured',
         message:
-          'Set IMAGE_PROVIDER=google and IMAGE_API_KEY / GEMINI_API, then redeploy. Mongo cache only helps after the first successful generate.',
+          'Set IMAGE_PROVIDER=google and IMAGE_API_KEY / GEMINI_API, then redeploy. Without Google image keys you only get SVG placeholders.',
       },
       { status: 503 }
     )
   }
 
   try {
-    const result = await runDesignEngine({ slogan, niche, concept })
+    const result = await runDesignEngine({
+      slogan,
+      niche,
+      concept: illustrationConcept,
+      ideaId: ideaId || undefined,
+    })
     const mongoId = await saveCachedDesign({
       cacheKey,
       niche,
       slogan,
-      concept,
+      concept: illustrationConcept,
       result,
     })
 
@@ -105,6 +123,18 @@ export async function POST(request: Request) {
     const previewUrl = `/api/design-assets/${stored.id}`
     result.design.assetUrl = previewUrl
     result.design.assetKey = stored.id
+
+    if (ideaId && isMongoConfigured()) {
+      const catalog = await ensureDefaultCatalog()
+      if (catalog) {
+        await upsertDesignResult({
+          result,
+          storeId: catalog.storeId,
+          brandId: catalog.brandId,
+          ideaId,
+        })
+      }
+    }
 
     return NextResponse.json({
       ok: true,

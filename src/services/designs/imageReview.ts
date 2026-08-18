@@ -23,9 +23,11 @@ export function reviewGeneratedImage(input: {
   let ipRisk = 5
   let safetyScore = 92
 
-  const blob = normalizeSafetyText(`${input.slogan} ${input.prompt}`)
-  const ip = runIpRiskStage(blob)
-  const blocked = runBlockedTermStage(blob)
+  // Scan slogan only for IP/blocked terms. The full prompt names banned
+  // franchises/leagues in safety instructions and must not self-trigger REJECT.
+  const sloganNorm = normalizeSafetyText(input.slogan)
+  const ip = runIpRiskStage(sloganNorm)
+  const blocked = runBlockedTermStage(sloganNorm)
 
   if (ip.triggered.length) {
     ipRisk = Math.min(100, 40 + ip.triggered.length * 20)

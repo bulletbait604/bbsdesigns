@@ -27,6 +27,31 @@ const NICHE_PALETTE: Record<
   softball: { bg: '#1a1420', ink: '#fdf4ff', accent: '#f0abfc', shirt: '#3b0764' },
 }
 
+/** Simple niche illustration motif so SVG placeholders are not word-only. */
+function nicheMotifSvg(niche: Niche, accent: string): string {
+  if (niche === 'gaming') {
+    return `
+  <rect x="312" y="280" width="400" height="220" rx="48" fill="${accent}" opacity="0.85"/>
+  <circle cx="390" cy="390" r="28" fill="#0b1220"/>
+  <circle cx="634" cy="360" r="18" fill="#0b1220"/>
+  <circle cx="680" cy="400" r="18" fill="#0b1220"/>
+  <rect x="470" y="350" width="18" height="70" rx="6" fill="#0b1220"/>
+  <rect x="444" y="376" width="70" height="18" rx="6" fill="#0b1220"/>`
+  }
+  if (niche === 'baseball') {
+    return `
+  <circle cx="512" cy="360" r="120" fill="#f8fafc" opacity="0.92"/>
+  <path d="M420 300 Q512 360 604 300" fill="none" stroke="${accent}" stroke-width="8"/>
+  <path d="M420 420 Q512 360 604 420" fill="none" stroke="${accent}" stroke-width="8"/>
+  <rect x="250" y="470" width="220" height="18" rx="8" fill="${accent}" transform="rotate(-35 360 479)"/>`
+  }
+  return `
+  <circle cx="512" cy="350" r="110" fill="#fdf4ff" opacity="0.92"/>
+  <path d="M430 300 Q512 350 594 300" fill="none" stroke="${accent}" stroke-width="7"/>
+  <path d="M430 400 Q512 350 594 400" fill="none" stroke="${accent}" stroke-width="7"/>
+  <ellipse cx="512" cy="500" rx="140" ry="28" fill="${accent}" opacity="0.35"/>`
+}
+
 /** Build a DemoDesign-shaped object for live SVG previews (non-catalog). */
 export function buildLiveMerchDesign(input: {
   slogan: string
@@ -49,17 +74,17 @@ export function buildLiveMerchDesign(input: {
   }
 }
 
-/** Print-ready artwork SVG for dashboard preview. */
+/** Print-ready artwork SVG for dashboard preview (illustration + secondary text). */
 export function buildArtworkSvg(design: DemoDesign): string {
   const lines = splitSlogan(design.slogan).map(escapeXml)
   const { bg, ink, accent } = design.palette
-  const lineHeight = 88
-  const startY = 520 - ((lines.length - 1) * lineHeight) / 2
+  const lineHeight = 56
+  const startY = 720 - ((lines.length - 1) * lineHeight) / 2
 
   const textNodes = lines
     .map(
       (line, i) =>
-        `<text x="512" y="${startY + i * lineHeight}" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="${lines.length > 2 ? 54 : 68}" font-weight="800" fill="${ink}">${line}</text>`
+        `<text x="512" y="${startY + i * lineHeight}" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="${lines.length > 2 ? 36 : 44}" font-weight="800" fill="${ink}">${line}</text>`
     )
     .join('')
 
@@ -69,9 +94,10 @@ export function buildArtworkSvg(design: DemoDesign): string {
   <circle cx="180" cy="160" r="120" fill="${accent}" opacity="0.12"/>
   <circle cx="860" cy="880" r="160" fill="${accent}" opacity="0.1"/>
   <rect x="120" y="120" width="784" height="784" rx="28" fill="none" stroke="${accent}" stroke-width="4" opacity="0.35"/>
-  <text x="512" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" letter-spacing="6" fill="${accent}" opacity="0.9">${escapeXml(design.niche.toUpperCase())}</text>
+  <text x="512" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" letter-spacing="6" fill="${accent}" opacity="0.9">${escapeXml(design.niche.toUpperCase())} · PLACEHOLDER</text>
+  ${nicheMotifSvg(design.niche, accent)}
   ${textNodes}
-  <text x="512" y="860" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="${ink}" opacity="0.45">bbsdesigns · original artwork preview</text>
+  <text x="512" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="${ink}" opacity="0.5">Generate AI design for real illustrated artwork</text>
 </svg>`
 }
 
@@ -79,13 +105,13 @@ export function buildArtworkSvg(design: DemoDesign): string {
 export function buildMockupSvg(design: DemoDesign): string {
   const lines = splitSlogan(design.slogan).map(escapeXml)
   const { accent, shirt, ink } = design.palette
-  const lineHeight = 36
-  const startY = 430 - ((lines.length - 1) * lineHeight) / 2
+  const lineHeight = 28
+  const startY = 470 - ((lines.length - 1) * lineHeight) / 2
 
   const printText = lines
     .map(
       (line, i) =>
-        `<text x="400" y="${startY + i * lineHeight}" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="${lines.length > 2 ? 22 : 28}" font-weight="800" fill="${ink}">${line}</text>`
+        `<text x="400" y="${startY + i * lineHeight}" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="${lines.length > 2 ? 16 : 20}" font-weight="800" fill="${ink}">${line}</text>`
     )
     .join('')
 
@@ -98,13 +124,11 @@ export function buildMockupSvg(design: DemoDesign): string {
     </linearGradient>
   </defs>
   <rect width="800" height="900" fill="url(#bg)"/>
-  <!-- tee body -->
   <path d="M250 180 L170 250 L220 300 L250 280 L250 780 Q250 820 300 820 L500 820 Q550 820 550 780 L550 280 L580 300 L630 250 L550 180 Q500 150 400 150 Q300 150 250 180 Z"
         fill="${shirt}" stroke="${accent}" stroke-width="3" opacity="0.95"/>
-  <!-- collar -->
   <ellipse cx="400" cy="190" rx="48" ry="28" fill="#07111f" opacity="0.55"/>
-  <!-- print area -->
-  <rect x="290" y="340" width="220" height="220" rx="12" fill="#07111f" opacity="0.35"/>
+  <rect x="290" y="320" width="220" height="240" rx="12" fill="#07111f" opacity="0.35"/>
+  <circle cx="400" cy="390" r="48" fill="${accent}" opacity="0.75"/>
   ${printText}
   <text x="400" y="860" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="${accent}">${escapeXml(design.mockupLabel)}</text>
 </svg>`

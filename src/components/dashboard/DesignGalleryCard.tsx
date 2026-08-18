@@ -12,30 +12,33 @@ function isLive(design: CardDesign): design is LiveDesignCard {
 }
 
 export function DesignGalleryCard({ design }: { design: CardDesign }) {
+  const live = isLive(design) ? design : null
+  const isPlaceholder = Boolean(live?.isPlaceholder)
   const fallbackArt = useMemo(() => artworkDataUri(design), [design])
   const fallbackMock = useMemo(() => mockupDataUri(design), [design])
 
   const [artSrc, setArtSrc] = useState(
-    () => (isLive(design) && design.artworkSrc) || fallbackArt
+    () => (live && live.artworkSrc) || fallbackArt
   )
   const [mockSrc, setMockSrc] = useState(
-    () => (isLive(design) && design.mockupSrc) || fallbackMock
+    () => (live && live.mockupSrc) || fallbackMock
   )
   const [fromCache, setFromCache] = useState(false)
-  const [isAi, setIsAi] = useState(false)
+  const [isAi, setIsAi] = useState(() => Boolean(live && !live.isPlaceholder && live.artworkSrc?.includes('/api/design-assets/')))
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    setArtSrc((isLive(design) && design.artworkSrc) || fallbackArt)
-    setMockSrc((isLive(design) && design.mockupSrc) || fallbackMock)
-    setIsAi(false)
+    setArtSrc((live && live.artworkSrc) || fallbackArt)
+    setMockSrc((live && live.mockupSrc) || fallbackMock)
+    setIsAi(Boolean(live && !live.isPlaceholder && live.artworkSrc?.includes('/api/design-assets/')))
     setFromCache(false)
-  }, [design, fallbackArt, fallbackMock])
+  }, [design, fallbackArt, fallbackMock, live])
 
   function generateAi(force = false) {
     setError(null)
     startTransition(async () => {
+      const shouldForce = force || isPlaceholder
       const res = await fetch('/api/designs/generate', {
         method: 'POST',
         credentials: 'same-origin',
@@ -43,8 +46,9 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         body: JSON.stringify({
           slogan: design.slogan,
           niche: design.niche,
-          concept: `${design.style}. Trendy flashy high-pop merch illustration.`,
-          force,
+          concept: `Dominant original ${design.niche} cartoon illustration with small secondary slogan. Picture first — not typography-only.`,
+          ideaId: live?.ideaIdMongo || live?.ideaId || undefined,
+          force: shouldForce,
         }),
       })
       const data = (await res.json()) as {
@@ -66,7 +70,6 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         return
       }
 
-      // Fetch with session cookies, then show as blob so <img> never hits a 401
       try {
         const imgRes = await fetch(data.previewUrl, { credentials: 'same-origin' })
         if (!imgRes.ok) throw new Error(`Asset ${imgRes.status}`)
@@ -76,7 +79,6 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         setIsAi(true)
         setFromCache(Boolean(data.fromCache))
       } catch {
-        // Fall back to URL (may work when cookies attach to <img>)
         setArtSrc(data.previewUrl)
         setIsAi(true)
         setFromCache(Boolean(data.fromCache))
@@ -93,10 +95,22 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
             src={artSrc}
             alt={`Artwork: ${design.slogan}`}
             className="absolute inset-0 h-full w-full object-cover"
-            onError={() => setArtSrc(fallbackArt)}
+            onError={() => {
+              if (artSrc.includes('/api/design-assets/')) {
+                setError('AI image failed to load — try Force new')
+                return
+              }
+              setArtSrc(fallbackArt)
+            }}
           />
           <span className="absolute left-3 top-3 rounded bg-ink/80 px-2 py-1 text-[11px] uppercase tracking-[0.14em] text-accent">
-            {isAi ? (fromCache ? 'Cached AI art' : 'AI artwork') : 'Artwork'}
+            {isAi
+              ? fromCache
+                ? 'Cached AI art'
+                : 'AI artwork'
+              : isPlaceholder
+                ? 'SVG placeholder'
+                : 'Artwork'}
           </span>
         </div>
         <div className="relative aspect-square bg-ink-2">
@@ -133,27 +147,37 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         </div>
         <p className="text-sm text-muted">
           {design.style} · {design.mockupLabel}
-          {isLive(design) && design.source === 'mongo' ? ' · Mongo' : ''}
+          {live?.source === 'mongo' ? ' · Mongo' : ''}
         </p>
+        {isPlaceholder ? (
+          <p className="text-sm text-warn">
+            This is a local SVG placeholder (not Google art). Click Generate AI design to create a real
+            illustration.
+          </p>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <button
             type="button"
             disabled={pending}
-            onClick={() => generateAi(false)}
+            onClick={() => generateAi(isPlaceholder)}
             className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-ink disabled:opacity-50"
           >
-            {pending ? 'Working…' : isAi ? 'Load cached / generate' : 'Generate AI design (Google)'}
+            {pending
+              ? 'Generating illustration…'
+              : isPlaceholder
+                ? 'Generate AI illustration (Google)'
+                : isAi
+                  ? 'Load cached / generate'
+                  : 'Generate AI design (Google)'}
           </button>
-          {isAi ? (
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => generateAi(true)}
-              className="rounded-md border border-line px-3 py-2 text-sm text-text disabled:opacity-50"
-            >
-              Force new (costs API)
-            </button>
-          ) : null}
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => generateAi(true)}
+            className="rounded-md border border-line px-3 py-2 text-sm text-text disabled:opacity-50"
+          >
+            Force new (costs API)
+          </button>
           <span className="text-xs text-muted">
             Quality <strong className="text-text">{design.qualityScore}</strong> · IP{' '}
             <strong className="text-text">{design.ipRisk}</strong>

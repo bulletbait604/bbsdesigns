@@ -41,4 +41,5 @@ Requires working Mongo (same SDHQ cluster / `bbsdesigns` database is fine).
 3. Redeploy
 4. Designs page → **Generate AI design (Google)** for flashy/pop merch art
 
-Prompts request dominant illustration + high-pop streetwear energy (not text-only).
+Prompts request a **dominant illustration** (picture/graphic first) with slogan text secondary — not typography-only layouts.
+Automation `design_generation` creates up to `MAX_AI_DESIGNS_PER_RUN` (default 5) Google images per run and upgrades old SVG placeholders.
