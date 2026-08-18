@@ -5,14 +5,13 @@ import { bootstrapProviders } from '@/providers/bootstrap'
 import { clearProviders } from '@/providers/registry'
 
 describe('design engine', () => {
-  it('builds flash-merch prompts with inseparable art+text formulas', () => {
+  it('builds flash-merch prompts with inseparable art+text formulas (V1 builder)', () => {
     const built = buildDesignPrompt({
       niche: 'gaming',
       slogan: 'Lag Is A Lifestyle',
       concept:
         'Self-roast. Visual: chubby cartoon Wi-Fi ghost dripping delay clocks, neon outline.',
     })
-    expect(built.promptVersion).toContain('viral-max')
     expect(built.prompt.toLowerCase()).toContain('no logos')
     expect(built.prompt.toLowerCase()).toContain('no copyrighted characters')
     expect(built.prompt.toLowerCase()).toContain('flash formula')
@@ -33,7 +32,7 @@ describe('design engine', () => {
     expect(['letter_as_icon', 'prop_locked_text', 'kinetic_type_block', 'arched_hero_frame']).toContain(c)
   })
 
-  it('stores provider/model/prompt provenance and never allows publish', async () => {
+  it('uses Design V2 creative-director prompts and never allows publish', async () => {
     clearProviders()
     bootstrapProviders()
 
@@ -48,8 +47,9 @@ describe('design engine', () => {
     expect(result.design.model).toBeTruthy()
     expect(result.design.model).not.toContain('compose-typo')
     expect(result.design.prompt).toContain('Sunburnt')
-    expect(result.design.promptVersion).toContain('viral-max')
-    expect(result.design.prompt.toLowerCase()).toContain('flash formula')
+    expect(result.design.promptVersion).toContain('creative-director')
+    expect(result.design.prompt.toLowerCase()).toContain('original commercial apparel')
+    expect(result.design.prompt.toLowerCase()).toContain('typography')
     expect(result.design.sourceIdeaId).toBe('idea-demo-1')
     expect(result.design.assetUrl).toBeDefined()
     expect(result.design.width).toBeGreaterThan(0)

@@ -2,7 +2,7 @@ import type { Niche } from '@/lib/niches'
 import { NICHES } from '@/lib/niches'
 
 /** Bump this to invalidate old viral-research caches and scoring provenance. */
-export const VIRAL_ALGORITHM_VERSION = 'viral-v2-social-etsy-2026-08-fresh'
+export const VIRAL_ALGORITHM_VERSION = 'viral-v3-overhaul-clean-slate-2026-08-b'
 
 /**
  * Viral Flash Merch Algorithm v2:

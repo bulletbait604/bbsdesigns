@@ -1,0 +1,1693 @@
+{
+  "mode": "review",
+  "flags": {
+    "humanApproval": true,
+    "autoPublish": false,
+    "useResearchV2": true,
+    "useDesignV2": true,
+    "useProductIntelligenceV2": true,
+    "maxProductsPerDay": 10,
+    "minDesignOverallScore": 85,
+    "designConceptsPerOpportunity": 5
+  },
+  "topOpportunities": [
+    {
+      "id": "opp:teacher:halloween-teacher-spooky-classroom",
+      "topic": "Halloween teacher spooky classroom",
+      "niche": "teacher",
+      "opportunityScore": 80,
+      "scores": {
+        "trendScore": 87,
+        "velocityScore": 85,
+        "persistenceScore": 77,
+        "socialScore": 70,
+        "searchScore": 88,
+        "commerceScore": 85,
+        "engagementScore": 70,
+        "audienceScore": 71,
+        "designScore": 76,
+        "competitionScore": 20,
+        "originalityOpportunity": 66,
+        "seasonalScore": 74,
+        "giftIntentScore": 55,
+        "viralMomentumScore": 74,
+        "crossPlatformMomentumScore": 95,
+        "ipRisk": 8,
+        "opportunityScore": 80,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 80/100 for \"Halloween teacher spooky classroom\" (teacher). Velocity 85, cross-platform 95 (4 sources), commerce 85, design 76, originality 66, seasonal 74, gift 55, viral momentum 74. Competition openness 20, IP risk 8, penalties -0. Purchase-intent language: perfect gift. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "etsy",
+        "google_trends",
+        "curated"
+      ],
+      "evidence": [
+        "cute spooky apple ghost",
+        "classroom chaos",
+        "halloween teacher",
+        "perfect gift",
+        "Opportunity 80/100 for \"Halloween teacher spooky classroom\" (teacher). Velocity 85, cross-platform 95 (4 sources), commerce 85, design 76, originality 66, seasonal 74, gift 55, viral momentum 74. Competition openness 20,"
+      ],
+      "selectedConcept": {
+        "headline": "Vintage Americana direction for Halloween teacher spooky classroom",
+        "primaryText": "HALLOWEEN TEACHER SPOOKY",
+        "style": "vintage_americana",
+        "conceptScore": 84,
+        "visualStory": "Oversized original illustration for \"Halloween teacher spooky classroom\". humor angle: glue stick chaos. style: Vintage Americana. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "GLUE STICK CHAOS",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Food Illustration",
+            "primaryText": "GLUE STICK CHAOS",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "teacher",
+          "style": "mascot_illustration",
+          "typography": "prop_locked",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "teacher besties",
+          "productType": "poster"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:pets:chaotic-orange-cat-house-takeover",
+      "topic": "Chaotic orange cat house takeover",
+      "niche": "pets",
+      "opportunityScore": 79,
+      "scores": {
+        "trendScore": 75,
+        "velocityScore": 72,
+        "persistenceScore": 74,
+        "socialScore": 70,
+        "searchScore": 78,
+        "commerceScore": 81,
+        "engagementScore": 70,
+        "audienceScore": 71,
+        "designScore": 97,
+        "competitionScore": 32,
+        "originalityOpportunity": 73,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 69,
+        "crossPlatformMomentumScore": 95,
+        "ipRisk": 8,
+        "opportunityScore": 79,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 79/100 for \"Chaotic orange cat house takeover\" (pets). Velocity 72, cross-platform 95 (4 sources), commerce 81, design 97, originality 73, seasonal 52, gift 31, viral momentum 69. Competition openness 32, IP risk 8, penalties -0. Purchase-intent language: need this. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "etsy",
+        "curated",
+        "google_trends"
+      ],
+      "evidence": [
+        "oversized cat character",
+        "destroyed household props",
+        "my cat owns",
+        "house rules",
+        "Opportunity 79/100 for \"Chaotic orange cat house takeover\" (pets). Velocity 72, cross-platform 95 (4 sources), commerce 81, design 97, originality 73, seasonal 52, gift 31, viral momentum 69. Competition openness 32, IP "
+      ],
+      "selectedConcept": {
+        "headline": "Comic Book direction for Chaotic orange cat house takeover",
+        "primaryText": "CHAOTIC ORANGE CAT",
+        "style": "comic_book",
+        "conceptScore": 84,
+        "visualStory": "Oversized original illustration for \"Chaotic orange cat house takeover\". humor angle: judgey stare. style: Comic Book. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "CHAOTIC ORANGE CAT",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "HOUSE TAKEOVER",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "pets",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "cat moms",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:softball:softball-dirt-never-bothered-me",
+      "topic": "Softball dirt never bothered me",
+      "niche": "softball",
+      "opportunityScore": 76,
+      "scores": {
+        "trendScore": 64,
+        "velocityScore": 63,
+        "persistenceScore": 68,
+        "socialScore": 60,
+        "searchScore": 65,
+        "commerceScore": 75,
+        "engagementScore": 60,
+        "audienceScore": 71,
+        "designScore": 76,
+        "competitionScore": 42,
+        "originalityOpportunity": 78,
+        "seasonalScore": 69,
+        "giftIntentScore": 77,
+        "viralMomentumScore": 56,
+        "crossPlatformMomentumScore": 95,
+        "ipRisk": 8,
+        "opportunityScore": 76,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 76/100 for \"Softball dirt never bothered me\" (softball). Velocity 63, cross-platform 95 (4 sources), commerce 75, design 76, originality 78, seasonal 69, gift 77, viral momentum 56. Competition openness 42, IP risk 8, penalties -0. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "etsy",
+        "curated",
+        "google_trends"
+      ],
+      "evidence": [
+        "dirt explosion mitt",
+        "arched athletic type",
+        "softball life",
+        "tournament",
+        "Opportunity 76/100 for \"Softball dirt never bothered me\" (softball). Velocity 63, cross-platform 95 (4 sources), commerce 75, design 76, originality 78, seasonal 69, gift 77, viral momentum 56. Competition openness 42, I"
+      ],
+      "selectedConcept": {
+        "headline": "Vintage Americana direction for Softball dirt never bothered me",
+        "primaryText": "SOFTBALL DIRT NEVER",
+        "style": "vintage_americana",
+        "conceptScore": 76,
+        "visualStory": "Oversized original illustration for \"Softball dirt never bothered me\". humor angle: tournament snack humor. style: Vintage Americana. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "TOURNAMENT SNACK HUMOR",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "TOURNAMENT SNACK HUMOR",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "softball",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "team parents",
+          "productType": "hat"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:gaming:one-more-game-night-owl-gamer",
+      "topic": "One more game night owl gamer",
+      "niche": "gaming",
+      "opportunityScore": 75,
+      "scores": {
+        "trendScore": 77,
+        "velocityScore": 80,
+        "persistenceScore": 69,
+        "socialScore": 76,
+        "searchScore": 74,
+        "commerceScore": 70,
+        "engagementScore": 76,
+        "audienceScore": 71,
+        "designScore": 97,
+        "competitionScore": 28,
+        "originalityOpportunity": 70,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 70,
+        "crossPlatformMomentumScore": 75,
+        "ipRisk": 8,
+        "opportunityScore": 75,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 75/100 for \"One more game night owl gamer\" (gaming). Velocity 80, cross-platform 75 (3 sources), commerce 70, design 97, originality 70, seasonal 52, gift 31, viral momentum 70. Competition openness 28, IP risk 8, penalties -0. Purchase-intent language: take my money. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "curated",
+        "google_trends"
+      ],
+      "evidence": [
+        "exhausted gamer mascot",
+        "glowing monitors",
+        "one more game",
+        "literally me",
+        "Opportunity 75/100 for \"One more game night owl gamer\" (gaming). Velocity 80, cross-platform 75 (3 sources), commerce 70, design 97, originality 70, seasonal 52, gift 31, viral momentum 70. Competition openness 28, IP ri"
+      ],
+      "selectedConcept": {
+        "headline": "80s Neon direction for One more game night owl gamer",
+        "primaryText": "ONE MORE GAME",
+        "style": "neon_80s",
+        "conceptScore": 76,
+        "visualStory": "Oversized original illustration for \"One more game night owl gamer\". humor angle: lag rage. style: 80s Neon. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "CONTROLLER RAGE",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "80s Neon",
+            "primaryText": "ONE MORE GAME",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "gaming",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "retro gamers",
+          "productType": "mug"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:baseball:pickle-baseball-dad-humor",
+      "topic": "Pickle baseball dad humor",
+      "niche": "baseball",
+      "opportunityScore": 74,
+      "scores": {
+        "trendScore": 68,
+        "velocityScore": 75,
+        "persistenceScore": 63,
+        "socialScore": 80,
+        "searchScore": 61,
+        "commerceScore": 57,
+        "engagementScore": 80,
+        "audienceScore": 71,
+        "designScore": 91,
+        "competitionScore": 55,
+        "originalityOpportunity": 85,
+        "seasonalScore": 58,
+        "giftIntentScore": 34,
+        "viralMomentumScore": 61,
+        "crossPlatformMomentumScore": 75,
+        "ipRisk": 8,
+        "opportunityScore": 74,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 74/100 for \"Pickle baseball dad humor\" (baseball). Velocity 75, cross-platform 75 (3 sources), commerce 57, design 91, originality 85, seasonal 58, gift 34, viral momentum 61. Competition openness 55, IP risk 8, penalties -0. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "etsy",
+        "curated"
+      ],
+      "evidence": [
+        "pickle character in batting stance",
+        "vintage card frame",
+        "pickle",
+        "dad humor",
+        "Opportunity 74/100 for \"Pickle baseball dad humor\" (baseball). Velocity 75, cross-platform 75 (3 sources), commerce 57, design 91, originality 85, seasonal 58, gift 34, viral momentum 61. Competition openness 55, IP risk"
+      ],
+      "selectedConcept": {
+        "headline": "Mascot Illustration direction for Pickle baseball dad humor",
+        "primaryText": "BENCH WARMTH",
+        "style": "mascot_illustration",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Pickle baseball dad humor\". humor angle: bench warmth. style: Mascot Illustration. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "BENCH WARMTH",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Sports Poster",
+            "primaryText": "DAD HUMOR",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "baseball",
+          "style": "mascot_illustration",
+          "typography": "prop_locked",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "weekend fans",
+          "productType": "tshirt"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:softball:softball-tournament-snack-mom",
+      "topic": "Softball tournament snack mom",
+      "niche": "softball",
+      "opportunityScore": 72,
+      "scores": {
+        "trendScore": 60,
+        "velocityScore": 58,
+        "persistenceScore": 68,
+        "socialScore": 55,
+        "searchScore": 62,
+        "commerceScore": 76,
+        "engagementScore": 55,
+        "audienceScore": 71,
+        "designScore": 97,
+        "competitionScore": 45,
+        "originalityOpportunity": 80,
+        "seasonalScore": 69,
+        "giftIntentScore": 77,
+        "viralMomentumScore": 52,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 72,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 72/100 for \"Softball tournament snack mom\" (softball). Velocity 58, cross-platform 50 (2 sources), commerce 76, design 97, originality 80, seasonal 69, gift 77, viral momentum 52. Competition openness 45, IP risk 8, penalties -0. Purchase-intent language: where can i buy. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy",
+        "curated"
+      ],
+      "evidence": [
+        "mitt mascot",
+        "snack chaos",
+        "tournament mom",
+        "where can I buy",
+        "Opportunity 72/100 for \"Softball tournament snack mom\" (softball). Velocity 58, cross-platform 50 (2 sources), commerce 76, design 97, originality 80, seasonal 69, gift 77, viral momentum 52. Competition openness 45, IP "
+      ],
+      "selectedConcept": {
+        "headline": "Comic Book direction for Softball tournament snack mom",
+        "primaryText": "TOURNAMENT SNACK HUMOR",
+        "style": "comic_book",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Softball tournament snack mom\". humor angle: tournament snack humor. style: Comic Book. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "TOURNAMENT SNACK HUMOR",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "TOURNAMENT SNACK HUMOR",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "softball",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "team parents",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:pets:dog-mom-zoomies-chaos",
+      "topic": "Dog mom zoomies chaos",
+      "niche": "pets",
+      "opportunityScore": 71,
+      "scores": {
+        "trendScore": 73,
+        "velocityScore": 66,
+        "persistenceScore": 76,
+        "socialScore": 71,
+        "searchScore": 79,
+        "commerceScore": 82,
+        "engagementScore": 71,
+        "audienceScore": 71,
+        "designScore": 76,
+        "competitionScore": 26,
+        "originalityOpportunity": 69,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 67,
+        "crossPlatformMomentumScore": 75,
+        "ipRisk": 8,
+        "opportunityScore": 71,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 71/100 for \"Dog mom zoomies chaos\" (pets). Velocity 66, cross-platform 75 (3 sources), commerce 82, design 76, originality 69, seasonal 52, gift 31, viral momentum 67. Competition openness 26, IP risk 8, penalties -0. Purchase-intent language: need this, my husband needs. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy",
+        "serpapi",
+        "curated"
+      ],
+      "evidence": [
+        "dog tornado leash",
+        "smug sunglasses pup",
+        "dog mom",
+        "need this",
+        "Opportunity 71/100 for \"Dog mom zoomies chaos\" (pets). Velocity 66, cross-platform 75 (3 sources), commerce 82, design 76, originality 69, seasonal 52, gift 31, viral momentum 67. Competition openness 26, IP risk 8, pena"
+      ],
+      "selectedConcept": {
+        "headline": "Vintage Tattoo direction for Dog mom zoomies chaos",
+        "primaryText": "HOUSE TAKEOVER",
+        "style": "vintage_tattoo",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Dog mom zoomies chaos\". humor angle: house takeover. style: Vintage Tattoo. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "DOG MOM ZOOMIES",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "PET TAX",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "pets",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "dog dads",
+          "productType": "sticker"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:retro:y2k-neon-bubble-nostalgia",
+      "topic": "Y2K neon bubble nostalgia",
+      "niche": "retro",
+      "opportunityScore": 70,
+      "scores": {
+        "trendScore": 69,
+        "velocityScore": 68,
+        "persistenceScore": 70,
+        "socialScore": 72,
+        "searchScore": 70,
+        "commerceScore": 63,
+        "engagementScore": 72,
+        "audienceScore": 71,
+        "designScore": 82,
+        "competitionScore": 35,
+        "originalityOpportunity": 74,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 64,
+        "crossPlatformMomentumScore": 75,
+        "ipRisk": 8,
+        "opportunityScore": 70,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 70/100 for \"Y2K neon bubble nostalgia\" (retro). Velocity 68, cross-platform 75 (3 sources), commerce 63, design 82, originality 74, seasonal 52, gift 31, viral momentum 64. Competition openness 35, IP risk 8, penalties -0. Purchase-intent language: take my money. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "curated",
+        "etsy"
+      ],
+      "evidence": [
+        "bubble multi-color letters",
+        "daisy letter swap",
+        "Y2K",
+        "hot and flashy",
+        "Opportunity 70/100 for \"Y2K neon bubble nostalgia\" (retro). Velocity 68, cross-platform 75 (3 sources), commerce 63, design 82, originality 74, seasonal 52, gift 31, viral momentum 64. Competition openness 35, IP risk 8,"
+      ],
+      "selectedConcept": {
+        "headline": "Vintage Tattoo direction for Y2K neon bubble nostalgia",
+        "primaryText": "DIALUP TRAUMA",
+        "style": "vintage_tattoo",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Y2K neon bubble nostalgia\". humor angle: dial-up trauma. style: Vintage Tattoo. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Vintage Tattoo",
+            "primaryText": "DIALUP TRAUMA",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "80s Neon",
+            "primaryText": "Y2K NEON BUBBLE",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "retro",
+          "style": "vintage_tattoo",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 5,
+          "humorLevel": 8,
+          "visualImpact": 82,
+          "commercialScore": 93,
+          "targetAudience": "Y2K nostalgia",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:teacher:teacher-coffee-survival-mode",
+      "topic": "Teacher coffee survival mode",
+      "niche": "teacher",
+      "opportunityScore": 69,
+      "scores": {
+        "trendScore": 72,
+        "velocityScore": 64,
+        "persistenceScore": 77,
+        "socialScore": 68,
+        "searchScore": 80,
+        "commerceScore": 83,
+        "engagementScore": 68,
+        "audienceScore": 71,
+        "designScore": 68,
+        "competitionScore": 22,
+        "originalityOpportunity": 57,
+        "seasonalScore": 63,
+        "giftIntentScore": 51,
+        "viralMomentumScore": 62,
+        "crossPlatformMomentumScore": 75,
+        "ipRisk": 8,
+        "opportunityScore": 69,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 69/100 for \"Teacher coffee survival mode\" (teacher). Velocity 64, cross-platform 75 (3 sources), commerce 83, design 68, originality 57, seasonal 63, gift 51, viral momentum 62. Competition openness 22, IP risk 8, penalties -0. Purchase-intent language: perfect gift. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "etsy",
+        "curated"
+      ],
+      "evidence": [
+        "exploding coffee cup rocket",
+        "sticky notes armor",
+        "teacher life",
+        "need coffee",
+        "Opportunity 69/100 for \"Teacher coffee survival mode\" (teacher). Velocity 64, cross-platform 75 (3 sources), commerce 83, design 68, originality 57, seasonal 63, gift 51, viral momentum 62. Competition openness 22, IP ri"
+      ],
+      "selectedConcept": {
+        "headline": "Vintage Americana direction for Teacher coffee survival mode",
+        "primaryText": "TEACHER COFFEE SURVIVAL",
+        "style": "vintage_americana",
+        "conceptScore": 84,
+        "visualStory": "Oversized original illustration for \"Teacher coffee survival mode\". humor angle: recess referee. style: Vintage Americana. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "RECESS REFEREE",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Food Illustration",
+            "primaryText": "RECESS REFEREE",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "teacher",
+          "style": "mascot_illustration",
+          "typography": "prop_locked",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "elementary teachers",
+          "productType": "poster"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:gaming:christmas-gamer-ugly-sweater-energy",
+      "topic": "Christmas gamer ugly sweater energy",
+      "niche": "gaming",
+      "opportunityScore": 69,
+      "scores": {
+        "trendScore": 73,
+        "velocityScore": 70,
+        "persistenceScore": 73,
+        "socialScore": 60,
+        "searchScore": 75,
+        "commerceScore": 79,
+        "engagementScore": 60,
+        "audienceScore": 71,
+        "designScore": 76,
+        "competitionScore": 25,
+        "originalityOpportunity": 69,
+        "seasonalScore": 52,
+        "giftIntentScore": 70,
+        "viralMomentumScore": 50,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 69,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 69/100 for \"Christmas gamer ugly sweater energy\" (gaming). Velocity 70, cross-platform 50 (2 sources), commerce 79, design 76, originality 69, seasonal 52, gift 70, viral momentum 50. Competition openness 25, IP risk 8, penalties -0. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "etsy"
+      ],
+      "evidence": [
+        "controller with santa hat original",
+        "snow + neon",
+        "gamer gift",
+        "christmas",
+        "Opportunity 69/100 for \"Christmas gamer ugly sweater energy\" (gaming). Velocity 70, cross-platform 50 (2 sources), commerce 79, design 76, originality 69, seasonal 52, gift 70, viral momentum 50. Competition openness 25,"
+      ],
+      "selectedConcept": {
+        "headline": "Comic Book direction for Christmas gamer ugly sweater energy",
+        "primaryText": "AFK SARCASM",
+        "style": "comic_book",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Christmas gamer ugly sweater energy\". humor angle: afk sarcasm. style: Comic Book. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "AFK SARCASM",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "80s Neon",
+            "primaryText": "CHRISTMAS GAMER UGLY",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "gaming",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "co-op couples",
+          "productType": "tshirt"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:baseball:beer-league-baseball-dad",
+      "topic": "Beer league baseball dad",
+      "niche": "baseball",
+      "opportunityScore": 68,
+      "scores": {
+        "trendScore": 61,
+        "velocityScore": 55,
+        "persistenceScore": 71,
+        "socialScore": 52,
+        "searchScore": 66,
+        "commerceScore": 76,
+        "engagementScore": 52,
+        "audienceScore": 71,
+        "designScore": 82,
+        "competitionScore": 40,
+        "originalityOpportunity": 77,
+        "seasonalScore": 69,
+        "giftIntentScore": 53,
+        "viralMomentumScore": 50,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 68,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 68/100 for \"Beer league baseball dad\" (baseball). Velocity 55, cross-platform 50 (2 sources), commerce 76, design 82, originality 77, seasonal 69, gift 53, viral momentum 50. Competition openness 40, IP risk 8, penalties -0. Purchase-intent language: perfect gift. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy",
+        "serpapi"
+      ],
+      "evidence": [
+        "vintage baseball card frame",
+        "distressed bat",
+        "beer league",
+        "dad gift",
+        "Opportunity 68/100 for \"Beer league baseball dad\" (baseball). Velocity 55, cross-platform 50 (2 sources), commerce 76, design 82, originality 77, seasonal 69, gift 53, viral momentum 50. Competition openness 40, IP risk "
+      ],
+      "selectedConcept": {
+        "headline": "Mascot Illustration direction for Beer league baseball dad",
+        "primaryText": "UMPIRE SARCASM",
+        "style": "mascot_illustration",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Beer league baseball dad\". humor angle: umpire sarcasm. style: Mascot Illustration. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "UMPIRE SARCASM",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Sports Poster",
+            "primaryText": "FOUL BALL CHAOS",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "baseball",
+          "style": "mascot_illustration",
+          "typography": "prop_locked",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "beer-league dads",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:bookish:bookish-tbr-guilt-pile",
+      "topic": "Bookish TBR guilt pile",
+      "niche": "bookish",
+      "opportunityScore": 67,
+      "scores": {
+        "trendScore": 60,
+        "velocityScore": 52,
+        "persistenceScore": 73,
+        "socialScore": 58,
+        "searchScore": 68,
+        "commerceScore": 72,
+        "engagementScore": 58,
+        "audienceScore": 71,
+        "designScore": 91,
+        "competitionScore": 42,
+        "originalityOpportunity": 78,
+        "seasonalScore": 52,
+        "giftIntentScore": 46,
+        "viralMomentumScore": 50,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 67,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 67/100 for \"Bookish TBR guilt pile\" (bookish). Velocity 52, cross-platform 50 (2 sources), commerce 72, design 91, originality 78, seasonal 52, gift 46, viral momentum 50. Competition openness 42, IP risk 8, penalties -0. Purchase-intent language: perfect gift. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy",
+        "curated"
+      ],
+      "evidence": [
+        "chubby book character",
+        "page tornado",
+        "TBR",
+        "book club",
+        "Opportunity 67/100 for \"Bookish TBR guilt pile\" (bookish). Velocity 52, cross-platform 50 (2 sources), commerce 72, design 91, originality 78, seasonal 52, gift 46, viral momentum 50. Competition openness 42, IP risk 8, "
+      ],
+      "selectedConcept": {
+        "headline": "Camping Badge direction for Bookish TBR guilt pile",
+        "primaryText": "FICTIONAL MEN",
+        "style": "camping_badge",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Bookish TBR guilt pile\". humor angle: fictional men. style: Camping Badge. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Animal Illustration",
+            "primaryText": "BOOKISH TBR GUILT",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Camping Badge",
+            "primaryText": "FICTIONAL MEN",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "bookish",
+          "style": "animal_illustration",
+          "typography": "arched_headline",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "dark academia light",
+          "productType": "sticker"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:gaming:frog-gaming-sarcasm",
+      "topic": "Frog gaming sarcasm",
+      "niche": "gaming",
+      "opportunityScore": 67,
+      "scores": {
+        "trendScore": 68,
+        "velocityScore": 77,
+        "persistenceScore": 61,
+        "socialScore": 82,
+        "searchScore": 58,
+        "commerceScore": 47,
+        "engagementScore": 82,
+        "audienceScore": 71,
+        "designScore": 91,
+        "competitionScore": 50,
+        "originalityOpportunity": 83,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 65,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 67,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 67/100 for \"Frog gaming sarcasm\" (gaming). Velocity 77, cross-platform 50 (2 sources), commerce 47, design 91, originality 83, seasonal 52, gift 31, viral momentum 65. Competition openness 50, IP risk 8, penalties -0. Purchase-intent language: need this. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "curated",
+        "google_trends"
+      ],
+      "evidence": [
+        "original frog mascot with headset",
+        "retro arcade cabinet",
+        "need this",
+        "literally me",
+        "Opportunity 67/100 for \"Frog gaming sarcasm\" (gaming). Velocity 77, cross-platform 50 (2 sources), commerce 47, design 91, originality 83, seasonal 52, gift 31, viral momentum 65. Competition openness 50, IP risk 8, pena"
+      ],
+      "selectedConcept": {
+        "headline": "80s Neon direction for Frog gaming sarcasm",
+        "primaryText": "FROG GAMING SARCASM",
+        "style": "neon_80s",
+        "conceptScore": 84,
+        "visualStory": "Oversized original illustration for \"Frog gaming sarcasm\". humor angle: lag rage. style: 80s Neon. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "CONTROLLER RAGE",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "80s Neon",
+            "primaryText": "FROG GAMING SARCASM",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "gaming",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "retro gamers",
+          "productType": "sticker"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:humor:sarcastic-office-humor-tee",
+      "topic": "Sarcastic office humor tee",
+      "niche": "humor",
+      "opportunityScore": 66,
+      "scores": {
+        "trendScore": 71,
+        "velocityScore": 70,
+        "persistenceScore": 71,
+        "socialScore": 74,
+        "searchScore": 72,
+        "commerceScore": 67,
+        "engagementScore": 74,
+        "audienceScore": 71,
+        "designScore": 68,
+        "competitionScore": 18,
+        "originalityOpportunity": 55,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 69,
+        "crossPlatformMomentumScore": 75,
+        "ipRisk": 8,
+        "opportunityScore": 66,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 66/100 for \"Sarcastic office humor tee\" (humor). Velocity 70, cross-platform 75 (3 sources), commerce 67, design 68, originality 55, seasonal 52, gift 31, viral momentum 69. Competition openness 18, IP risk 8, penalties -0. Purchase-intent language: need this, this is literally me. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi",
+        "google_trends",
+        "curated"
+      ],
+      "evidence": [
+        "kinetic type block",
+        "lightning through letters",
+        "this is literally me",
+        "need this",
+        "Opportunity 66/100 for \"Sarcastic office humor tee\" (humor). Velocity 70, cross-platform 75 (3 sources), commerce 67, design 68, originality 55, seasonal 52, gift 31, viral momentum 69. Competition openness 18, IP risk 8"
+      ],
+      "selectedConcept": {
+        "headline": "Comic Book direction for Sarcastic office humor tee",
+        "primaryText": "LITERALLY ME",
+        "style": "comic_book",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Sarcastic office humor tee\". humor angle: literally me. style: Comic Book. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "LITERALLY ME",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Vintage Americana",
+            "primaryText": "SARCASTIC OFFICE HUMOR",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "humor",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "sarcasm fans",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:nurse:night-shift-nurse-caffeine-hero",
+      "topic": "Night shift nurse caffeine hero",
+      "niche": "nurse",
+      "opportunityScore": 64,
+      "scores": {
+        "trendScore": 68,
+        "velocityScore": 60,
+        "persistenceScore": 76,
+        "socialScore": 64,
+        "searchScore": 76,
+        "commerceScore": 80,
+        "engagementScore": 64,
+        "audienceScore": 71,
+        "designScore": 68,
+        "competitionScore": 30,
+        "originalityOpportunity": 62,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 55,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 64,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 64/100 for \"Night shift nurse caffeine hero\" (nurse). Velocity 60, cross-platform 50 (2 sources), commerce 80, design 68, originality 62, seasonal 52, gift 31, viral momentum 55. Competition openness 30, IP risk 8, penalties -0. Purchase-intent language: my girlfriend needs. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy",
+        "serpapi"
+      ],
+      "evidence": [
+        "stethoscope creature",
+        "coffee IV drip cartoon",
+        "night shift",
+        "nurse life",
+        "Opportunity 64/100 for \"Night shift nurse caffeine hero\" (nurse). Velocity 60, cross-platform 50 (2 sources), commerce 80, design 68, originality 62, seasonal 52, gift 31, viral momentum 55. Competition openness 30, IP r"
+      ],
+      "selectedConcept": {
+        "headline": "Food Illustration direction for Night shift nurse caffeine hero",
+        "primaryText": "NIGHT SHIFT COMEDY",
+        "style": "food_illustration",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Night shift nurse caffeine hero\". humor angle: night shift comedy. style: Food Illustration. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Food Illustration",
+            "primaryText": "NIGHT SHIFT COMEDY",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "NIGHT SHIFT COMEDY",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [
+          {
+            "style": "Minimal Premium",
+            "primaryText": "NIGHT SHIFT COMEDY",
+            "overallScore": 80,
+            "reasons": [
+              "boring_text_first_brief",
+              "weak_from_distance",
+              "hard_reject"
+            ]
+          }
+        ],
+        "designDna": {
+          "niche": "nurse",
+          "style": "food_illustration",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "night-shift nurses",
+          "productType": "tshirt"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:retro:retro-arcade-controller-rage",
+      "topic": "Retro arcade controller rage",
+      "niche": "retro",
+      "opportunityScore": 64,
+      "scores": {
+        "trendScore": 61,
+        "velocityScore": 62,
+        "persistenceScore": 66,
+        "socialScore": 65,
+        "searchScore": 60,
+        "commerceScore": 57,
+        "engagementScore": 65,
+        "audienceScore": 63,
+        "designScore": 83,
+        "competitionScore": 45,
+        "originalityOpportunity": 80,
+        "seasonalScore": 52,
+        "giftIntentScore": 31,
+        "viralMomentumScore": 48,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 64,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 64/100 for \"Retro arcade controller rage\" (retro). Velocity 62, cross-platform 50 (2 sources), commerce 57, design 83, originality 80, seasonal 52, gift 31, viral momentum 48. Competition openness 45, IP risk 8, penalties -0. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "curated",
+        "serpapi"
+      ],
+      "evidence": [
+        "pixel-adjacent invented shapes",
+        "joystick mascot",
+        "arcade",
+        "insert coin",
+        "Opportunity 64/100 for \"Retro arcade controller rage\" (retro). Velocity 62, cross-platform 50 (2 sources), commerce 57, design 83, originality 80, seasonal 52, gift 31, viral momentum 48. Competition openness 45, IP risk"
+      ],
+      "selectedConcept": {
+        "headline": "Retro Arcade direction for Retro arcade controller rage",
+        "primaryText": "DIALUP TRAUMA",
+        "style": "retro_arcade",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Retro arcade controller rage\". humor angle: dial-up trauma. style: Retro Arcade. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Retro Arcade",
+            "primaryText": "DIALUP TRAUMA",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "80s Neon",
+            "primaryText": "RETRO ARCADE CONTROLLER",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "retro",
+          "style": "retro_arcade",
+          "typography": "stacked_kinetic",
+          "colorCount": 5,
+          "illustrationLevel": 5,
+          "humorLevel": 8,
+          "visualImpact": 82,
+          "commercialScore": 93,
+          "targetAudience": "festival fashion",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:nurse:nurse-graduation-gift-set",
+      "topic": "Nurse graduation gift set",
+      "niche": "nurse",
+      "opportunityScore": 64,
+      "scores": {
+        "trendScore": 59,
+        "velocityScore": 48,
+        "persistenceScore": 75,
+        "socialScore": 50,
+        "searchScore": 70,
+        "commerceScore": 86,
+        "engagementScore": 50,
+        "audienceScore": 71,
+        "designScore": 68,
+        "competitionScore": 38,
+        "originalityOpportunity": 66,
+        "seasonalScore": 52,
+        "giftIntentScore": 58,
+        "viralMomentumScore": 47,
+        "crossPlatformMomentumScore": 50,
+        "ipRisk": 8,
+        "opportunityScore": 64,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 64/100 for \"Nurse graduation gift set\" (nurse). Velocity 48, cross-platform 50 (2 sources), commerce 86, design 68, originality 66, seasonal 52, gift 58, viral momentum 47. Competition openness 38, IP risk 8, penalties -0. Purchase-intent language: perfect gift. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy",
+        "curated"
+      ],
+      "evidence": [
+        "hero cape glove",
+        "grad cap on stethoscope creature",
+        "graduation",
+        "nurse gift",
+        "Opportunity 64/100 for \"Nurse graduation gift set\" (nurse). Velocity 48, cross-platform 50 (2 sources), commerce 86, design 68, originality 66, seasonal 52, gift 58, viral momentum 47. Competition openness 38, IP risk 8,"
+      ],
+      "selectedConcept": {
+        "headline": "Food Illustration direction for Nurse graduation gift set",
+        "primaryText": "NIGHT SHIFT COMEDY",
+        "style": "food_illustration",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Nurse graduation gift set\". humor angle: night shift comedy. style: Food Illustration. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Food Illustration",
+            "primaryText": "NIGHT SHIFT COMEDY",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "NIGHT SHIFT COMEDY",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "nurse",
+          "style": "food_illustration",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "night-shift nurses",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:humor:camping-badge-coffee-outdoor",
+      "topic": "Camping badge coffee outdoor",
+      "niche": "humor",
+      "opportunityScore": 57,
+      "scores": {
+        "trendScore": 48,
+        "velocityScore": 40,
+        "persistenceScore": 68,
+        "socialScore": 42,
+        "searchScore": 55,
+        "commerceScore": 69,
+        "engagementScore": 42,
+        "audienceScore": 71,
+        "designScore": 68,
+        "competitionScore": 50,
+        "originalityOpportunity": 73,
+        "seasonalScore": 52,
+        "giftIntentScore": 46,
+        "viralMomentumScore": 37,
+        "crossPlatformMomentumScore": 25,
+        "ipRisk": 8,
+        "opportunityScore": 57,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 57/100 for \"Camping badge coffee outdoor\" (humor). Velocity 40, cross-platform 25 (1 sources), commerce 69, design 68, originality 73, seasonal 52, gift 46, viral momentum 37. Competition openness 50, IP risk 8, penalties -0. Purchase-intent language: perfect gift. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy"
+      ],
+      "evidence": [
+        "circular patch badge",
+        "campfire + mug",
+        "camping gift",
+        "perfect gift",
+        "Opportunity 57/100 for \"Camping badge coffee outdoor\" (humor). Velocity 40, cross-platform 25 (1 sources), commerce 69, design 68, originality 73, seasonal 52, gift 46, viral momentum 37. Competition openness 50, IP risk"
+      ],
+      "selectedConcept": {
+        "headline": "80s Neon direction for Camping badge coffee outdoor",
+        "primaryText": "LITERALLY ME",
+        "style": "neon_80s",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Camping badge coffee outdoor\". humor angle: literally me. style: 80s Neon. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Comic Book",
+            "primaryText": "LITERALLY ME",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Animal Illustration",
+            "primaryText": "LITERALLY ME",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "humor",
+          "style": "comic_book",
+          "typography": "curved_banner",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "sarcasm fans",
+          "productType": "poster"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:bookish:book-club-wine-and-chapters",
+      "topic": "Book club wine and chapters",
+      "niche": "bookish",
+      "opportunityScore": 57,
+      "scores": {
+        "trendScore": 51,
+        "velocityScore": 44,
+        "persistenceScore": 68,
+        "socialScore": 48,
+        "searchScore": 57,
+        "commerceScore": 71,
+        "engagementScore": 48,
+        "audienceScore": 71,
+        "designScore": 62,
+        "competitionScore": 48,
+        "originalityOpportunity": 71,
+        "seasonalScore": 52,
+        "giftIntentScore": 46,
+        "viralMomentumScore": 40,
+        "crossPlatformMomentumScore": 25,
+        "ipRisk": 8,
+        "opportunityScore": 57,
+        "riskPenalties": 0,
+        "explanation": "Opportunity 57/100 for \"Book club wine and chapters\" (bookish). Velocity 44, cross-platform 25 (1 sources), commerce 71, design 62, originality 71, seasonal 52, gift 46, viral momentum 40. Competition openness 48, IP risk 8, penalties -0. Purchase-intent language: gift for. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "etsy"
+      ],
+      "evidence": [
+        "book + wine glass original characters",
+        "book club",
+        "gift for her",
+        "Opportunity 57/100 for \"Book club wine and chapters\" (bookish). Velocity 44, cross-platform 25 (1 sources), commerce 71, design 62, originality 71, seasonal 52, gift 46, viral momentum 40. Competition openness 48, IP ris"
+      ],
+      "selectedConcept": {
+        "headline": "Animal Illustration direction for Book club wine and chapters",
+        "primaryText": "BOOK CLUB WINE",
+        "style": "animal_illustration",
+        "conceptScore": 84,
+        "visualStory": "Oversized original illustration for \"Book club wine and chapters\". humor angle: plot twist addiction. style: Animal Illustration. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Animal Illustration",
+            "primaryText": "BOOK CLUB WINE",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Camping Badge",
+            "primaryText": "PLOT TWIST ADDICTION",
+            "overallScore": 86,
+            "decision": "REVIEW",
+            "visualImpact": 82,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [],
+        "designDna": {
+          "niche": "bookish",
+          "style": "animal_illustration",
+          "typography": "arched_headline",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "readers",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": true
+    },
+    {
+      "id": "opp:baseball:official-licensed-nfl-mashup-attempt",
+      "topic": "Official licensed NFL mashup attempt",
+      "niche": "baseball",
+      "opportunityScore": 28,
+      "scores": {
+        "trendScore": 93,
+        "velocityScore": 90,
+        "persistenceScore": 80,
+        "socialScore": 88,
+        "searchScore": 95,
+        "commerceScore": 88,
+        "engagementScore": 88,
+        "audienceScore": 63,
+        "designScore": 54,
+        "competitionScore": 5,
+        "originalityOpportunity": 48,
+        "seasonalScore": 58,
+        "giftIntentScore": 34,
+        "viralMomentumScore": 59,
+        "crossPlatformMomentumScore": 25,
+        "ipRisk": 85,
+        "opportunityScore": 28,
+        "riskPenalties": 35,
+        "explanation": "Opportunity 28/100 for \"Official licensed NFL mashup attempt\" (baseball). Velocity 90, cross-platform 25 (1 sources), commerce 88, design 54, originality 48, seasonal 58, gift 34, viral momentum 59. Competition openness 5, IP risk 85, penalties -35. High search volume alone is not enough — commerce + design + originality matter."
+      },
+      "sources": [
+        "serpapi"
+      ],
+      "evidence": [
+        "team jersey lookalikes",
+        "official",
+        "licensed",
+        "Opportunity 28/100 for \"Official licensed NFL mashup attempt\" (baseball). Velocity 90, cross-platform 25 (1 sources), commerce 88, design 54, originality 48, seasonal 58, gift 34, viral momentum 59. Competition openness "
+      ],
+      "selectedConcept": {
+        "headline": "Sports Poster direction for Official licensed NFL mashup attempt",
+        "primaryText": "UMPIRE SARCASM",
+        "style": "sports_poster",
+        "conceptScore": 81,
+        "visualStory": "Oversized original illustration for \"Official licensed NFL mashup attempt\". humor angle: umpire sarcasm. style: Sports Poster. composition with layered typography integrated into the art. never plain text-only, never clip-art collage of protected IP"
+      },
+      "designRun": {
+        "selected": [
+          {
+            "style": "Sports Poster",
+            "primaryText": "UMPIRE SARCASM",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          },
+          {
+            "style": "Mascot Illustration",
+            "primaryText": "DAD HUMOR",
+            "overallScore": 87,
+            "decision": "REVIEW",
+            "visualImpact": 90,
+            "typography": 96,
+            "commercialAppeal": 93
+          }
+        ],
+        "rejected": [
+          {
+            "style": "Vintage Americana",
+            "primaryText": "OFFICIAL LICENSED NFL",
+            "overallScore": 78,
+            "reasons": [
+              "ip_language:OFFICIAL",
+              "ip_risk_high",
+              "hard_reject"
+            ]
+          },
+          {
+            "style": "Vintage Americana",
+            "primaryText": "OFFICIAL LICENSED NFL",
+            "overallScore": 78,
+            "reasons": [
+              "ip_language:OFFICIAL",
+              "ip_risk_high",
+              "hard_reject"
+            ]
+          },
+          {
+            "style": "Vintage Baseball Card",
+            "primaryText": "OFFICIAL LICENSED NFL",
+            "overallScore": 78,
+            "reasons": [
+              "ip_language:OFFICIAL",
+              "ip_risk_high",
+              "hard_reject"
+            ]
+          }
+        ],
+        "designDna": {
+          "niche": "baseball",
+          "style": "sports_poster",
+          "typography": "arched_headline",
+          "colorCount": 5,
+          "illustrationLevel": 7,
+          "humorLevel": 8,
+          "visualImpact": 90,
+          "commercialScore": 93,
+          "targetAudience": "travel-ball parents",
+          "productType": "hoodie"
+        }
+      },
+      "readyForApproval": false
+    }
+  ],
+  "summary": {
+    "opportunitiesScored": 20,
+    "conceptsGenerated": 200,
+    "designsReviewed": 100,
+    "designsAccepted": 96,
+    "designsRejected": 4,
+    "readyForApproval": 19
+  },
+  "generatedAt": "2026-08-18T23:38:38.630Z"
+}

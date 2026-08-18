@@ -44,7 +44,8 @@ export function isSetupTokenConfigured(): boolean {
 
 export function assertAuthSecretReady(): void {
   const env = getEnv()
-  if (env.NODE_ENV === 'production' && (!env.AUTH_SECRET || env.AUTH_SECRET.length < 32)) {
+  const secret = (env.AUTH_SECRET || process.env.AUTH_SECRET || '').trim()
+  if (env.NODE_ENV === 'production' && secret.length < 32) {
     throw new AppError(
       'AUTH_SECRET must be set to a long random value (32+ chars) in production.',
       { statusCode: 503, code: 'AUTH_SECRET_REQUIRED' }

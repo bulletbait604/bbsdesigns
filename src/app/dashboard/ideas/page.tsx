@@ -14,14 +14,14 @@ export default async function IdeasPage() {
       subtitle={
         source === 'mongo'
           ? 'Live slogan + visual concepts from Mongo. Next step: Designs generates one viral AI image with art and text together.'
-          : 'Demo catalog — run Automation → Idea generation after Mongo is connected.'
+          : 'Empty slate — connect Mongo and run Automation → Idea generation. Demo filler is disabled.'
       }
     >
       {!ideas.length ? (
         <p className="text-sm text-muted">
           {source === 'mongo'
-            ? 'No ideas in Mongo yet. Run Automation → trend_ingestion → idea_generation.'
-            : 'No demo ideas available.'}
+            ? 'No ideas yet. Run Automation → trend research → idea generation.'
+            : 'No ideas. Connect Mongo, then run Automation → idea generation.'}
         </p>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

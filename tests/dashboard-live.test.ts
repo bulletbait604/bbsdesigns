@@ -3,6 +3,7 @@ import { resetEnvCache } from '@/lib/env'
 import {
   loadDesignsForDashboard,
   loadIdeasForDashboard,
+  loadOverviewForDashboard,
   loadSafetyQueueForDashboard,
 } from '@/services/pipeline/dashboard'
 
@@ -11,7 +12,7 @@ describe('dashboard live loaders without mongo', () => {
     resetEnvCache()
   })
 
-  it('returns demo source when Mongo is not configured', async () => {
+  it('shows empty slate when Mongo is not configured (no demo filler)', async () => {
     const prev = process.env.MONGODB_URI
     delete process.env.MONGODB_URI
     resetEnvCache()
@@ -19,13 +20,17 @@ describe('dashboard live loaders without mongo', () => {
     const ideas = await loadIdeasForDashboard()
     const designs = await loadDesignsForDashboard()
     const safety = await loadSafetyQueueForDashboard()
+    const overview = await loadOverviewForDashboard()
 
     expect(ideas.source).toBe('demo')
-    expect(ideas.ideas.length).toBeGreaterThan(0)
+    expect(ideas.ideas).toEqual([])
     expect(designs.source).toBe('demo')
-    expect(designs.designs.length).toBeGreaterThan(0)
+    expect(designs.designs).toEqual([])
     expect(safety.source).toBe('demo')
-    expect(safety.items.length).toBeGreaterThan(0)
+    expect(safety.items).toEqual([])
+    expect(overview.empty).toBe(true)
+    expect(overview.approvals).toEqual([])
+    expect(overview.trends).toEqual([])
 
     if (prev !== undefined) process.env.MONGODB_URI = prev
     else delete process.env.MONGODB_URI

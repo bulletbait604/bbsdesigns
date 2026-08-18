@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { ADMIN_USERNAME } from '@/lib/auth/constants'
 import { verifyAdminLogin } from '@/lib/auth/adminStore'
-import { createSessionToken, setSessionCookie } from '@/lib/auth/session'
+import { attachSessionCookie, createSessionToken } from '@/lib/auth/session'
 import { clientIp, rateLimit } from '@/lib/auth/rateLimit'
 import { AppError, toErrorMessage } from '@/lib/errors'
 import { logger } from '@/lib/logger'
@@ -34,10 +34,10 @@ export async function POST(request: Request) {
     }
 
     const token = await createSessionToken({ username: ADMIN_USERNAME, role: 'admin' })
-    await setSessionCookie(token)
+    const response = NextResponse.json({ ok: true, username: ADMIN_USERNAME })
+    attachSessionCookie(response, token)
     logger.info('admin_login_success', { ip })
-
-    return NextResponse.json({ ok: true, username: ADMIN_USERNAME })
+    return response
   } catch (error) {
     const status = error instanceof AppError ? error.statusCode : 500
     return NextResponse.json({ ok: false, error: toErrorMessage(error) }, { status })

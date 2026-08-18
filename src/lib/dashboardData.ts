@@ -8,6 +8,7 @@ export type NavItem = {
 export const DASHBOARD_NAV: NavItem[] = [
   { href: '/dashboard', label: 'Overview' },
   { href: '/dashboard/trends', label: 'Trends' },
+  { href: '/dashboard/viral-radar', label: 'Viral Radar' },
   { href: '/dashboard/ideas', label: 'Ideas' },
   { href: '/dashboard/designs', label: 'Designs' },
   { href: '/dashboard/safety', label: 'Safety Queue' },

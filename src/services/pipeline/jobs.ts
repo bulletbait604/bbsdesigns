@@ -112,6 +112,36 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
       })
     : []
 
+  let researchV2: PipelineJobStats | null = null
+  const { getFeatureFlags } = await import('@/lib/featureFlags')
+  if (getFeatureFlags().useResearchV2) {
+    const { runResearchEngineV2, selectTopOpportunities } = await import(
+      '@/services/researchV2/engine'
+    )
+    const { persistResearchOpportunities } = await import('@/services/researchV2/persist')
+    const opportunities = await runResearchEngineV2({
+      includeLive: true,
+      includeSample: true,
+      limit: 40,
+    })
+    const top = selectTopOpportunities(opportunities, 25, { excludeHighIpRisk: true })
+    const persistedV2 = await persistResearchOpportunities(top, 40)
+    researchV2 = {
+      engine: 'research_v2',
+      opportunities: opportunities.length,
+      topPersisted: persistedV2,
+      top: top.slice(0, 10).map((o) => ({
+        topic: o.topic,
+        niche: o.niche,
+        opportunityScore: o.scores.opportunityScore,
+        commerce: o.scores.commerceScore,
+        crossPlatform: o.scores.crossPlatformMomentumScore,
+        ipRisk: o.scores.ipRisk,
+        sources: o.sources,
+      })),
+    }
+  }
+
   return {
     scored: scored.length,
     persisted: persisted.length,
@@ -121,6 +151,7 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
       score: t.score,
       source: t.signal.source,
     })),
+    researchV2,
   }
 }
 
@@ -128,15 +159,123 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
 export async function runViralStatePurgeJob(): Promise<PipelineJobStats> {
   const { purgeViralCreativeState } = await import('@/services/trends/purge')
   const { VIRAL_ALGORITHM_VERSION } = await import('@/services/trends/viralAlgorithm')
+  const { DESIGN_PROMPT_VERSION } = await import('@/services/designs/types')
   if (!isMongoConfigured()) {
     return { skipped: true, reason: 'mongo_not_configured', algorithm: VIRAL_ALGORITHM_VERSION }
   }
   const counts = await purgeViralCreativeState()
-  return { purged: true, algorithm: VIRAL_ALGORITHM_VERSION, ...counts }
+  return {
+    purged: true,
+    algorithm: VIRAL_ALGORITHM_VERSION,
+    designPrompt: DESIGN_PROMPT_VERSION,
+    ...counts,
+  }
 }
 
 export async function runIdeaGenerationJob(): Promise<PipelineJobStats> {
   const catalog = await ensureDefaultCatalog()
+  const { getFeatureFlags } = await import('@/lib/featureFlags')
+  const flags = getFeatureFlags()
+
+  // V2 path: research opportunities → multi-concept directions (design-first), not slogan-only.
+  if (flags.useResearchV2) {
+    const { runResearchEngineV2, selectTopOpportunities } = await import(
+      '@/services/researchV2/engine'
+    )
+    const { reviewContentSafety, passesFirstSafetyGate } = await import(
+      '@/services/safety/engine'
+    )
+    const opportunities = selectTopOpportunities(
+      await runResearchEngineV2({ includeLive: true, includeSample: true, limit: 30 }),
+      20,
+      { excludeHighIpRisk: true }
+    )
+
+    let generated = 0
+    let accepted = 0
+    let persisted = 0
+    const samples: string[] = []
+    const rejectedConcepts: Array<{ topic: string; reason: string }> = []
+
+    for (const opp of opportunities) {
+      const concepts = opp.topConcepts.slice(0, flags.designConceptsPerOpportunity)
+      for (const concept of concepts.slice(0, 2)) {
+        generated += 1
+        const conceptText = [
+          `CONCEPT: ${concept.headline}`,
+          `STYLE: ${concept.recommendedStyleId} (score ${concept.recommendedStyleScore})`,
+          `AUDIENCE: ${concept.audience}`,
+          `HUMOR: ${concept.humor}`,
+          `PRODUCT: ${concept.product}`,
+          `SECONDARY: ${concept.secondaryText}`,
+          `Visual: ${concept.visualStory}`,
+          `V2_OPP:${opp.id}`,
+          `V2_CONCEPT:${concept.id}`,
+        ].join('\n')
+
+        const safety = await reviewContentSafety({
+          text: `${concept.primaryText}\n${conceptText}`,
+          niche: concept.niche,
+          runAiReview: false,
+          persistLog: false,
+          targetType: 'slogan',
+        })
+
+        if (!passesFirstSafetyGate(safety) || opp.scores.ipRisk >= 55) {
+          rejectedConcepts.push({
+            topic: opp.topic,
+            reason: safety.decision === 'REJECT' ? 'safety_reject' : 'ip_or_gate',
+          })
+          continue
+        }
+
+        accepted += 1
+        samples.push(concept.primaryText)
+
+        if (catalog) {
+          const { Idea } = await import('@/models/Idea')
+          const { isMongoConfigured, connectMongo } = await import('@/lib/db')
+          if (isMongoConfigured()) {
+            await connectMongo()
+            await Idea.create({
+              storeId: catalog.storeId,
+              brandId: catalog.brandId,
+              niche: concept.niche,
+              slogan: concept.primaryText,
+              concept: conceptText,
+              productTypes: opp.productTypesRecommended.slice(0, 4),
+              status: safety.decision === 'PASS' ? 'approved' : 'awaiting_approval',
+              provenance: {
+                sourceTrendIds: [opp.topic, opp.id],
+                promptVersion: 'concept-engine-v2',
+                modelProvider: 'research-v2',
+                modelName: opp.engineVersion,
+                qualityScore: concept.conceptScore,
+                safetyScore: safety.score,
+                safetyDecision: safety.decision,
+                publishStatus:
+                  safety.decision === 'PASS' ? 'approved' : 'awaiting_approval',
+              },
+            })
+            persisted += 1
+          }
+        }
+      }
+    }
+
+    return {
+      engine: 'research_v2_concepts',
+      opportunities: opportunities.length,
+      generated,
+      accepted,
+      persisted,
+      rejectedConcepts: rejectedConcepts.slice(0, 10),
+      samples: samples.slice(0, 8),
+      mongo: Boolean(catalog),
+      maxProductsPerDay: flags.maxProductsPerDay,
+    }
+  }
+
   const tops = await topTrendTitles()
   let generated = 0
   let accepted = 0
@@ -165,6 +304,7 @@ export async function runIdeaGenerationJob(): Promise<PipelineJobStats> {
   }
 
   return {
+    engine: 'slogan_v1',
     niches: tops.length,
     generated,
     accepted,
@@ -238,12 +378,18 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
   const catalog = await ensureDefaultCatalog()
   if (!catalog) return { skipped: true, reason: 'no_catalog' }
 
+  const { getFeatureFlags } = await import('@/lib/featureFlags')
+  const flags = getFeatureFlags()
+  const ideaLimit = flags.useDesignV2
+    ? Math.min(10, flags.maxProductsPerDay)
+    : 10
+
   const ideas = await Idea.find({
     status: { $in: ['approved', 'awaiting_approval'] },
     'provenance.safetyDecision': { $ne: 'REJECT' },
   })
     .sort({ createdAt: -1 })
-    .limit(10)
+    .limit(ideaLimit)
     .lean()
 
   bootstrapProviders()
@@ -252,7 +398,9 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
     Boolean(image) &&
     image!.validateConfig().ok &&
     !image!.name.includes('stub')
-  const aiBudget = maxAiDesignsPerRun()
+  const aiBudget = flags.useDesignV2
+    ? Math.min(maxAiDesignsPerRun(), flags.maxProductsPerDay)
+    : maxAiDesignsPerRun()
 
   if (!canAi) {
     logger.warn('design_generation_ai_unavailable', {

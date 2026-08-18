@@ -10,6 +10,7 @@ import { ProductVariant } from '@/models/ProductVariant'
 import { SafetyReview } from '@/models/SafetyReview'
 import { PublishingJob } from '@/models/PublishingJob'
 import { ProductLifecycleDecision } from '@/models/ProductLifecycleDecision'
+import { ResearchOpportunityModel } from '@/models/ResearchOpportunity'
 import { SystemMeta } from '@/models/SystemMeta'
 import { VIRAL_ALGORITHM_VERSION } from '@/services/trends/viralAlgorithm'
 import { DESIGN_PROMPT_VERSION } from '@/services/designs/types'
@@ -27,6 +28,7 @@ export type ViralPurgeCounts = {
   safetyReviews: number
   publishingJobs: number
   lifecycleDecisions: number
+  researchOpportunities: number
 }
 
 /**
@@ -48,6 +50,7 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
     safetyReviews,
     publishingJobs,
     lifecycleDecisions,
+    researchOpportunities,
   ] = await Promise.all([
     Design.deleteMany({}),
     CachedDesign.deleteMany({}),
@@ -60,6 +63,7 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
     SafetyReview.deleteMany({}),
     PublishingJob.deleteMany({}),
     ProductLifecycleDecision.deleteMany({}),
+    ResearchOpportunityModel.deleteMany({}),
   ])
 
   try {
@@ -67,6 +71,13 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
     clearPublishingQueue()
   } catch {
     // optional in-memory queue
+  }
+
+  try {
+    const { clearDesignAssetStore } = await import('@/services/designs/assetStore')
+    clearDesignAssetStore()
+  } catch {
+    // optional in-memory asset cache
   }
 
   const counts: ViralPurgeCounts = {
@@ -81,6 +92,7 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
     safetyReviews: safetyReviews.deletedCount ?? 0,
     publishingJobs: publishingJobs.deletedCount ?? 0,
     lifecycleDecisions: lifecycleDecisions.deletedCount ?? 0,
+    researchOpportunities: researchOpportunities.deletedCount ?? 0,
   }
 
   await SystemMeta.findOneAndUpdate(

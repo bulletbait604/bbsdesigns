@@ -2,8 +2,8 @@ import { isMongoConfigured, connectMongo } from '@/lib/db'
 import { Idea } from '@/models/Idea'
 import { Design } from '@/models/Design'
 import { Product } from '@/models/Product'
-import { DEMO_IDEAS, DEMO_DESIGNS, type DemoIdea, type DemoDesign } from '@/lib/demoCatalog'
-import { DEMO_APPROVALS, DEMO_STATS, DEMO_TRENDS, type PipelineStat, type QueueItem } from '@/lib/dashboardData'
+import type { DemoIdea, DemoDesign } from '@/lib/demoCatalog'
+import { type PipelineStat, type QueueItem } from '@/lib/dashboardData'
 import type { Niche, SafetyDecision } from '@/types'
 
 function isBrowserSafeAssetUrl(url?: string | null): boolean {
@@ -47,21 +47,24 @@ export async function loadIdeasForDashboard(): Promise<{
   source: 'mongo' | 'demo'
 }> {
   if (!isMongoConfigured()) {
-    return {
-      ideas: DEMO_IDEAS.map((i) => ({ ...i, source: 'demo' as const })),
-      source: 'demo',
-    }
+    return { ideas: [], source: 'demo' }
   }
 
   await connectMongo()
+  try {
+    const { ensureViralAlgorithmMigration } = await import('@/services/trends/purge')
+    await ensureViralAlgorithmMigration()
+  } catch {
+    // purge migration is best-effort
+  }
+
   const docs = await Idea.find({}).sort({ createdAt: -1 }).limit(40).lean()
   if (!docs.length) {
     return { ideas: [], source: 'mongo' }
   }
 
-  const designs = await Design.find({
-    ideaId: { $in: docs.map((d) => String(d._id)) },
-  }).lean()
+  const ideaIds = docs.map((d) => d._id)
+  const designs = await Design.find().where('ideaId').in(ideaIds).lean()
   const byIdea = new Map(designs.map((d) => [String(d.ideaId), d]))
 
   const ideas: LiveIdeaCard[] = docs.map((doc) => {
@@ -94,7 +97,7 @@ export async function loadSafetyQueueForDashboard(): Promise<{
   source: 'mongo' | 'demo'
 }> {
   if (!isMongoConfigured()) {
-    return { items: DEMO_APPROVALS, source: 'demo' }
+    return { items: [], source: 'demo' }
   }
 
   await connectMongo()
@@ -109,9 +112,7 @@ export async function loadSafetyQueueForDashboard(): Promise<{
     return { items: [], source: 'mongo' }
   }
 
-  const designs = await Design.find({
-    ideaId: { $in: ideas.map((i) => String(i._id)) },
-  }).lean()
+  const designs = await Design.find().where('ideaId').in(ideas.map((i) => i._id)).lean()
   const byIdea = new Map(designs.map((d) => [String(d.ideaId), d]))
 
   const items: QueueItem[] = ideas.map((idea) => {
@@ -173,13 +174,17 @@ export async function loadDesignsForDashboard(): Promise<{
   source: 'mongo' | 'demo'
 }> {
   if (!isMongoConfigured()) {
-    return {
-      designs: DEMO_DESIGNS.map((d) => ({ ...d, source: 'demo' as const })),
-      source: 'demo',
-    }
+    return { designs: [], source: 'demo' }
   }
 
   await connectMongo()
+  try {
+    const { ensureViralAlgorithmMigration } = await import('@/services/trends/purge')
+    await ensureViralAlgorithmMigration()
+  } catch {
+    // purge migration is best-effort
+  }
+
   const docs = await Design.find({ status: { $ne: 'rejected' } })
     .sort({ createdAt: -1 })
     .limit(40)
@@ -294,15 +299,27 @@ export async function loadOverviewForDashboard(): Promise<{
 }> {
   if (!isMongoConfigured()) {
     return {
-      stats: DEMO_STATS,
-      approvals: DEMO_APPROVALS,
-      trends: DEMO_TRENDS,
+      stats: [
+        { label: 'Awaiting approval', value: '0', hint: 'Connect Mongo, then run automation' },
+        { label: 'Shopify drafts', value: '0', hint: 'No live publish yet' },
+        { label: 'Safety rejects', value: '0', hint: 'REJECT always wins' },
+        { label: 'Trend score avg', value: '—', hint: 'Run trend research first' },
+      ],
+      approvals: [],
+      trends: [],
       source: 'demo',
       empty: true,
     }
   }
 
   await connectMongo()
+
+  try {
+    const { ensureViralAlgorithmMigration } = await import('@/services/trends/purge')
+    await ensureViralAlgorithmMigration()
+  } catch {
+    // best-effort wipe on algorithm bump
+  }
 
   const [awaitingApproval, shopifyDrafts, safetyRejects, safetyQueue, ideaCount, productCount] =
     await Promise.all([

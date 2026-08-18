@@ -53,6 +53,8 @@ export function AutomationConsole({
         states?: AutomationJobState[]
         runs?: AutomationRunRecord[]
         run?: AutomationRunRecord
+        purge?: Record<string, unknown>
+        next?: string
       }
       if (!res.ok) {
         setError(data.error || `request_failed_${res.status}`)
@@ -60,6 +62,18 @@ export function AutomationConsole({
       }
       if (data.states) setStates(data.states)
       if (data.runs) setRuns(data.runs)
+      if (body.action === 'factory_reset' || body.action === 'purge_viral_state') {
+        const purged = data.purge
+          ? Object.entries(data.purge)
+              .filter(([k, v]) => typeof v === 'number' && k !== 'purged')
+              .map(([k, v]) => `${k}:${v}`)
+              .join(', ')
+          : ''
+        setNotice(
+          `Factory reset complete${purged ? ` (${purged})` : ''}. Ideas, designs, trends, and mockups cleared. Run trend research next.`
+        )
+        return
+      }
       if (data.run?.id) {
         setSelectedRunId(data.run.id)
         setNotice(
@@ -92,6 +106,33 @@ export function AutomationConsole({
           Running{busyJob ? ` ${busyJob}` : ''}… this can take up to a minute for design jobs.
         </p>
       ) : null}
+
+      <div className="rounded-md border border-danger/40 bg-danger/10 p-4">
+        <h2 className="font-display text-lg font-bold text-text">Factory reset</h2>
+        <p className="mt-1 text-sm text-muted">
+          Deletes all ideas, designs, mockups, trends, safety reviews, products, and research
+          opportunities so you can start fresh. Does not touch admin login, store, or brand settings.
+        </p>
+        <button
+          type="button"
+          disabled={pending}
+          className="mt-3 rounded-md border border-danger/50 bg-danger/20 px-3 py-2 text-sm text-danger hover:bg-danger/30 disabled:opacity-40"
+          onClick={() => {
+            if (
+              !window.confirm(
+                'Erase ALL ideas, designs, mockups, and trend research? This cannot be undone.'
+              )
+            ) {
+              return
+            }
+            startTransition(() => {
+              void call({ action: 'factory_reset' }, 'factory_reset')
+            })
+          }}
+        >
+          {busyJob === 'factory_reset' ? 'Clearing…' : 'Erase all creative data'}
+        </button>
+      </div>
 
       <div className="overflow-x-auto rounded-md border border-line">
         <table className="min-w-full text-left text-sm">

@@ -1,6 +1,8 @@
 import type { Niche, SafetyDecision } from '@/types'
+import { DESIGN_PROMPT_V2_VERSION } from '@/services/designV2/types'
 
-export const DESIGN_PROMPT_VERSION = 'design-prompt-v9-viral-max'
+/** Bump invalidates design caches + marks old gallery art as stale/placeholder. */
+export const DESIGN_PROMPT_VERSION = DESIGN_PROMPT_V2_VERSION
 
 export type DesignPromptInput = {
   niche: Niche

@@ -31,3 +31,7 @@ export {
 export { AuditLog, type AuditLogDoc } from '@/models/AuditLog'
 export { Settings, type SettingsDoc } from '@/models/Settings'
 export { AdminAuth, type AdminAuthDoc } from '@/models/AdminAuth'
+export {
+  ResearchOpportunityModel,
+  type ResearchOpportunityDoc,
+} from '@/models/ResearchOpportunity'

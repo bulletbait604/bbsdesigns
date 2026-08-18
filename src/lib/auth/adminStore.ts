@@ -125,3 +125,54 @@ export async function verifyAdminLogin(username: string, password: string): Prom
   )
   return true
 }
+
+/**
+ * Recover access with ADMIN_SETUP_TOKEN: set/replace password and clear lockouts.
+ * Use when locked out or password forgotten — does not require knowing the old password.
+ */
+export async function resetAdminPasswordWithSetupToken(input: {
+  password: string
+  setupToken: string
+}): Promise<void> {
+  assertMongoForAuth()
+  assertAuthSecretReady()
+  assertValidSetupToken(input.setupToken)
+  await connectMongo()
+
+  const passwordHash = await hashPassword(input.password)
+  await AdminAuth.findOneAndUpdate(
+    { username: ADMIN_USERNAME },
+    {
+      $set: {
+        username: ADMIN_USERNAME,
+        passwordHash,
+        passwordSetAt: new Date(),
+        failedAttempts: 0,
+        lockedUntil: null,
+        lastFailedAt: null,
+      },
+    },
+    { upsert: true, new: true }
+  )
+
+  logger.info('admin_password_reset_complete', { username: ADMIN_USERNAME })
+}
+
+export async function getAdminLockStatus(): Promise<{
+  locked: boolean
+  lockedUntil: string | null
+  failedAttempts: number
+}> {
+  assertMongoForAuth()
+  await connectMongo()
+  const doc = await AdminAuth.findOne({ username: ADMIN_USERNAME }).lean()
+  if (!doc) {
+    return { locked: false, lockedUntil: null, failedAttempts: 0 }
+  }
+  const locked = Boolean(doc.lockedUntil && doc.lockedUntil.getTime() > Date.now())
+  return {
+    locked,
+    lockedUntil: locked && doc.lockedUntil ? doc.lockedUntil.toISOString() : null,
+    failedAttempts: doc.failedAttempts || 0,
+  }
+}

@@ -47,3 +47,9 @@ export function storeDesignAsset(input: {
 export function getDesignAsset(id: string): StoredAsset | undefined {
   return assets.get(id)
 }
+
+export function clearDesignAssetStore(): number {
+  const n = assets.size
+  assets.clear()
+  return n
+}

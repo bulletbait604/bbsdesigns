@@ -4,7 +4,8 @@ import { getEnv } from '@/lib/env'
 /** Resolve a stable secret for signing sessions. */
 export function getAuthSecret(): string {
   const env = getEnv()
-  if (env.AUTH_SECRET && env.AUTH_SECRET.length >= 32) return env.AUTH_SECRET
+  const fromEnv = (env.AUTH_SECRET || process.env.AUTH_SECRET || '').trim()
+  if (fromEnv.length >= 32) return fromEnv
 
   if (env.NODE_ENV === 'production') {
     throw new Error('AUTH_SECRET must be set (min 32 chars) in production')
