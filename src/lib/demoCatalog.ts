@@ -12,12 +12,14 @@ export type DemoIdea = {
   concept: string
   status: 'draft' | 'awaiting_approval' | 'approved' | 'rejected'
   safetyDecision: 'PASS' | 'REVIEW' | 'REJECT'
-  designId: DesignPreviewId | null
+  /** Demo catalog preview id, or live Mongo Design _id */
+  designId: DesignPreviewId | string | null
   trendScore: number
 }
 
 export type DemoDesign = {
-  id: DesignPreviewId
+  /** Demo catalog preview id, or live Mongo Design _id */
+  id: DesignPreviewId | string
   ideaId: string
   niche: 'gaming' | 'baseball' | 'softball'
   title: string

@@ -6,16 +6,21 @@ import { DEMO_IDEAS, DEMO_DESIGNS, type DemoIdea, type DemoDesign } from '@/lib/
 import { DEMO_APPROVALS, DEMO_STATS, DEMO_TRENDS, type PipelineStat, type QueueItem } from '@/lib/dashboardData'
 import type { Niche, SafetyDecision } from '@/types'
 
-function previewArtwork(slogan: string, niche: Niche, assetUrl?: string): string {
-  if (assetUrl?.startsWith('/api/')) return assetUrl
+function previewArtwork(slogan: string, niche: Niche, assetUrl?: string | null): string {
+  if (assetUrl?.startsWith('/api/') || assetUrl?.startsWith('http')) return assetUrl
   const q = new URLSearchParams({ slogan, niche, view: 'artwork' })
   return `/api/design-preview?${q.toString()}`
 }
 
-function previewMockup(slogan: string, niche: Niche, mockupKeys?: string[]): string {
-  if (mockupKeys?.[0]?.startsWith('/api/')) return mockupKeys[0]
+function previewMockup(slogan: string, niche: Niche, mockupKeys?: string[] | null): string {
+  const first = mockupKeys?.[0]
+  if (first?.startsWith('/api/') || first?.startsWith('http')) return first
   const q = new URLSearchParams({ slogan, niche, view: 'mockup' })
   return `/api/design-preview?${q.toString()}`
+}
+
+function estimateMargin(qualityScore: number): number {
+  return Math.min(92, Math.max(35, Math.round(qualityScore * 0.85)))
 }
 
 export type LiveIdeaCard = DemoIdea & {
@@ -37,10 +42,7 @@ export async function loadIdeasForDashboard(): Promise<{
   await connectMongo()
   const docs = await Idea.find({}).sort({ createdAt: -1 }).limit(40).lean()
   if (!docs.length) {
-    return {
-      ideas: DEMO_IDEAS.map((i) => ({ ...i, source: 'demo' as const })),
-      source: 'demo',
-    }
+    return { ideas: [], source: 'mongo' }
   }
 
   const designs = await Design.find({
@@ -59,7 +61,7 @@ export async function loadIdeasForDashboard(): Promise<{
       concept: doc.concept || '',
       status: (doc.status as DemoIdea['status']) || 'draft',
       safetyDecision: decision,
-      designId: design ? 'lag-lifestyle' : null,
+      designId: design ? String(design._id) : null,
       trendScore: Math.round(doc.provenance?.qualityScore ?? 70),
       artworkUrl: design
         ? previewArtwork(doc.slogan, niche, design.assetUrl)
@@ -90,7 +92,7 @@ export async function loadSafetyQueueForDashboard(): Promise<{
     .lean()
 
   if (!ideas.length) {
-    return { items: DEMO_APPROVALS, source: 'demo' }
+    return { items: [], source: 'mongo' }
   }
 
   const designs = await Design.find({
@@ -103,6 +105,7 @@ export async function loadSafetyQueueForDashboard(): Promise<{
     const niche = idea.niche as Niche
     const safetyDecision = (idea.provenance?.safetyDecision || 'REVIEW') as SafetyDecision
     const slogan = idea.slogan
+    const qualityScore = Math.round(design?.qualityScore ?? idea.provenance?.qualityScore ?? 70)
     return {
       id: String(idea._id),
       niche,
@@ -117,8 +120,8 @@ export async function loadSafetyQueueForDashboard(): Promise<{
       safetyScore: Math.round(idea.provenance?.safetyScore ?? 0),
       safetyDecision,
       ipRisk: safetyDecision === 'REJECT' ? 80 : safetyDecision === 'REVIEW' ? 25 : 5,
-      qualityScore: Math.round(design?.qualityScore ?? 70),
-      estimatedMargin: 72,
+      qualityScore,
+      estimatedMargin: estimateMargin(qualityScore),
       designLabel: design?.provider || 'pending',
       mockupLabel: design?.mockupKeys?.length ? 'Tee mockup ready' : 'Mockup pending',
       status: idea.status,
@@ -138,7 +141,8 @@ export async function loadSafetyQueueForDashboard(): Promise<{
   return { items, source: 'mongo' }
 }
 
-export type LiveDesignCard = DemoDesign & {
+export type LiveDesignCard = Omit<DemoDesign, 'id'> & {
+  id: string
   source: 'mongo' | 'demo'
   artworkSrc?: string
   mockupSrc?: string
@@ -163,10 +167,7 @@ export async function loadDesignsForDashboard(): Promise<{
     .lean()
 
   if (!docs.length) {
-    return {
-      designs: DEMO_DESIGNS.map((d) => ({ ...d, source: 'demo' as const })),
-      source: 'demo',
-    }
+    return { designs: [], source: 'mongo' }
   }
 
   const designs: LiveDesignCard[] = docs.map((doc) => {
@@ -175,8 +176,9 @@ export async function loadDesignsForDashboard(): Promise<{
     const decision = (doc.imageReviewDecision ||
       doc.provenance?.safetyDecision ||
       'REVIEW') as SafetyDecision
+    const mongoId = String(doc._id)
     return {
-      id: 'lag-lifestyle',
+      id: mongoId,
       ideaId: String(doc.ideaId),
       niche,
       title: doc.title || slogan,
@@ -194,11 +196,8 @@ export async function loadDesignsForDashboard(): Promise<{
         shirt: '#1e293b',
       },
       source: 'mongo',
-      mongoId: String(doc._id),
-      artworkSrc:
-        doc.assetUrl?.startsWith('http') || doc.assetUrl?.startsWith('/api/')
-          ? doc.assetUrl
-          : previewArtwork(slogan, niche, doc.assetUrl),
+      mongoId,
+      artworkSrc: previewArtwork(slogan, niche, doc.assetUrl),
       mockupSrc: previewMockup(slogan, niche, doc.mockupKeys),
     }
   })
@@ -211,6 +210,7 @@ export type OverviewTrend = {
   title: string
   score: number
   status: string
+  source?: string
 }
 
 export async function loadOverviewForDashboard(): Promise<{
@@ -248,7 +248,7 @@ export async function loadOverviewForDashboard(): Promise<{
 
   const empty = ideaCount === 0 && productCount === 0
 
-  let trends: OverviewTrend[] = DEMO_TRENDS
+  let trends: OverviewTrend[] = []
   let trendAvg = 0
   try {
     const { runTrendEngine } = await import('@/services/trends/engine')
@@ -268,15 +268,13 @@ export async function loadOverviewForDashboard(): Promise<{
           title: t.signal.title,
           score: t.score,
           status: t.ipRisk >= 40 ? 'ip_review' : 'scored',
+          source: String(t.signal.raw?.source || t.signal.source),
         }))
       trendAvg = Math.round(scored.reduce((sum, t) => sum + t.score, 0) / scored.length)
     }
   } catch {
-    trendAvg = Math.round(DEMO_TRENDS.reduce((s, t) => s + t.score, 0) / DEMO_TRENDS.length)
-  }
-
-  if (!trendAvg && trends.length) {
-    trendAvg = Math.round(trends.reduce((s, t) => s + t.score, 0) / trends.length)
+    trends = []
+    trendAvg = 0
   }
 
   const stats: PipelineStat[] = [
@@ -297,24 +295,20 @@ export async function loadOverviewForDashboard(): Promise<{
     },
     {
       label: 'Trend score avg',
-      value: String(trendAvg || '—'),
+      value: trendAvg ? String(trendAvg) : '—',
       hint: 'Not a sales guarantee',
     },
   ]
 
-  const approvals =
-    safetyQueue.source === 'mongo'
-      ? safetyQueue.items.filter((i) => i.status === 'awaiting_approval' || i.safetyDecision === 'REVIEW').slice(0, 5)
-      : empty
-        ? []
-        : safetyQueue.items.slice(0, 5)
+  const approvals = safetyQueue.items
+    .filter((i) => i.status === 'awaiting_approval' || i.safetyDecision === 'REVIEW')
+    .slice(0, 5)
 
   return {
     stats,
-    approvals: approvals.length ? approvals : empty ? [] : safetyQueue.items.slice(0, 5),
+    approvals: approvals.length ? approvals : safetyQueue.items.slice(0, 5),
     trends,
-    source: empty ? 'demo' : 'mongo',
+    source: 'mongo',
     empty,
   }
 }
-

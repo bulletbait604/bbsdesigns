@@ -2,6 +2,8 @@ import { getEnv, missingOptionalIntegrations } from '@/lib/env'
 import { isMongoConfigured } from '@/lib/db'
 import { CONNECTION_STEPS } from '@/lib/dashboardData'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
+import { bootstrapProviders } from '@/providers/bootstrap'
+import { healthCheckAll } from '@/providers/registry'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,14 +19,19 @@ function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
   )
 }
 
-export default function ProvidersPage() {
+export default async function ProvidersPage() {
   const env = getEnv()
   const missing = missingOptionalIntegrations(env)
   const shopifyOk = Boolean(env.SHOPIFY_STORE_DOMAIN && env.SHOPIFY_ADMIN_ACCESS_TOKEN)
   const printifyOk = Boolean(env.PRINTIFY_API_TOKEN)
   const mongoOk = isMongoConfigured()
-  const aiOk = Boolean(env.AI_TEXT_API_KEY)
-  const imageOk = Boolean(env.IMAGE_API_KEY)
+  const aiOk = Boolean(env.AI_TEXT_API_KEY || process.env.GEMINI_API || process.env.GEMINI_API_KEY)
+  const imageOk = Boolean(
+    env.IMAGE_API_KEY || process.env.GEMINI_API || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+  )
+
+  bootstrapProviders()
+  const providerHealth = await healthCheckAll()
 
   return (
     <DashboardShell
@@ -75,6 +82,27 @@ export default function ProvidersPage() {
       ) : (
         <p className="mt-4 text-sm text-ok">Core optional integrations look present in this environment.</p>
       )}
+
+      <section className="mt-8 rounded-md border border-line bg-panel/80 p-5">
+        <h2 className="font-display text-xl font-bold">Live provider health</h2>
+        <p className="mt-1 text-sm text-muted">From registered adapters (same as /api/health).</p>
+        <ul className="mt-4 space-y-2">
+          {providerHealth.map((h) => (
+            <li
+              key={`${h.kind}-${h.provider}`}
+              className="flex flex-wrap items-center justify-between gap-2 border-b border-line/70 pb-2 text-sm last:border-0"
+            >
+              <span className="text-text">
+                {h.kind} · {h.provider}
+              </span>
+              <StatusBadge ok={h.ok} label={h.ok ? 'ok' : h.message || 'fail'} />
+            </li>
+          ))}
+          {!providerHealth.length ? (
+            <li className="text-sm text-muted">No providers registered in this environment.</li>
+          ) : null}
+        </ul>
+      </section>
 
       <section className="mt-8 space-y-6">
         <div className="rounded-md border border-line bg-panel/80 p-5">

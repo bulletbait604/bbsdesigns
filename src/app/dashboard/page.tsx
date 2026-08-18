@@ -13,9 +13,11 @@ export default async function DashboardOverviewPage() {
       activePath="/dashboard"
       title="Overview"
       subtitle={
-        source === 'mongo' && !empty
-          ? 'Live pipeline pulse from Mongo and trend engine.'
-          : 'Pipeline pulse for the merch factory. Connect Mongo and run automation for live counts.'
+        source === 'mongo'
+          ? empty
+            ? 'Mongo connected — live counts are zero until automation creates ideas/products.'
+            : 'Live pipeline pulse from Mongo and trend engine.'
+          : 'Demo pulse until Mongo is connected. Run automation for live counts.'
       }
     >
       <StatRow stats={stats} />
@@ -53,22 +55,29 @@ export default async function DashboardOverviewPage() {
               All trends
             </Link>
           </div>
-          <ul className="mt-4 space-y-3">
-            {trends.map((trend) => (
-              <li
-                key={`${trend.niche}-${trend.title}`}
-                className="flex items-center justify-between gap-3 border-b border-line/70 pb-3 last:border-0"
-              >
-                <div>
-                  <p className="text-sm text-text">{trend.title}</p>
-                  <p className="mt-1 text-xs text-muted">
-                    {trend.niche} · {trend.status}
-                  </p>
-                </div>
-                <span className="font-display text-lg font-bold text-accent">{trend.score}</span>
-              </li>
-            ))}
-          </ul>
+          {trends.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">
+              No trend rows yet. Open Trends or run Automation → trend_ingestion.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {trends.map((trend) => (
+                <li
+                  key={`${trend.niche}-${trend.title}`}
+                  className="flex items-center justify-between gap-3 border-b border-line/70 pb-3 last:border-0"
+                >
+                  <div>
+                    <p className="text-sm text-text">{trend.title}</p>
+                    <p className="mt-1 text-xs text-muted">
+                      {trend.niche} · {trend.status}
+                      {trend.source ? ` · ${trend.source}` : ''}
+                    </p>
+                  </div>
+                  <span className="font-display text-lg font-bold text-accent">{trend.score}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 

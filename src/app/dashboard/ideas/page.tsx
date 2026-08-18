@@ -17,11 +17,19 @@ export default async function IdeasPage() {
           : 'Demo catalog — run Automation → Idea generation after Mongo is connected.'
       }
     >
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {ideas.map((idea) => (
-          <IdeaCard key={idea.id} idea={idea} />
-        ))}
-      </div>
+      {!ideas.length ? (
+        <p className="text-sm text-muted">
+          {source === 'mongo'
+            ? 'No ideas in Mongo yet. Run Automation → trend_ingestion → idea_generation.'
+            : 'No demo ideas available.'}
+        </p>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {ideas.map((idea) => (
+            <IdeaCard key={idea.id} idea={idea} />
+          ))}
+        </div>
+      )}
     </DashboardShell>
   )
 }

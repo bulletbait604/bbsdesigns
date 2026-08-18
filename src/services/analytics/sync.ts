@@ -10,7 +10,6 @@ import {
   upsertProductMetrics,
   buildWeeklyReport,
   seedDemoAnalytics,
-  listProductMetrics,
 } from '@/services/analytics'
 import { persistWeeklyReport } from '@/services/analytics/persist'
 import type { WeeklyAnalyticsReport } from '@/services/analytics/types'
@@ -211,13 +210,13 @@ export async function syncAnalyticsMetrics(anchor = new Date()): Promise<{
   }
 
   if (!byKey.size) {
-    const report = seedDemoAnalytics(anchor)
+    const report = buildWeeklyReport(anchor)
     return {
-      products: report.products.length,
-      orders: report.totals.orders,
+      products: 0,
+      orders: orders.length,
       shopifyOrders: shopifyInWeek.length,
       report,
-      source: 'demo',
+      source: 'live',
     }
   }
 
@@ -228,6 +227,7 @@ export async function syncAnalyticsMetrics(anchor = new Date()): Promise<{
       niche: agg.niche,
       periodStart: weekStart.toISOString(),
       periodEnd: weekEnd.toISOString(),
+      // Estimated engagement proxies until Shopify Analytics is wired
       views: Math.max(agg.orders * 12, agg.orders > 0 ? 12 : 3),
       sessions: Math.max(agg.orders * 8, agg.orders > 0 ? 8 : 2),
       addToCart: Math.max(agg.orders * 2, 0),
@@ -277,17 +277,6 @@ export async function syncAnalyticsMetrics(anchor = new Date()): Promise<{
   }
 
   const report = buildWeeklyReport(anchor)
-  if (!listProductMetrics().length) {
-    const demo = seedDemoAnalytics(anchor)
-    return {
-      products: demo.products.length,
-      orders: demo.totals.orders,
-      shopifyOrders: shopifyInWeek.length,
-      report: demo,
-      source: 'demo',
-    }
-  }
-
   await persistWeeklyReport(report)
   logger.info('analytics_sync_complete', {
     products: byKey.size,

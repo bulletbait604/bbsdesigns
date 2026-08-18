@@ -15,11 +15,19 @@ function Score({ label, value, warn }: { label: string; value: number; warn?: bo
   )
 }
 
-export function ApprovalCard({ item }: { item: QueueItem }) {
+export function ApprovalCard({
+  item,
+  liveActions = true,
+}: {
+  item: QueueItem
+  /** When false (demo queue), approve/reject/draft stay disabled. */
+  liveActions?: boolean
+}) {
   const rejected = item.safetyDecision === 'REJECT'
   const [status, setStatus] = useState(item.status)
   const [message, setMessage] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const canAct = liveActions && /^[a-f\d]{24}$/i.test(item.id)
 
   const livePreview = useMemo(() => {
     if (rejected) return null
@@ -35,6 +43,10 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
   const mock = item.mockupUrl || livePreview?.mock || null
 
   function act(action: 'approve' | 'reject' | 'create_draft') {
+    if (!canAct) {
+      setMessage('Demo items cannot be approved — connect Mongo for live actions.')
+      return
+    }
     setMessage(null)
     startTransition(async () => {
       if (action === 'create_draft') {
@@ -164,7 +176,7 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
       <div className="mt-5 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={rejected || pending || status === 'approved'}
+          disabled={!canAct || rejected || pending || status === 'approved'}
           onClick={() => act('approve')}
           className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-ink disabled:cursor-not-allowed disabled:opacity-40"
         >
@@ -172,7 +184,7 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
         </button>
         <button
           type="button"
-          disabled={pending || status === 'rejected'}
+          disabled={!canAct || pending || status === 'rejected'}
           onClick={() => act('reject')}
           className="rounded-md border border-danger/40 px-3 py-2 text-sm text-danger disabled:opacity-40"
         >
@@ -197,6 +209,7 @@ export function ApprovalCard({ item }: { item: QueueItem }) {
         <button
           type="button"
           disabled={
+            !canAct ||
             rejected ||
             pending ||
             (status !== 'approved' && item.safetyDecision !== 'PASS')

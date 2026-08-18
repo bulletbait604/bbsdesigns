@@ -50,8 +50,8 @@ export default async function AnalyticsPage() {
         <h2 className="font-display text-xl font-bold text-text">Product performance</h2>
         <p className="mt-1 text-sm text-muted">
           {source === 'live'
-            ? 'Live metrics from Products / Orders (and Shopify when connected).'
-            : 'Demo seed until Mongo has products or orders to sync.'}{' '}
+            ? 'Live metrics from Products / Orders (and Shopify when connected). Views/sessions are estimated proxies until Shopify Analytics is wired.'
+            : 'Demo seed only when Mongo is not configured. With Mongo connected, empty catalogs show empty live reports.'}{' '}
           Refunds tracked: {money(report.totals.refundsCents)}.
         </p>
         <div className="mt-4">

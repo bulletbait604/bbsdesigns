@@ -2,7 +2,6 @@ import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { bootstrapProviders } from '@/providers/bootstrap'
 import { tryGetProvider } from '@/providers/registry'
 import { runTrendEngine } from '@/services/trends/engine'
-import { DEMO_TRENDS } from '@/lib/dashboardData'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,23 +40,6 @@ export default async function TrendsPage() {
       }))
   } catch (e) {
     error = e instanceof Error ? e.message : 'trend_engine_failed'
-    trends = DEMO_TRENDS.map((t) => ({
-      niche: t.niche,
-      title: t.title,
-      score: t.score,
-      status: t.status,
-      source: 'demo',
-    }))
-  }
-
-  if (!trends.length) {
-    trends = DEMO_TRENDS.map((t) => ({
-      niche: t.niche,
-      title: t.title,
-      score: t.score,
-      status: t.status,
-      source: 'demo',
-    }))
   }
 
   return (
@@ -73,41 +55,47 @@ export default async function TrendsPage() {
         <span className="rounded border border-line px-2 py-1 text-muted">
           Live sources:{' '}
           <strong className={configured ? 'text-ok' : 'text-warn'}>
-            {configured ? (live ? 'yes' : 'configured / mixed') : 'not configured'}
+            {configured ? (live ? 'yes' : 'configured / curated mix') : 'not configured'}
           </strong>
         </span>
       </div>
 
       {error ? (
         <p className="mb-4 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn">
-          Trend fetch issue: {error}. Showing fallback rows.
+          Trend fetch issue: {error}
         </p>
       ) : null}
 
-      <div className="overflow-x-auto rounded-md border border-line">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-panel text-xs uppercase tracking-[0.14em] text-muted">
-            <tr>
-              <th className="px-4 py-3 font-medium">Niche</th>
-              <th className="px-4 py-3 font-medium">Title</th>
-              <th className="px-4 py-3 font-medium">Source</th>
-              <th className="px-4 py-3 font-medium">Score</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trends.map((trend) => (
-              <tr key={`${trend.source}-${trend.title}`} className="border-t border-line/80">
-                <td className="px-4 py-3 text-accent-2">{trend.niche}</td>
-                <td className="px-4 py-3">{trend.title}</td>
-                <td className="px-4 py-3 text-muted">{trend.source}</td>
-                <td className="px-4 py-3 font-display text-accent">{trend.score}</td>
-                <td className="px-4 py-3 text-muted">{trend.status}</td>
+      {!trends.length ? (
+        <p className="text-sm text-muted">
+          No trend rows returned. Check SerpAPI/Etsy keys or run Automation → trend_ingestion.
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-md border border-line">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-panel text-xs uppercase tracking-[0.14em] text-muted">
+              <tr>
+                <th className="px-4 py-3 font-medium">Niche</th>
+                <th className="px-4 py-3 font-medium">Title</th>
+                <th className="px-4 py-3 font-medium">Source</th>
+                <th className="px-4 py-3 font-medium">Score</th>
+                <th className="px-4 py-3 font-medium">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {trends.map((trend) => (
+                <tr key={`${trend.source}-${trend.title}`} className="border-t border-line/80">
+                  <td className="px-4 py-3 text-accent-2">{trend.niche}</td>
+                  <td className="px-4 py-3">{trend.title}</td>
+                  <td className="px-4 py-3 text-muted">{trend.source}</td>
+                  <td className="px-4 py-3 font-display text-accent">{trend.score}</td>
+                  <td className="px-4 py-3 text-muted">{trend.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </DashboardShell>
   )
 }
