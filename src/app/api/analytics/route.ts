@@ -4,12 +4,14 @@ import {
   buildWeeklyReport,
   listProductPerformance,
   seedDemoAnalytics,
+  syncAnalyticsMetrics,
   upsertProductMetrics,
 } from '@/services/analytics'
 import { persistWeeklyReport } from '@/services/analytics/persist'
 import type { UpsertMetricInput } from '@/services/analytics/types'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function GET(request: Request) {
   const session = await getSessionFromCookies()
@@ -21,13 +23,34 @@ export async function GET(request: Request) {
   if (searchParams.get('seed') === '1') {
     const report = seedDemoAnalytics()
     await persistWeeklyReport(report)
-    return NextResponse.json({ report, products: report.products })
+    return NextResponse.json({ report, products: report.products, source: 'demo' })
   }
 
-  const report = buildWeeklyReport()
+  if (searchParams.get('sync') === '1' || searchParams.get('live') === '1') {
+    const synced = await syncAnalyticsMetrics()
+    return NextResponse.json({
+      report: synced.report,
+      products: synced.report.products,
+      source: synced.source,
+      stats: {
+        products: synced.products,
+        orders: synced.orders,
+        shopifyOrders: synced.shopifyOrders,
+      },
+    })
+  }
+
+  const memory = listProductPerformance()
+  if (memory.length) {
+    const report = buildWeeklyReport()
+    return NextResponse.json({ report, products: memory, source: 'memory' })
+  }
+
+  const synced = await syncAnalyticsMetrics()
   return NextResponse.json({
-    report,
-    products: listProductPerformance(),
+    report: synced.report,
+    products: synced.report.products,
+    source: synced.source,
   })
 }
 
@@ -50,10 +73,23 @@ export async function POST(request: Request) {
 
   const action = (body as { action?: string }).action
 
+  if (action === 'sync') {
+    const synced = await syncAnalyticsMetrics()
+    return NextResponse.json({
+      report: synced.report,
+      source: synced.source,
+      stats: {
+        products: synced.products,
+        orders: synced.orders,
+        shopifyOrders: synced.shopifyOrders,
+      },
+    })
+  }
+
   if (action === 'weekly_report') {
-    const report = buildWeeklyReport()
-    await persistWeeklyReport(report)
-    return NextResponse.json({ report })
+    const synced = await syncAnalyticsMetrics()
+    await persistWeeklyReport(synced.report)
+    return NextResponse.json({ report: synced.report, source: synced.source })
   }
 
   if (action === 'upsert_metric') {

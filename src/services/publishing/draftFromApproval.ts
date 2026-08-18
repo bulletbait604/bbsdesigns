@@ -4,9 +4,10 @@ import { bootstrapProviders } from '@/providers/bootstrap'
 import { tryGetProvider } from '@/providers/registry'
 import { createShopifyProductDraft } from '@/services/shopify/draft'
 import {
-  approvePublishingItem,
+  approvePublishingItemAsync,
   enqueuePublishingCandidate,
-  getPublishingItem,
+  getPublishingItemAsync,
+  hydratePublishingQueueFromMongo,
   listPublishingQueue,
   processPublishingItem,
   type PublishingCandidate,
@@ -78,7 +79,7 @@ export async function createDraftFromQueueItem(
   const env = getEnv()
   bootstrapProviders()
 
-  let item = getPublishingItem(idempotencyKey)
+  let item = await getPublishingItemAsync(idempotencyKey)
   if (!item) throw new Error('Publishing queue item not found')
 
   if (item.status === 'REJECTED') throw new Error('Cannot draft a REJECTED item')
@@ -95,7 +96,7 @@ export async function createDraftFromQueueItem(
     if (item.validationErrors.length) {
       throw new Error(`Cannot approve: ${item.validationErrors.join(', ')}`)
     }
-    item = approvePublishingItem(idempotencyKey)
+    item = await approvePublishingItemAsync(idempotencyKey)
   }
 
   if (item.status !== 'APPROVED' && item.status !== 'FAILED') {
@@ -250,4 +251,9 @@ export function getPublishingQueueSnapshot() {
     createdAt: item.createdAt,
     tags: item.payload.tags,
   }))
+}
+
+export async function getPublishingQueueSnapshotAsync() {
+  await hydratePublishingQueueFromMongo()
+  return getPublishingQueueSnapshot()
 }

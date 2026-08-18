@@ -31,6 +31,9 @@ Complete these in order.
 27. AI text slogans (prompt 023)
 28. Durable automation runs (prompt 024)
 29. Live products & orders (prompt 025)
+30. Publishing queue hydrate (prompt 026)
+31. Analytics sync (prompt 027)
+32. Live overview dashboard (prompt 028)
 
 Do not skip the safety engine.
 Do not enable automatic publishing during initial development.

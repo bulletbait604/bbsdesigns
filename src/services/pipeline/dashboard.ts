@@ -1,8 +1,9 @@
 import { isMongoConfigured, connectMongo } from '@/lib/db'
 import { Idea } from '@/models/Idea'
 import { Design } from '@/models/Design'
+import { Product } from '@/models/Product'
 import { DEMO_IDEAS, DEMO_DESIGNS, type DemoIdea, type DemoDesign } from '@/lib/demoCatalog'
-import { DEMO_APPROVALS, type QueueItem } from '@/lib/dashboardData'
+import { DEMO_APPROVALS, DEMO_STATS, DEMO_TRENDS, type PipelineStat, type QueueItem } from '@/lib/dashboardData'
 import type { Niche, SafetyDecision } from '@/types'
 
 function previewArtwork(slogan: string, niche: Niche, assetUrl?: string): string {
@@ -204,3 +205,116 @@ export async function loadDesignsForDashboard(): Promise<{
 
   return { designs, source: 'mongo' }
 }
+
+export type OverviewTrend = {
+  niche: string
+  title: string
+  score: number
+  status: string
+}
+
+export async function loadOverviewForDashboard(): Promise<{
+  stats: PipelineStat[]
+  approvals: QueueItem[]
+  trends: OverviewTrend[]
+  source: 'mongo' | 'demo'
+  empty: boolean
+}> {
+  if (!isMongoConfigured()) {
+    return {
+      stats: DEMO_STATS,
+      approvals: DEMO_APPROVALS,
+      trends: DEMO_TRENDS,
+      source: 'demo',
+      empty: true,
+    }
+  }
+
+  await connectMongo()
+
+  const [awaitingApproval, shopifyDrafts, safetyRejects, safetyQueue, ideaCount, productCount] =
+    await Promise.all([
+      Idea.countDocuments({ status: 'awaiting_approval' }),
+      Product.countDocuments({
+        $or: [{ status: 'shopify_draft' }, { shopifyProductId: { $ne: null } }],
+      }),
+      Idea.countDocuments({
+        $or: [{ status: 'rejected' }, { 'provenance.safetyDecision': 'REJECT' }],
+      }),
+      loadSafetyQueueForDashboard(),
+      Idea.countDocuments({}),
+      Product.countDocuments({}),
+    ])
+
+  const empty = ideaCount === 0 && productCount === 0
+
+  let trends: OverviewTrend[] = DEMO_TRENDS
+  let trendAvg = 0
+  try {
+    const { runTrendEngine } = await import('@/services/trends/engine')
+    const { bootstrapProviders } = await import('@/providers/bootstrap')
+    bootstrapProviders()
+    const scored = await runTrendEngine({
+      includeCurated: true,
+      includeRegisteredTrendProvider: true,
+      limitPerNiche: 4,
+    })
+    if (scored.length) {
+      trends = scored
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 6)
+        .map((t) => ({
+          niche: t.signal.niche,
+          title: t.signal.title,
+          score: t.score,
+          status: t.ipRisk >= 40 ? 'ip_review' : 'scored',
+        }))
+      trendAvg = Math.round(scored.reduce((sum, t) => sum + t.score, 0) / scored.length)
+    }
+  } catch {
+    trendAvg = Math.round(DEMO_TRENDS.reduce((s, t) => s + t.score, 0) / DEMO_TRENDS.length)
+  }
+
+  if (!trendAvg && trends.length) {
+    trendAvg = Math.round(trends.reduce((s, t) => s + t.score, 0) / trends.length)
+  }
+
+  const stats: PipelineStat[] = [
+    {
+      label: 'Awaiting approval',
+      value: String(awaitingApproval),
+      hint: empty ? 'Run automation or seed ideas' : 'Human gate is on',
+    },
+    {
+      label: 'Shopify drafts',
+      value: String(shopifyDrafts),
+      hint: shopifyDrafts ? 'Draft-only until AUTO_PUBLISH' : 'Approve + create draft from Safety',
+    },
+    {
+      label: 'Safety rejects',
+      value: String(safetyRejects),
+      hint: 'REJECT always wins',
+    },
+    {
+      label: 'Trend score avg',
+      value: String(trendAvg || '—'),
+      hint: 'Not a sales guarantee',
+    },
+  ]
+
+  const approvals =
+    safetyQueue.source === 'mongo'
+      ? safetyQueue.items.filter((i) => i.status === 'awaiting_approval' || i.safetyDecision === 'REVIEW').slice(0, 5)
+      : empty
+        ? []
+        : safetyQueue.items.slice(0, 5)
+
+  return {
+    stats,
+    approvals: approvals.length ? approvals : empty ? [] : safetyQueue.items.slice(0, 5),
+    trends,
+    source: empty ? 'demo' : 'mongo',
+    empty,
+  }
+}
+

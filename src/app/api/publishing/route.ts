@@ -6,7 +6,7 @@ import { Design } from '@/models/Design'
 import {
   createDraftFromQueueItem,
   enqueueListingForDraft,
-  getPublishingQueueSnapshot,
+  getPublishingQueueSnapshotAsync,
 } from '@/services/publishing/draftFromApproval'
 import { getEnv } from '@/lib/env'
 import type { Niche } from '@/types'
@@ -17,7 +17,7 @@ export const maxDuration = 60
 export async function GET() {
   const session = await getSessionFromCookies()
   if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  return NextResponse.json({ ok: true, items: getPublishingQueueSnapshot() })
+  return NextResponse.json({ ok: true, items: await getPublishingQueueSnapshotAsync() })
 }
 
 export async function POST(request: Request) {

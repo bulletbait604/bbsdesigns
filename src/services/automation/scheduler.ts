@@ -9,7 +9,7 @@ import type {
   AutomationRunRecord,
   AutomationTrigger,
 } from '@/services/automation/types'
-import { seedDemoAnalytics, buildWeeklyReport } from '@/services/analytics'
+import { buildWeeklyReport, syncAnalyticsMetrics } from '@/services/analytics'
 import {
   findAutomationRunById,
   findAutomationRunByIdempotencyKey,
@@ -143,22 +143,31 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
           break
         }
         case 'analytics_sync': {
-          const report = seedDemoAnalytics()
-          run.stats = { products: report.products.length, orders: report.totals.orders }
-          run.summary = `Synced ${report.products.length} product metric row(s)`
+          const synced = await syncAnalyticsMetrics()
+          run.stats = {
+            products: synced.products,
+            orders: synced.orders,
+            shopifyOrders: synced.shopifyOrders,
+            source: synced.source,
+          }
+          run.summary =
+            synced.source === 'demo'
+              ? `Demo fallback: ${synced.products} product metric row(s)`
+              : `Synced ${synced.products} product(s), ${synced.orders} Mongo order(s), ${synced.shopifyOrders} Shopify order(s)`
           break
         }
         case 'retirement_candidates': {
-          const report = buildWeeklyReport()
-          const retire = report.products.filter((p) => p.decision === 'RETIRE_CANDIDATE')
-          run.stats = { retireCandidates: retire.length }
+          const synced = await syncAnalyticsMetrics()
+          const retire = synced.report.products.filter((p) => p.decision === 'RETIRE_CANDIDATE')
+          run.stats = { retireCandidates: retire.length, source: synced.source }
           run.summary = `Flagged ${retire.length} RETIRE_CANDIDATE (no deletes)`
           appendLog(run, 'no_auto_delete')
           break
         }
         case 'weekly_report': {
-          const report = buildWeeklyReport()
-          run.stats = { reportId: report.id, products: report.products.length }
+          const synced = await syncAnalyticsMetrics()
+          const report = synced.report.products.length ? synced.report : buildWeeklyReport()
+          run.stats = { reportId: report.id, products: report.products.length, source: synced.source }
           run.summary = `Weekly report ${report.id} (${report.products.length} products)`
           break
         }

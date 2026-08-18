@@ -151,6 +151,13 @@ export function approvePublishingItem(idempotencyKey: string): PublishingQueueIt
   return item
 }
 
+export async function approvePublishingItemAsync(
+  idempotencyKey: string
+): Promise<PublishingQueueItem> {
+  await hydratePublishingQueueFromMongo()
+  return approvePublishingItem(idempotencyKey)
+}
+
 /**
  * Process an approved item through publishing stages with retries.
  * Does not flip AUTO_PUBLISH; caller must already have APPROVED status.
@@ -162,6 +169,7 @@ export async function processPublishingItem(
     syncPrintify: (item: PublishingQueueItem, shopifyId: string) => Promise<{ id: string }>
   }
 ): Promise<PublishingQueueItem> {
+  await hydratePublishingQueueFromMongo()
   const item = memoryQueue.get(idempotencyKey)
   if (!item) throw new Error(`Queue item not found: ${idempotencyKey}`)
   if (item.status !== 'APPROVED' && item.status !== 'FAILED') {
@@ -200,11 +208,77 @@ export function getPublishingItem(idempotencyKey: string): PublishingQueueItem |
 }
 
 export function listPublishingQueue(): PublishingQueueItem[] {
-  return [...memoryQueue.values()]
+  return [...memoryQueue.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
 export function clearPublishingQueue(): void {
   memoryQueue.clear()
+}
+
+function docToQueueItem(doc: {
+  idempotencyKey: string
+  status: string
+  validationErrors?: string[] | null
+  attempts?: number | null
+  maxAttempts?: number | null
+  lastError?: string | null
+  payload?: PublishingCandidate | Record<string, unknown> | null
+  createdAt?: Date
+}): PublishingQueueItem | null {
+  const payload = doc.payload as PublishingCandidate | undefined
+  if (!payload || typeof payload.title !== 'string') return null
+  const status = doc.status as PublishingQueueStatus
+  if (
+    !['DRAFT', 'READY_FOR_REVIEW', 'APPROVED', 'PUBLISHING', 'PUBLISHED', 'FAILED', 'REJECTED'].includes(
+      status
+    )
+  ) {
+    return null
+  }
+  return {
+    id: `pub_${doc.idempotencyKey}`,
+    status,
+    idempotencyKey: doc.idempotencyKey,
+    validationErrors: doc.validationErrors || [],
+    attempts: doc.attempts ?? 0,
+    maxAttempts: doc.maxAttempts ?? 5,
+    lastError: doc.lastError ?? null,
+    payload,
+    createdAt: doc.createdAt?.toISOString?.() || new Date().toISOString(),
+  }
+}
+
+/** Restore queue items from Mongo into memory (Vercel-safe). */
+export async function hydratePublishingQueueFromMongo(): Promise<number> {
+  if (!isMongoConfigured()) return 0
+  try {
+    await connectMongo()
+    const docs = await PublishingJob.find({}).sort({ updatedAt: -1 }).limit(100).lean()
+    let loaded = 0
+    for (const doc of docs) {
+      if (memoryQueue.has(doc.idempotencyKey)) continue
+      const item = docToQueueItem(doc)
+      if (!item) continue
+      memoryQueue.set(item.idempotencyKey, item)
+      loaded += 1
+    }
+    if (loaded) logger.info('publishing_queue_hydrated', { loaded })
+    return loaded
+  } catch (error) {
+    logger.error('publishing_hydrate_failed', {
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return 0
+  }
+}
+
+export async function getPublishingItemAsync(
+  idempotencyKey: string
+): Promise<PublishingQueueItem | undefined> {
+  const hit = memoryQueue.get(idempotencyKey)
+  if (hit) return hit
+  await hydratePublishingQueueFromMongo()
+  return memoryQueue.get(idempotencyKey)
 }
 
 async function persistQueueItem(item: PublishingQueueItem): Promise<void> {
