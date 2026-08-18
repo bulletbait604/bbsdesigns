@@ -65,6 +65,10 @@ describe('google image provider', () => {
     expect(result.model).toBe('gemini-3.1-flash-image')
     expect(result.mimeType).toBe('image/png')
     expect(result.bytes.equals(png)).toBe(true)
+    const fetchMock = global.fetch as unknown as ReturnType<typeof vi.fn>
+    const body = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit)?.body || '{}'))
+    expect(body.generationConfig.imageConfig.aspectRatio).toBe('1:1')
+    expect(body.generationConfig.imageConfig.imageSize).toBe('2K')
   })
 
   it('falls back when primary model returns not-found 400', async () => {

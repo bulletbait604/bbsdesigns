@@ -8,7 +8,7 @@ import type {
   TextCompletionResult,
 } from '@/providers/types'
 
-const DEFAULT_TEXT_MODEL = 'gemini-2.5-flash-lite'
+const DEFAULT_TEXT_MODEL = 'gemini-2.5-flash'
 
 function health(provider: string, ok: boolean, message?: string): ProviderHealth {
   return {

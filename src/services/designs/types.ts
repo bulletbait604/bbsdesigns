@@ -1,6 +1,6 @@
 import type { Niche, SafetyDecision } from '@/types'
 
-export const DESIGN_PROMPT_VERSION = 'design-prompt-v3-illustration'
+export const DESIGN_PROMPT_VERSION = 'design-prompt-v4-merch'
 
 export type DesignPromptInput = {
   niche: Niche

@@ -54,6 +54,9 @@ export type ImageGenerateRequest = {
   width?: number
   height?: number
   negativePrompt?: string
+  /** Gemini native image size: 512 | 1K | 2K | 4K */
+  imageSize?: string
+  aspectRatio?: string
 }
 
 export type ImageGenerateResult = {

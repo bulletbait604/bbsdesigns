@@ -33,7 +33,8 @@ describe('slogan engine', () => {
       limit: 2,
       runAiReview: false,
     })
-    expect(result.rejected.every((c) => c.safety?.decision === 'REJECT')).toBe(true)
     expect(result.accepted.every((c) => c.safety?.decision !== 'REJECT')).toBe(true)
+    expect(result.accepted.every((c) => c.persisted)).toBe(true)
+    expect(result.accepted.every((c) => c.overall >= 68)).toBe(true)
   })
 })

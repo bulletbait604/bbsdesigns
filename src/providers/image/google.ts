@@ -11,13 +11,27 @@ import type {
 
 /** Current GA Nano Banana 2 — preferred over deprecated gemini-2.5-flash-image. */
 const DEFAULT_MODEL = 'gemini-3.1-flash-image'
+const DEFAULT_IMAGE_SIZE = '2K'
 
-/** Tried in order when the primary model returns a model-related 400/404. */
+/** Tried in order when the primary model returns a model-related 400/404. Lite last (weaker art). */
 const FALLBACK_MODELS = [
   'gemini-3.1-flash-image',
   'gemini-2.5-flash-image',
   'gemini-3.1-flash-lite-image',
 ]
+
+function resolveImageSize(requestSize?: string): string {
+  const raw = (requestSize || process.env.IMAGE_SIZE || DEFAULT_IMAGE_SIZE).trim().toUpperCase()
+  if (raw === '512' || raw === '0.5K') return '512'
+  if (raw === '1K' || raw === '1') return '1K'
+  if (raw === '4K' || raw === '4') return '4K'
+  return '2K'
+}
+
+function resolveAspectRatio(requestRatio?: string): string {
+  const raw = (requestRatio || '1:1').trim()
+  return raw || '1:1'
+}
 
 function health(provider: string, ok: boolean, message?: string): ProviderHealth {
   return {
@@ -102,16 +116,27 @@ async function generateOnce(opts: {
   apiKey: string
   model: string
   prompt: string
+  imageSize: string
+  aspectRatio: string
 }): Promise<ImageGenerateResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(opts.model)}:generateContent`
+  // Prefer IMAGE-only first for cleaner merch assets; fall back to TEXT+IMAGE if rejected.
   const modalityVariants: Array<Array<'TEXT' | 'IMAGE'>> = [
-    ['TEXT', 'IMAGE'],
     ['IMAGE'],
+    ['TEXT', 'IMAGE'],
   ]
 
   let lastHttpError: ProviderError | null = null
 
   for (const modalities of modalityVariants) {
+    const generationConfig: Record<string, unknown> = {
+      responseModalities: modalities,
+      imageConfig: {
+        aspectRatio: opts.aspectRatio,
+        imageSize: opts.imageSize,
+      },
+    }
+
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -120,9 +145,7 @@ async function generateOnce(opts: {
       },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: opts.prompt }] }],
-        generationConfig: {
-          responseModalities: modalities,
-        },
+        generationConfig,
       }),
       cache: 'no-store',
     })
@@ -143,6 +166,7 @@ async function generateOnce(opts: {
             body: body.slice(0, 800),
             googleMessage,
             responseModalities: modalities,
+            imageSize: opts.imageSize,
           },
         }
       )
@@ -153,6 +177,16 @@ async function generateOnce(opts: {
           lower.includes('response_modalit') ||
           lower.includes('response modalities') ||
           lower.includes('modalities'))
+      const imageConfigIssue =
+        res.status === 400 &&
+        (lower.includes('imageconfig') ||
+          lower.includes('image_config') ||
+          lower.includes('imagesize') ||
+          lower.includes('image_size'))
+      // Retry without imageSize if model rejects 2K/config (e.g. lite only supports 1K)
+      if (imageConfigIssue && opts.imageSize !== '1K') {
+        return generateOnce({ ...opts, imageSize: '1K' })
+      }
       if (modalitiesIssue && modalities === modalityVariants[0]) continue
       throw lastHttpError
     }
@@ -174,14 +208,15 @@ async function generateOnce(opts: {
 
     const mimeType = imagePart.inlineData.mimeType || 'image/png'
     const bytes = Buffer.from(imagePart.inlineData.data, 'base64')
+    const px = opts.imageSize === '4K' ? 2048 : opts.imageSize === '2K' ? 2048 : 1024
 
     return {
       bytes,
       mimeType,
       model: opts.model,
       provider: opts.name,
-      width: 1024,
-      height: 1024,
+      width: px,
+      height: px,
     }
   }
 
@@ -232,21 +267,33 @@ export function createGoogleImageProvider(name = 'google-gemini-image'): ImagePr
         })
       }
 
+      // Keep negatives short — long "avoid X" lists often get drawn anyway.
       const prompt = [
         request.prompt,
-        request.negativePrompt ? `Avoid: ${request.negativePrompt}.` : '',
-        'Output a single square print-ready merch graphic image.',
+        request.negativePrompt
+          ? `Keep the artwork free of: ${request.negativePrompt}.`
+          : '',
+        `Square ${resolveAspectRatio(request.aspectRatio)} print graphic, high clarity.`,
       ]
         .filter(Boolean)
         .join(' ')
 
+      const imageSize = resolveImageSize(request.imageSize)
+      const aspectRatio = resolveAspectRatio(request.aspectRatio)
       const candidates = modelCandidates(resolvePrimaryModel())
       let lastError: ProviderError | null = null
 
       for (let i = 0; i < candidates.length; i++) {
         const model = candidates[i]
         try {
-          const result = await generateOnce({ name, apiKey, model, prompt })
+          const result = await generateOnce({
+            name,
+            apiKey,
+            model,
+            prompt,
+            imageSize: model.includes('lite') ? '1K' : imageSize,
+            aspectRatio,
+          })
           if (i > 0) {
             logger.warn('google_image_model_fallback_used', {
               primary: candidates[0],
@@ -255,8 +302,8 @@ export function createGoogleImageProvider(name = 'google-gemini-image'): ImagePr
           }
           return {
             ...result,
-            width: request.width ?? 1024,
-            height: request.height ?? 1024,
+            width: result.width ?? request.width ?? 1024,
+            height: result.height ?? request.height ?? 1024,
           }
         } catch (error) {
           if (!(error instanceof ProviderError) || error.code !== 'GOOGLE_IMAGE_HTTP') {

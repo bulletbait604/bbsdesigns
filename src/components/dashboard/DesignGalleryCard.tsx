@@ -46,7 +46,9 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         body: JSON.stringify({
           slogan: design.slogan,
           niche: design.niche,
-          concept: `Dominant original ${design.niche} cartoon illustration with small secondary slogan. Picture first — not typography-only.`,
+          concept:
+            (live?.concept && live.concept.trim()) ||
+            `Visual: bold original ${design.niche} cartoon hero object with attitude, thick outlines, streetwear POD print. Secondary lettering only for the slogan.`,
           ideaId: live?.ideaIdMongo || live?.ideaId || undefined,
           force: shouldForce,
         }),

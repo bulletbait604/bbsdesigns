@@ -256,7 +256,7 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
     const slogan = idea.slogan
     const concept =
       idea.concept ||
-      `Dominant original ${niche} cartoon illustration with small secondary slogan lettering`
+      `Visual: bold original ${niche} cartoon hero object with attitude, thick outlines, premium POD streetwear print energy.`
     const cacheKey = buildDesignCacheKey({ niche, slogan, concept })
 
     const hit = await findCachedDesign(cacheKey)

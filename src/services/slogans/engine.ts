@@ -1,12 +1,12 @@
 import type { Niche } from '@/types'
 import { reviewContentSafety, passesFirstSafetyGate } from '@/services/safety/engine'
-import { generateSloganCandidates, SLOGAN_PROMPT_VERSION } from '@/services/slogans/generate'
-import { scoreSlogan } from '@/services/slogans/score'
+import { generateSloganCandidates, SLOGAN_PROMPT_VERSION, isWeakSlogan } from '@/services/slogans/generate'
+import { scoreSlogan, MIN_SLOGAN_OVERALL } from '@/services/slogans/score'
 import type { SloganCandidate, SloganEngineResult } from '@/services/slogans/types'
 
 /**
  * Slogan engine: generate → score → first safety gate.
- * Only candidates that are not REJECT are marked persistable.
+ * Only candidates that are not REJECT and clear a quality floor are persistable.
  */
 export async function runSloganEngine(input: {
   niche: Niche
@@ -14,10 +14,11 @@ export async function runSloganEngine(input: {
   limit?: number
   runAiReview?: boolean
 }): Promise<SloganEngineResult> {
+  const limit = input.limit ?? 4
   const raw = await generateSloganCandidates({
     niche: input.niche,
     trendTitle: input.trendTitle,
-    limit: input.limit ?? 4,
+    limit: Math.max(limit, 6),
   })
 
   const generated: SloganCandidate[] = []
@@ -59,7 +60,8 @@ export async function runSloganEngine(input: {
 
     generated.push(candidate)
 
-    if (passesFirstSafetyGate(safety)) {
+    const qualityOk = !isWeakSlogan(item.slogan) && overall >= MIN_SLOGAN_OVERALL
+    if (passesFirstSafetyGate(safety) && qualityOk) {
       candidate.persisted = true
       accepted.push(candidate)
     } else {
@@ -67,9 +69,18 @@ export async function runSloganEngine(input: {
     }
   }
 
+  // Keep the strongest accepted lines first
+  accepted.sort((a, b) => b.overall - a.overall)
+  const trimmedAccepted = accepted.slice(0, limit)
+  // Mark overflow accepted as not persisted
+  for (const c of accepted.slice(limit)) {
+    c.persisted = false
+    rejected.push(c)
+  }
+
   return {
     generated,
-    accepted,
+    accepted: trimmedAccepted,
     rejected,
     promptVersion: SLOGAN_PROMPT_VERSION,
   }

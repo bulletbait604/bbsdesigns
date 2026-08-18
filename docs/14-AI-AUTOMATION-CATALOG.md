@@ -2,7 +2,7 @@
 
 ## AI slogans (023)
 
-With `GEMINI_API` / `AI_TEXT_API_KEY` set, idea generation uses Gemini text (`gemini-2.5-flash-lite` by default). Templates remain the offline fallback.
+With `GEMINI_API` / `AI_TEXT_API_KEY` set, idea generation uses Gemini text (`gemini-2.5-flash` by default). Templates remain the offline fallback.
 
 ## Durable automation (024)
 

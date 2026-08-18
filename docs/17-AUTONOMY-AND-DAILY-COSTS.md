@@ -31,12 +31,12 @@ Check live status: `GET /api/health` → `autonomy.readyForAutonomousGeneration`
 | Shopify / Printify | Needed for **draft creation**, not for daily AI generation |
 | `SERPAPI_API_KEY` / Etsy | Optional richer trends |
 
-Optional: `MAX_AI_DESIGNS_PER_RUN=5`, `IMAGE_MODEL=gemini-3.1-flash-image`, `AI_TEXT_MODEL=gemini-2.5-flash-lite`.
+Optional: `MAX_AI_DESIGNS_PER_RUN=5`, `IMAGE_MODEL=gemini-3.1-flash-image`, `IMAGE_SIZE=2K`, `AI_TEXT_MODEL=gemini-2.5-flash`.
 
 ## Text + image confirmation
 
-- **Text:** `idea_generation` → Mongo `Idea` slogans/concepts (`slogan-engine-v2`, Gemini `gemini-2.5-flash-lite`).
-- **Image:** `design_generation` → Gemini raster art (`design-prompt-v3-illustration`, picture-first). SVG is labeled placeholder only when AI is unavailable or budget exhausted.
+- **Text:** `idea_generation` → Mongo `Idea` slogans/concepts (`slogan-engine-v3`, Gemini `gemini-2.5-flash`).
+- **Image:** `design_generation` → Gemini raster art (`design-prompt-v4-merch` at 2K by default). SVG is labeled placeholder only when AI is unavailable or budget exhausted.
 
 ## Predicted daily API costs (steady state)
 
@@ -44,8 +44,8 @@ Assumptions: paid Gemini Developer API rates (Aug 2026), 1 scheduled run/day, fu
 
 | API | Volume / day | Unit price (approx.) | Daily $ |
 |---|---|---|---|
-| Gemini **text** (`gemini-2.5-flash-lite`) | ~3 calls, ~1–2k tokens total | ~$0.10 / 1M in, $0.40 / 1M out | **<$0.01** |
-| Gemini **image** (`gemini-3.1-flash-image` @ 1K) | ≤5 images | **~$0.067 / image** | **~$0.34** |
+| Gemini **text** (`gemini-2.5-flash`) | ~3 calls, ~2–4k tokens total | ~$0.30 / 1M in, $2.50 / 1M out (order-of-magnitude) | **~<$0.02** |
+| Gemini **image** (`gemini-3.1-flash-image` @ **2K**) | ≤5 images | **~$0.101 / image** | **~$0.50** |
 | Image prompt tokens | ~5 × short prompts | $0.50 / 1M input | **~<$0.01** |
 | SerpAPI (optional) | ~6–9 searches if cache cold | plan-dependent (~$0.01–0.05) | **~$0.05–0.45** |
 | Etsy (optional) | ~3 listings searches | free tier / plan | **~$0** |
@@ -56,7 +56,7 @@ Assumptions: paid Gemini Developer API rates (Aug 2026), 1 scheduled run/day, fu
 
 | Scenario | Daily | Monthly (×30) |
 |---|---|---|
-| **Core AI only** (Mongo + Gemini, no SerpAPI) | **~$0.35** | **~$10–11** |
+| **Core AI only** (Mongo + Gemini, no SerpAPI) | **~$0.55** | **~$16–17** |
 | **+ SerpAPI trends** | **~$0.40–0.80** | **~$12–24** |
 | **Stress** (`MAX_AI_DESIGNS_PER_RUN=20`, retries) | **~$1.40–1.60** | **~$42–48** |
 

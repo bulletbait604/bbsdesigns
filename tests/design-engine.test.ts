@@ -5,23 +5,22 @@ import { bootstrapProviders } from '@/providers/bootstrap'
 import { clearProviders } from '@/providers/registry'
 
 describe('design engine', () => {
-  it('builds prompts that ban logos, characters, team marks, and celebrities', () => {
+  it('builds merch prompts with subject, style, exact slogan text, and IP limits', () => {
     const built = buildDesignPrompt({
       niche: 'gaming',
       slogan: 'Lag Is A Lifestyle',
-      concept: 'pixel-noise wordmark',
+      concept:
+        'Self-roast. Visual: chubby cartoon Wi-Fi ghost dripping delay clocks, neon outline.',
     })
-    expect(built.promptVersion).toBeTruthy()
+    expect(built.promptVersion).toContain('merch')
     expect(built.prompt.toLowerCase()).toContain('no logos')
     expect(built.prompt.toLowerCase()).toContain('no copyrighted characters')
-    expect(built.prompt.toLowerCase()).toContain('no professional sports team marks')
-    expect(built.prompt.toLowerCase()).toContain('no celebrity likenesses')
-    expect(built.prompt.toLowerCase()).toContain('no watermarks')
-    expect(built.prompt.toLowerCase()).toContain('illustration')
-    expect(built.prompt.toLowerCase()).toContain('forbidden')
-    expect(built.negativePrompt.toLowerCase()).toContain('logo')
-    expect(built.negativePrompt.toLowerCase()).toContain('text only')
-    expect(built.promptVersion).toContain('illustration')
+    expect(built.prompt.toLowerCase()).toContain('no celebrity')
+    expect(built.prompt.toLowerCase()).toContain('subject:')
+    expect(built.prompt.toLowerCase()).toContain('wi-fi ghost')
+    expect(built.prompt).toContain('Lag Is A Lifestyle')
+    expect(built.prompt.toLowerCase()).toContain('illustrated')
+    expect(built.negativePrompt.toLowerCase()).toContain('typography-only')
   })
 
   it('stores provider/model/prompt provenance and never allows publish', async () => {

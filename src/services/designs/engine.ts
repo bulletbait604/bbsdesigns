@@ -27,20 +27,22 @@ export async function runDesignEngine(
   const built = buildDesignPrompt(input)
   const imageProvider = getProvider('image')
 
-  const image = await callProvider(
+      const image = await callProvider(
     () =>
       imageProvider.generate({
         prompt: built.prompt,
         negativePrompt: built.negativePrompt,
         width: built.width,
         height: built.height,
+        imageSize: (process.env.IMAGE_SIZE || '2K').trim() || '2K',
+        aspectRatio: '1:1',
       }),
     {
       provider: imageProvider.name,
       kind: 'image',
       label: 'design.generate',
       retries: 1,
-      timeoutMs: 60_000,
+      timeoutMs: 90_000,
     }
   )
 

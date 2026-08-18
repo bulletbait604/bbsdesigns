@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
   const illustrationConcept =
     concept ||
-    `Dominant original ${niche} cartoon illustration with small secondary slogan lettering — picture first, not typography-only`
+    `Visual: bold original ${niche} cartoon hero object with attitude, thick outlines, premium POD streetwear print. Picture first — slogan as small secondary lettering only.`
 
   const cacheKey = buildDesignCacheKey({
     niche,

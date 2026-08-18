@@ -130,9 +130,9 @@ describe('design prompt graphics', () => {
       slogan: 'Lag Is A Lifestyle',
       concept: 'high ping humor',
     })
-    expect(built.prompt).toMatch(/illustration|graphic motif/i)
-    expect(built.prompt).toMatch(/flashy|high-pop|pops/i)
-    expect(built.negativePrompt).toMatch(/text only/i)
+    expect(built.prompt).toMatch(/illustrated|SUBJECT:/i)
+    expect(built.prompt).toMatch(/streetwear|POD|vector cartoon/i)
+    expect(built.negativePrompt).toMatch(/typography-only|quote card/i)
   })
 })
 

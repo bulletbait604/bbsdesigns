@@ -150,6 +150,8 @@ export type LiveDesignCard = Omit<DemoDesign, 'id'> & {
   /** True when artwork is local SVG placeholder, not Google AI raster art */
   isPlaceholder?: boolean
   ideaIdMongo?: string
+  /** Visual/joke brief from the source Idea (feeds better image prompts) */
+  concept?: string
 }
 
 export async function loadDesignsForDashboard(): Promise<{
@@ -172,6 +174,12 @@ export async function loadDesignsForDashboard(): Promise<{
   if (!docs.length) {
     return { designs: [], source: 'mongo' }
   }
+
+  const ideaIds = [...new Set(docs.map((d) => String(d.ideaId)).filter(Boolean))]
+  const ideas = ideaIds.length
+    ? await Idea.find().where('_id').in(ideaIds).select({ concept: 1 }).lean()
+    : []
+  const conceptByIdea = new Map(ideas.map((i) => [String(i._id), i.concept || '']))
 
   const designs: LiveDesignCard[] = docs.map((doc) => {
     const niche = doc.niche as Niche
@@ -206,6 +214,7 @@ export async function loadDesignsForDashboard(): Promise<{
       mongoId,
       ideaIdMongo: String(doc.ideaId),
       isPlaceholder,
+      concept: conceptByIdea.get(String(doc.ideaId)) || '',
       artworkSrc: previewArtwork(slogan, niche, doc.assetUrl),
       mockupSrc: previewMockup(slogan, niche, doc.mockupKeys),
     }
