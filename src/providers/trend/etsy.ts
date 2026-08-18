@@ -7,7 +7,6 @@ import type {
   TrendProvider,
   TrendSignalDto,
 } from '@/providers/types'
-import { primaryTrendQuery } from '@/services/trends/queries'
 import type { Niche } from '@/types'
 
 type EtsyListing = {
@@ -61,7 +60,7 @@ export function listingToSignal(niche: Niche, listing: EtsyListing): TrendSignal
     title: title.slice(0, 160),
     summary:
       'Etsy active listing theme. Use for demand/keyword research only — never copy artwork or trademarks.',
-    keywords: [niche, 'etsy', 'merch', ...tags],
+    keywords: [niche, 'etsy', 'merch', 'graphic', 'funny', ...tags],
     scoreHint: commercial,
     observedAt: new Date().toISOString(),
     raw: {
@@ -88,7 +87,7 @@ async function etsyFetchListings(keywords: string, limit: number): Promise<EtsyL
 
   const url = new URL('https://openapi.etsy.com/v3/application/listings/active')
   url.searchParams.set('keywords', keywords)
-  url.searchParams.set('limit', String(Math.min(25, Math.max(1, limit))) )
+  url.searchParams.set('limit', String(Math.min(25, Math.max(1, limit))))
   url.searchParams.set('sort_on', 'score')
   url.searchParams.set('sort_order', 'desc')
 
@@ -117,8 +116,8 @@ async function etsyFetchListings(keywords: string, limit: number): Promise<EtsyL
 }
 
 /**
- * Etsy Open API trend provider — active listing search by niche keywords.
- * Themes/favorites only; does not copy designs.
+ * Etsy Open API trend provider — multi-query viral/holiday keyword packs.
+ * Themes/favorites only; does not copy designs. No HTML scraping.
  */
 export function createEtsyTrendProvider(name = 'etsy'): TrendProvider {
   return {
@@ -154,20 +153,34 @@ export function createEtsyTrendProvider(name = 'etsy'): TrendProvider {
       }
 
       const limit = request.limit ?? 6
+      const { VIRAL_ALGORITHM_VERSION, viralSearchQueries } = await import(
+        '@/services/trends/viralAlgorithm'
+      )
+      const cacheSource = `etsy:${VIRAL_ALGORITHM_VERSION}`
 
       const { findCachedTrendSignals, saveCachedTrendSignals } = await import(
         '@/services/trends/cache'
       )
-      const cached = await findCachedTrendSignals(request.niche, 'etsy')
+      const cached = await findCachedTrendSignals(request.niche, cacheSource)
       if (cached?.length) return cached.slice(0, limit)
 
-      const listings = await etsyFetchListings(primaryTrendQuery(request.niche), limit + 4)
-      const signals = listings
-        .map((listing) => listingToSignal(request.niche, listing))
-        .filter((s): s is TrendSignalDto => Boolean(s))
-        .slice(0, Math.max(limit, 8))
+      const queries = viralSearchQueries(request.niche)
+      const byId = new Map<string, TrendSignalDto>()
 
-      await saveCachedTrendSignals(request.niche, 'etsy', signals)
+      for (const q of queries.slice(0, 3)) {
+        try {
+          const listings = await etsyFetchListings(q, Math.min(8, limit + 2))
+          for (const listing of listings) {
+            const signal = listingToSignal(request.niche, listing)
+            if (signal) byId.set(signal.externalId, signal)
+          }
+        } catch {
+          // continue other queries
+        }
+      }
+
+      const signals = [...byId.values()].slice(0, Math.max(limit, 10))
+      await saveCachedTrendSignals(request.niche, cacheSource, signals)
       return signals.slice(0, limit)
     },
   }

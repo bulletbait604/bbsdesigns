@@ -7,7 +7,6 @@ import type {
   TrendProvider,
   TrendSignalDto,
 } from '@/providers/types'
-import { primaryTrendQuery, TREND_SEARCH_QUERIES } from '@/services/trends/queries'
 import type { Niche } from '@/types'
 
 type SerpShoppingResult = {
@@ -170,30 +169,36 @@ export function createSerpApiTrendProvider(name = 'serpapi'): TrendProvider {
       const { findCachedTrendSignals, saveCachedTrendSignals } = await import(
         '@/services/trends/cache'
       )
-      const cached = await findCachedTrendSignals(niche, 'serpapi')
+      // Cache key includes algorithm version via source tag so old batches are ignored after purge
+      const cacheSource = `serpapi:${(await import('@/services/trends/viralAlgorithm')).VIRAL_ALGORITHM_VERSION}`
+      const cached = await findCachedTrendSignals(niche, cacheSource)
       if (cached?.length) return cached.slice(0, limit)
 
-      const query = primaryTrendQuery(niche)
+      const { viralSearchQueries } = await import('@/services/trends/viralAlgorithm')
+      const queries = viralSearchQueries(niche)
       const signals: TrendSignalDto[] = []
 
-      try {
-        const shopping = await serpFetch({
-          engine: 'google_shopping',
-          q: query,
-          num: String(Math.min(10, limit + 2)),
-          hl: 'en',
-          gl: 'us',
-        })
-        const shoppingResults = (shopping.shopping_results || []) as SerpShoppingResult[]
-        signals.push(...shoppingToSignals(niche, shoppingResults))
-      } catch {
-        // continue with trends even if shopping fails
+      // Shopping: primary + first occasion/viral alternate
+      for (const q of queries.slice(0, 2)) {
+        try {
+          const shopping = await serpFetch({
+            engine: 'google_shopping',
+            q,
+            num: String(Math.min(10, limit + 2)),
+            hl: 'en',
+            gl: 'us',
+          })
+          const shoppingResults = (shopping.shopping_results || []) as SerpShoppingResult[]
+          signals.push(...shoppingToSignals(niche, shoppingResults))
+        } catch {
+          // continue
+        }
       }
 
       try {
         const trends = await serpFetch({
           engine: 'google_trends',
-          q: TREND_SEARCH_QUERIES[niche].slice(0, 2).join(','),
+          q: queries.slice(0, 2).join(','),
           data_type: 'RELATED_QUERIES',
           geo: 'US',
           date: 'today 3-m',
@@ -208,8 +213,8 @@ export function createSerpApiTrendProvider(name = 'serpapi'): TrendProvider {
         // optional
       }
 
-      const sliced = signals.slice(0, Math.max(limit, 8))
-      await saveCachedTrendSignals(niche, 'serpapi', sliced)
+      const sliced = signals.slice(0, Math.max(limit, 10))
+      await saveCachedTrendSignals(niche, cacheSource, sliced)
       return sliced.slice(0, limit)
     },
   }

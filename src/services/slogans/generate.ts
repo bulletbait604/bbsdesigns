@@ -2,8 +2,9 @@ import type { Niche } from '@/types'
 import { bootstrapProviders } from '@/providers/bootstrap'
 import { tryGetProvider } from '@/providers/registry'
 import { logger } from '@/lib/logger'
+import { activeOccasionBrief } from '@/services/trends/viralAlgorithm'
 
-export const SLOGAN_PROMPT_VERSION = 'slogan-engine-v3'
+export const SLOGAN_PROMPT_VERSION = 'slogan-engine-v4-viral-flash'
 
 type Template = {
   niche: Niche
@@ -199,9 +200,10 @@ function parseAiSloganJson(text: string, niche: Niche): SloganCandidateDraft[] {
 function buildSloganSystemPrompt(niche: Niche): string {
   const examples = GOOD_EXAMPLES[niche].map((e) => `"${e}"`).join(', ')
   return [
-    'You are a senior merch copywriter for a premium POD brand selling funny adult tees.',
-    'Write ORIGINAL slogans people would actually buy — witty, specific, sarcastic, shareable.',
+    'You are a senior merch copywriter for a premium POD brand selling funny adult tees that go viral on Etsy/Shopify.',
+    'Write ORIGINAL slogans using Identity × Interest × Occasion (specific role + niche joke + gift/holiday angle when relevant).',
     'Voice: cheeky beer-league / gaming-night humor. Not cringe TikTok slang. Not corporate. Not motivational poster.',
+    'Slogans must work as FLASHY inseparable art+text tee lettering (bubble/varsity/kinetic type).',
     'Never use trademarks, game titles, team names, celebrities, logos, or copyrighted catchphrases.',
     'No slurs, hate, threats, or explicit sexual content.',
     `Gold-standard examples for tone (do not copy verbatim): ${examples}.`,
@@ -213,20 +215,22 @@ function buildSloganUserPrompt(input: {
   trendTitle?: string
   limit: number
 }): string {
+  const occasion = activeOccasionBrief(input.niche)
   return [
     `Niche: ${input.niche} humor apparel.`,
+    `Active gift/holiday windows: ${occasion}`,
     input.trendTitle
       ? `Trend theme for inspiration only (never copy brand/game/team names from it): ${input.trendTitle}`
-      : 'Invent a fresh angle for this niche.',
+      : 'Invent a fresh identity-specific angle for this niche.',
     `Return ONLY a JSON array of ${input.limit} objects with keys slogan, concept, visual.`,
     'Rules for slogan:',
     '- 3 to 8 words (or two short punchy sentences with periods)',
     '- max 48 characters preferred',
-    '- specific joke, not generic "I love [sport/gaming]"',
+    '- specific joke tied to a role/identity (mom, dad, beer league, gamer, coach) — not generic "I love [sport/gaming]"',
     '- printable as bold flashy tee lettering woven into a graphic',
     '- avoid: Mode Activated, vibes, it\'s giving, main character, CEO of, Live Laugh, hashtags',
-    'Rules for concept: one sentence explaining the joke.',
-    'Rules for visual: one concrete FLASHY illustration brief for a viral tee — subject that can lock into lettering (mascot with headband/banner, icon that can replace a letter, bolt/bat/mitt that can weave through stacked type). Include color vibe (neon, candy, athletic yellow). No real people photos. No logos.',
+    'Rules for concept: one sentence explaining the joke + why it gifts well now.',
+    'Rules for visual: one concrete FLASHY illustration brief for a viral tee — subject that can lock into lettering (mascot with headband/banner, icon that can replace a letter, bolt/bat/mitt that can weave through stacked type). Include color vibe (neon, candy, athletic yellow, spooky-cute if Halloween window). No real people photos. No logos.',
   ]
     .filter(Boolean)
     .join('\n')

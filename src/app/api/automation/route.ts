@@ -84,6 +84,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ run })
     }
 
+    if (action === 'purge_viral_state') {
+      const { runViralStatePurgeJob } = await import('@/services/pipeline/jobs')
+      const purgeStats = await runViralStatePurgeJob()
+      return NextResponse.json({ ...(await snapshot()), purge: purgeStats })
+    }
+
     return NextResponse.json({ error: 'unknown_action' }, { status: 400 })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)

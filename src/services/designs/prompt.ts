@@ -4,6 +4,7 @@ import {
   type DesignPromptInput,
 } from '@/services/designs/types'
 import type { Niche } from '@/types'
+import { activeOccasionBrief } from '@/services/trends/viralAlgorithm'
 
 /**
  * Flash merch formulas distilled from bestselling viral tees + user references:
@@ -93,12 +94,14 @@ export function buildDesignPrompt(input: DesignPromptInput): BuiltDesignPrompt {
   const formulaId = pickFlashFormula(slogan, input.niche)
   const formula = FLASH_FORMULAS[formulaId]
   const hero = extractVisualBrief(input.concept, input.niche)
+  const occasion = activeOccasionBrief(input.niche)
 
   const prompt = [
     'Create ONE square print-ready T-SHIRT GRAPHIC (the print artwork only — no shirt mockup, no photo of a person wearing a tee).',
-    'GOAL: a FLASHY viral merch design that looks like a bestselling Redbubble / Threadless / festival streetwear tee — loud, colorful, scroll-stopping.',
+    'GOAL: a FLASHY viral merch design that looks like a bestselling Etsy / Shopify / festival streetwear tee — loud, colorful, scroll-stopping, gift-ready.',
+    `SEASONAL / OCCASION CONTEXT (inspire vibe only, do not print these words unless they appear in the slogan): ${occasion}.`,
     `FLASH FORMULA (${formula.name}): ${formula.layout}`,
-    `REFERENCE VIBE: ${formula.vibe}.`,
+    `REFERENCE VIBE: ${formula.vibe}. Prefer retro/Y2K bubble type, maximalist neon, or athletic varsity energy — never boring minimal.`,
     `HERO / ICON SUBJECT: ${hero}.`,
     `SLOGAN (exact spelling, no extra words, no typos): "${slogan}".`,
     'INTEGRATION RULE (non-negotiable): the slogan lettering and the illustration must be ONE inseparable design — text woven into art, art woven into text. Forbidden: plain centered slogan under a floating sticker; forbidden: empty text poster; forbidden: art with no letters.',

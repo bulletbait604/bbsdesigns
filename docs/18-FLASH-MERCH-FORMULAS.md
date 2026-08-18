@@ -1,6 +1,6 @@
 # 18 — Flash merch design formulas
 
-Design generation uses `design-prompt-v7-flash-merch` and rotates among four inseparable art+text formulas (seeded by niche+slogan):
+Design generation uses `design-prompt-v8-viral-flash` and rotates among four inseparable art+text formulas (seeded by niche+slogan). Occasion context from the Viral Flash algorithm is injected into the prompt (vibe only).
 
 | Formula | Pattern (from viral streetwear / user refs) |
 |---|---|
@@ -10,3 +10,5 @@ Design generation uses `design-prompt-v7-flash-merch` and rotates among four ins
 | `arched_hero_frame` | Hero cartoon centered; slogan arched in athletic block letters above (tour-tee energy, original cartoon only) |
 
 Hard rules: exact slogan spelling, no logos/IP, no shirt mockups, no boring text-under-sticker layouts.
+
+See also: `docs/19-VIRAL-FLASH-ALGORITHM.md`.

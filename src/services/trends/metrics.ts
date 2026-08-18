@@ -1,5 +1,11 @@
 import type { Niche } from '@/types'
 import type { NormalizedTrendSignal, TrendMetricComponents } from '@/services/trends/types'
+import {
+  holidayBoostForText,
+  scoreFlashDesignFit,
+  scoreIdentitySpecificity,
+  VIRAL_ALGORITHM_VERSION,
+} from '@/services/trends/viralAlgorithm'
 
 function clamp(n: number): number {
   if (Number.isNaN(n)) return 0
@@ -7,9 +13,40 @@ function clamp(n: number): number {
 }
 
 const NICHE_KEYWORDS: Record<Niche, string[]> = {
-  gaming: ['game', 'gamer', 'console', 'pc', 'lag', 'raid', 'pixel', 'controller', 'stream'],
-  baseball: ['baseball', 'bat', 'pitch', 'diamond', 'inning', 'homer', 'catcher', 'mlb'],
-  softball: ['softball', 'cleat', 'dugout', 'beer league', 'fastpitch', 'slowpitch', 'plate'],
+  gaming: [
+    'game',
+    'gamer',
+    'console',
+    'pc',
+    'lag',
+    'raid',
+    'pixel',
+    'controller',
+    'stream',
+    'respawn',
+    'queue',
+  ],
+  baseball: [
+    'baseball',
+    'bat',
+    'pitch',
+    'diamond',
+    'inning',
+    'homer',
+    'catcher',
+    'beer league',
+    'dugout',
+  ],
+  softball: [
+    'softball',
+    'cleat',
+    'dugout',
+    'beer league',
+    'fastpitch',
+    'slowpitch',
+    'plate',
+    'tournament',
+  ],
 }
 
 const IP_RISK_TERMS = [
@@ -36,47 +73,54 @@ function keywordHits(text: string, terms: string[]): number {
   return terms.reduce((acc, t) => (lower.includes(t) ? acc + 1 : acc), 0)
 }
 
-function seasonalityForNiche(niche: Niche, observedAt: Date): number {
-  const month = observedAt.getUTCMonth() + 1
-  if (niche === 'baseball' || niche === 'softball') {
-    if (month >= 3 && month <= 9) return 88
-    if (month === 2 || month === 10) return 70
-    return 45
-  }
-  // gaming is relatively year-round with holiday bump
-  if (month === 11 || month === 12) return 90
-  return 75
-}
-
 /**
- * Estimate metric components from signal text + optional adapter hints.
- * Heuristic only — never a sales guarantee.
+ * Viral Flash metric estimation (algorithm VIRAL_ALGORITHM_VERSION).
+ * Folds holiday + flash-design fit into seasonality / commercial / designability.
  */
 export function estimateMetrics(signal: NormalizedTrendSignal): TrendMetricComponents & {
   ipRisk: number
   safetyRisk: number
   designability: number
   estimatedMargin: number
+  flashDesignFit: number
+  holidayBoost: number
+  algorithmVersion: string
 } {
   const text = `${signal.title} ${signal.summary} ${signal.keywords.join(' ')}`
   const nicheHits = keywordHits(text, NICHE_KEYWORDS[signal.niche])
+  const identityFit = scoreIdentitySpecificity(text, signal.niche)
   const audienceFit = clamp(
-    signal.hints?.audienceFit ?? 55 + nicheHits * 12
+    signal.hints?.audienceFit ?? Math.round(50 + nicheHits * 10 + identityFit * 0.25)
   )
 
-  const virality = clamp(signal.hints?.virality ?? 40 + Math.min(30, signal.keywords.length * 4))
-  const growth = clamp(signal.hints?.growth ?? Math.max(35, virality - 8))
+  const flashDesignFit = clamp(signal.hints?.designability ?? scoreFlashDesignFit(text))
+  const holiday = holidayBoostForText(text, signal.niche, signal.observedAt)
+
+  const virality = clamp(
+    signal.hints?.virality ??
+      42 + Math.min(28, signal.keywords.length * 4) + flashDesignFit * 0.15 + identityFit * 0.08
+  )
+  const growth = clamp(signal.hints?.growth ?? Math.max(38, virality - 6 + holiday.matched.length * 4))
+
   const commercialIntent = clamp(
     signal.hints?.commercialIntent ??
-      45 + (text.includes('shirt') || text.includes('merch') ? 20 : 10)
+      48 +
+        (/\b(shirt|tee|t-shirt|merch|hoodie)\b/i.test(text) ? 18 : 8) +
+        flashDesignFit * 0.12 +
+        holiday.matched.length * 5 +
+        identityFit * 0.1
   )
+
   const seasonality = clamp(
-    signal.hints?.seasonality ?? seasonalityForNiche(signal.niche, signal.observedAt)
+    signal.hints?.seasonality ?? Math.max(holiday.score, 40 + holiday.matched.length * 10)
   )
+
   const evergreenPotential = clamp(
-    signal.hints?.evergreenPotential ?? (seasonality < 60 ? 80 : 55 + (100 - seasonality) * 0.2)
+    signal.hints?.evergreenPotential ??
+      (holiday.matched.length ? 45 : 70) + (flashDesignFit > 70 ? 10 : 0)
   )
-  const competition = clamp(signal.hints?.competition ?? 40 + nicheHits * 5)
+
+  const competition = clamp(signal.hints?.competition ?? 42 + nicheHits * 4)
 
   const ipHits = keywordHits(text, IP_RISK_TERMS)
   const safetyHits = keywordHits(text, SAFETY_RISK_TERMS)
@@ -84,10 +128,13 @@ export function estimateMetrics(signal: NormalizedTrendSignal): TrendMetricCompo
   const safetyRisk = clamp(signal.hints?.safetyRisk ?? safetyHits * 40)
 
   const designability = clamp(
-    signal.hints?.designability ?? Math.max(20, 90 - ipRisk * 0.5 - (text.length > 80 ? 15 : 0))
+    signal.hints?.designability ??
+      Math.max(25, flashDesignFit * 0.75 + (100 - ipRisk) * 0.2 - (text.length > 90 ? 10 : 0))
   )
+
   const estimatedMargin = clamp(
-    signal.hints?.estimatedMargin ?? Math.max(20, commercialIntent * 0.55 + (100 - competition) * 0.25)
+    signal.hints?.estimatedMargin ??
+      Math.max(22, commercialIntent * 0.5 + (100 - competition) * 0.2 + flashDesignFit * 0.15)
   )
 
   return {
@@ -102,5 +149,8 @@ export function estimateMetrics(signal: NormalizedTrendSignal): TrendMetricCompo
     safetyRisk,
     designability,
     estimatedMargin,
+    flashDesignFit,
+    holidayBoost: holiday.score,
+    algorithmVersion: VIRAL_ALGORITHM_VERSION,
   }
 }

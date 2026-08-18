@@ -2,18 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_TREND_WEIGHTS, normalizeWeights, scoreTrend } from '@/services/trends/score'
 import { normalizeManualSignal } from '@/services/trends/normalize'
 import { fetchCuratedTrendSignals } from '@/services/trends/sources/curated'
+import {
+  VIRAL_ALGORITHM_VERSION,
+  VIRAL_TREND_WEIGHTS,
+  viralSearchQueries,
+  scoreFlashDesignFit,
+  scoreIdentitySpecificity,
+} from '@/services/trends/viralAlgorithm'
 
 describe('trend scoring', () => {
-  it('uses documented default weights', () => {
-    expect(DEFAULT_TREND_WEIGHTS).toMatchObject({
-      virality: 0.25,
-      growth: 0.2,
-      commercialIntent: 0.15,
-      audienceFit: 0.15,
-      seasonality: 0.1,
-      evergreenPotential: 0.1,
-      competition: 0.05,
-    })
+  it('uses Viral Flash default weights', () => {
+    expect(DEFAULT_TREND_WEIGHTS).toMatchObject({ ...VIRAL_TREND_WEIGHTS })
+    expect(DEFAULT_TREND_WEIGHTS.commercialIntent).toBe(0.2)
+    expect(DEFAULT_TREND_WEIGHTS.seasonality).toBe(0.18)
   })
 
   it('normalizes custom weights to sum to 1', () => {
@@ -40,11 +41,12 @@ describe('trend scoring', () => {
     const scored = scoreTrend(sample!)
     expect(scored.score).toBeGreaterThan(70)
     expect(scored.components.virality).toBe(91)
-    expect(scored.components.growth).toBe(88)
-    expect(scored.components.commercialIntent).toBe(93)
+    expect(scored.components.growth).toBe(86)
+    expect(scored.components.commercialIntent).toBe(92)
     expect(scored.components.audienceFit).toBe(96)
     expect(scored.ipRisk).toBeLessThan(10)
-    expect(scored.explanation).toContain('Score')
+    expect(scored.explanation).toContain('Viral Flash')
+    expect(scored.explanation).toContain(VIRAL_ALGORITHM_VERSION)
     expect(scored.explanation).toContain('does not bypass safety')
     expect(scored.safetyBypassAllowed).toBe(false)
   })
@@ -70,5 +72,21 @@ describe('trend scoring', () => {
     expect(scored.ipRisk).toBeGreaterThanOrEqual(90)
     expect(scored.riskFlags).toContain('elevated_ip_risk')
     expect(scored.safetyBypassAllowed).toBe(false)
+  })
+
+  it('builds viral search queries with niche + occasion packs', () => {
+    const qs = viralSearchQueries('softball')
+    expect(qs.length).toBeGreaterThan(3)
+    expect(qs.some((q) => q.toLowerCase().includes('softball'))).toBe(true)
+  })
+
+  it('scores flash fit and identity specificity higher for niche humor', () => {
+    expect(scoreFlashDesignFit('funny retro bubble graphic merch tee')).toBeGreaterThan(60)
+    expect(scoreIdentitySpecificity('beer league softball mom halloween tee', 'softball')).toBeGreaterThan(
+      60
+    )
+    expect(scoreIdentitySpecificity('funny shirt', 'gaming')).toBeLessThan(
+      scoreIdentitySpecificity('gamer dad lag joke merch', 'gaming')
+    )
   })
 })

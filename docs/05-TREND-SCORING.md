@@ -1,31 +1,37 @@
-# 05 — Trend Scoring
+# 05 — Trend Scoring (Viral Flash)
 
-Do not treat one viral post as proof of demand.
+Algorithm version: `viral-v1-flash-2026-08-r1` (`src/services/trends/viralAlgorithm.ts`).
 
-Suggested initial score:
+Do not treat one viral post as proof of demand. Prefer SerpAPI + Etsy Open API (no storefront HTML scrapes).
 
-25% Virality
-20% Growth rate
-15% Commercial intent
-15% Audience fit
-10% Seasonality
-10% Evergreen potential
-5% Competition penalty
+## Default weights (sum = 1)
 
-Also calculate:
+| Component | Weight | Why |
+|---|---|---|
+| Virality | 22% | Shareability + flash-design fit blend |
+| Growth | 12% | Rising queries / momentum |
+| Commercial intent | 20% | Shopping/Etsy marketplace demand |
+| Audience fit | 12% | Niche + identity specificity |
+| Seasonality | 18% | Holiday/occasion gift windows (4–8 weeks lead) |
+| Evergreen potential | 6% | Repeat-buy identity humor |
+| Competition | 10% | Crowding penalty (inverted in score) |
+
+Also calculate (never allow publish bypass):
 - IP risk
 - Safety risk
-- Designability
+- Designability / flash design fit
+- Holiday boost
 - Estimated margin
 
-Example:
+## Research pattern (2026)
 
-Trend: Funny Beer League Softball
-Virality: 91
-Growth: 88
-Commercial: 93
-Audience fit: 96
-Competition: 48
-IP risk: 2
+Winning merch themes = **Identity × Interest × Occasion** (e.g. beer-league softball mom + Halloween), not generic “funny shirt”.
 
-The system should explain why a trend received its score.
+Flash aesthetics favored: retro/Y2K bubble type, maximalist neon, varsity arches, sarcastic humor graphics.
+
+## Example
+
+Trend: Beer League Softball Dugout Graphic  
+Virality ~91, growth ~86, commercial ~92, audience ~96, seasonality high in season, IP low.
+
+The score explanation always includes the algorithm version and states that scores do not bypass safety or guarantee sales.

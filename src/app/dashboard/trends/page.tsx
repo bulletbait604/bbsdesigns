@@ -67,7 +67,7 @@ export default async function TrendsPage() {
     <DashboardShell
       activePath="/dashboard/trends"
       title="Trends"
-      subtitle="Theme research for merch ideas. SerpAPI / Etsy when keyed; otherwise curated seeds. Scores estimate opportunity only — not sales."
+      subtitle="Viral Flash research (SerpAPI / Etsy when keyed). Scores identity × occasion × flash-design fit — opportunity only, not sales."
     >
       <div className="mb-4 flex flex-wrap gap-3 text-sm">
         <span className="rounded border border-line px-2 py-1 text-muted">

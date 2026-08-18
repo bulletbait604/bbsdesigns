@@ -1,20 +1,13 @@
 import { estimateMetrics } from '@/services/trends/metrics'
+import { VIRAL_TREND_WEIGHTS, VIRAL_ALGORITHM_VERSION } from '@/services/trends/viralAlgorithm'
 import type {
   NormalizedTrendSignal,
   ScoredTrend,
   TrendScoreWeights,
 } from '@/services/trends/types'
 
-/** Default weights from docs/05-TREND-SCORING.md and prompt 006. */
-export const DEFAULT_TREND_WEIGHTS: TrendScoreWeights = {
-  virality: 0.25,
-  growth: 0.2,
-  commercialIntent: 0.15,
-  audienceFit: 0.15,
-  seasonality: 0.1,
-  evergreenPotential: 0.1,
-  competition: 0.05,
-}
+/** Viral Flash defaults — replaces legacy docs/05 weights. */
+export const DEFAULT_TREND_WEIGHTS: TrendScoreWeights = { ...VIRAL_TREND_WEIGHTS }
 
 export function normalizeWeights(input?: Partial<TrendScoreWeights>): TrendScoreWeights {
   const merged: TrendScoreWeights = { ...DEFAULT_TREND_WEIGHTS, ...input }
@@ -45,7 +38,7 @@ function round1(n: number): number {
 }
 
 /**
- * Weighted commercial opportunity score.
+ * Viral Flash commercial opportunity score.
  * IP/safety risks are reported separately and never allow publish bypass.
  */
 export function scoreTrend(
@@ -55,11 +48,13 @@ export function scoreTrend(
   const weights = normalizeWeights(weightOverrides)
   const metrics = estimateMetrics(signal)
 
-  // Competition is a penalty component: higher competition lowers contribution.
   const competitionContribution = 100 - metrics.competition
 
+  // Blend flash-design fit into virality contribution without breaking schema
+  const viralityEff = Math.min(100, metrics.virality * 0.7 + metrics.flashDesignFit * 0.3)
+
   const weighted =
-    metrics.virality * weights.virality +
+    viralityEff * weights.virality +
     metrics.growth * weights.growth +
     metrics.commercialIntent * weights.commercialIntent +
     metrics.audienceFit * weights.audienceFit +
@@ -74,14 +69,16 @@ export function scoreTrend(
   if (metrics.safetyRisk >= 40) riskFlags.push('elevated_safety_risk')
   if (metrics.competition >= 75) riskFlags.push('high_competition')
   if (metrics.designability < 40) riskFlags.push('low_designability')
+  if (metrics.flashDesignFit < 45) riskFlags.push('low_flash_design_fit')
 
   const explanation = [
-    `Score ${score}/100 for "${signal.title}" (${signal.niche}).`,
-    `Virality ${metrics.virality} (w=${round1(weights.virality)}), growth ${metrics.growth} (w=${round1(weights.growth)}),`,
-    `commercial ${metrics.commercialIntent} (w=${round1(weights.commercialIntent)}), audience fit ${metrics.audienceFit} (w=${round1(weights.audienceFit)}),`,
-    `seasonality ${metrics.seasonality} (w=${round1(weights.seasonality)}), evergreen ${metrics.evergreenPotential} (w=${round1(weights.evergreenPotential)}),`,
-    `competition penalty from ${metrics.competition} (w=${round1(weights.competition)}).`,
-    `IP risk ${metrics.ipRisk}, safety risk ${metrics.safetyRisk}, designability ${metrics.designability}.`,
+    `Viral Flash score ${score}/100 for "${signal.title}" (${signal.niche}) [${VIRAL_ALGORITHM_VERSION}].`,
+    `Virality ${metrics.virality} (flashFit ${metrics.flashDesignFit}), growth ${metrics.growth},`,
+    `commercial ${metrics.commercialIntent}, audience ${metrics.audienceFit},`,
+    `seasonality/holiday ${metrics.seasonality} (boost ${metrics.holidayBoost}), evergreen ${metrics.evergreenPotential},`,
+    `competition ${metrics.competition}.`,
+    `IP ${metrics.ipRisk}, safety ${metrics.safetyRisk}, designability ${metrics.designability}.`,
+    `Weights v=${round1(weights.virality)} g=${round1(weights.growth)} c=${round1(weights.commercialIntent)} s=${round1(weights.seasonality)}.`,
     riskFlags.length ? `Flags: ${riskFlags.join(', ')}.` : 'No elevated risk flags.',
     'A high score does not bypass safety review or guarantee sales.',
   ].join(' ')
@@ -104,10 +101,11 @@ export function scoreTrend(
     designability: metrics.designability,
     estimatedMargin: metrics.estimatedMargin,
     commercialPotential: metrics.commercialIntent,
-    originalityPotential: Math.max(0, Math.min(100, Math.round(100 - metrics.competition * 0.6))),
+    originalityPotential: Math.max(0, Math.min(100, Math.round(100 - metrics.competition * 0.55))),
     riskFlags,
     explanation,
     safetyBypassAllowed: false,
-    disclaimer: 'Trend scores estimate opportunity only and never guarantee sales or legal clearance.',
+    disclaimer:
+      'Viral Flash trend scores estimate opportunity only and never guarantee sales or legal clearance.',
   }
 }

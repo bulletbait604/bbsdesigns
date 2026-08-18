@@ -82,6 +82,9 @@ async function topTrendTitles(): Promise<{ niche: Niche; title: string; score: n
 
 export async function runTrendPersistJob(): Promise<PipelineJobStats> {
   bootstrapProviders()
+  const { ensureViralAlgorithmMigration } = await import('@/services/trends/purge')
+  const migration = await ensureViralAlgorithmMigration()
+
   const scored = await runTrendEngine({
     includeCurated: true,
     includeRegisteredTrendProvider: true,
@@ -100,12 +103,24 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
   return {
     scored: scored.length,
     persisted: persisted.length,
+    viralMigration: migration,
     top: scored.slice(0, 5).map((t) => ({
       title: t.signal.title,
       score: t.score,
       source: t.signal.source,
     })),
   }
+}
+
+/** Manual / ops: wipe designs + trend algorithm state and mark Viral Flash applied. */
+export async function runViralStatePurgeJob(): Promise<PipelineJobStats> {
+  const { purgeViralCreativeState } = await import('@/services/trends/purge')
+  const { VIRAL_ALGORITHM_VERSION } = await import('@/services/trends/viralAlgorithm')
+  if (!isMongoConfigured()) {
+    return { skipped: true, reason: 'mongo_not_configured', algorithm: VIRAL_ALGORITHM_VERSION }
+  }
+  const counts = await purgeViralCreativeState()
+  return { purged: true, algorithm: VIRAL_ALGORITHM_VERSION, ...counts }
 }
 
 export async function runIdeaGenerationJob(): Promise<PipelineJobStats> {
