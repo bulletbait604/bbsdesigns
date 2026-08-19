@@ -105,6 +105,7 @@ export function buildOpportunitiesFromSample(limit = 20): ResearchOpportunity[] 
 
 /**
  * Research Engine V2: live trends (optional) + sample enrichment → opportunity scores → concepts.
+ * Pass `seedScored` to reuse an already-run trend engine batch (avoids double SerpAPI spend).
  */
 export async function runResearchEngineV2(options: {
   includeLive?: boolean
@@ -112,6 +113,7 @@ export async function runResearchEngineV2(options: {
   limit?: number
   niches?: Niche[]
   conceptsPer?: number
+  seedScored?: ScoredTrend[]
 } = {}): Promise<ResearchOpportunity[]> {
   const includeLive = options.includeLive ?? true
   const includeSample = options.includeSample ?? true
@@ -126,7 +128,39 @@ export async function runResearchEngineV2(options: {
     }
   }
 
-  if (includeLive) {
+  const ingestScored = (scored: ScoredTrend[]) => {
+    for (const s of scored) {
+      if (!niches.includes(s.signal.niche)) continue
+      const record = scoredTrendToRecord(s)
+      const id = slugId(s.signal.niche, s.signal.title)
+      const existing = byKey.get(id)
+      if (existing) {
+        existing.records.push(record)
+        if (!existing.sources.includes(s.signal.source)) existing.sources.push(s.signal.source)
+        existing.scores = scoreResearchOpportunity({
+          niche: existing.niche,
+          topic: existing.topic,
+          records: existing.records,
+          sources: existing.sources,
+        })
+      } else {
+        byKey.set(
+          id,
+          buildOpportunityFromParts({
+            topic: s.signal.title,
+            niche: s.signal.niche,
+            sources: [s.signal.source],
+            records: [record],
+            conceptsPer: options.conceptsPer,
+          })
+        )
+      }
+    }
+  }
+
+  if (options.seedScored?.length) {
+    ingestScored(options.seedScored)
+  } else if (includeLive) {
     try {
       const scored = await runTrendEngine({
         niches,
@@ -135,32 +169,7 @@ export async function runResearchEngineV2(options: {
         includeViralMarketplace: true,
         limitPerNiche: 3,
       })
-      for (const s of scored) {
-        const record = scoredTrendToRecord(s)
-        const id = slugId(s.signal.niche, s.signal.title)
-        const existing = byKey.get(id)
-        if (existing) {
-          existing.records.push(record)
-          if (!existing.sources.includes(s.signal.source)) existing.sources.push(s.signal.source)
-          existing.scores = scoreResearchOpportunity({
-            niche: existing.niche,
-            topic: existing.topic,
-            records: existing.records,
-            sources: existing.sources,
-          })
-        } else {
-          byKey.set(
-            id,
-            buildOpportunityFromParts({
-              topic: s.signal.title,
-              niche: s.signal.niche,
-              sources: [s.signal.source],
-              records: [record],
-              conceptsPer: options.conceptsPer,
-            })
-          )
-        }
-      }
+      ingestScored(scored)
     } catch {
       // live research optional — sample still works
     }

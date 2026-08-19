@@ -100,7 +100,8 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
   const scored = await runTrendEngine({
     includeCurated: true,
     includeRegisteredTrendProvider: true,
-    limitPerNiche: 5,
+    includeViralMarketplace: true,
+    limitPerNiche: 4,
   })
   const catalog = await ensureDefaultCatalog()
   const persisted = catalog
@@ -108,7 +109,7 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
         scored,
         storeId: catalog.storeId,
         brandId: catalog.brandId,
-        limit: 30,
+        limit: 40,
       })
     : []
 
@@ -119,9 +120,11 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
       '@/services/researchV2/engine'
     )
     const { persistResearchOpportunities } = await import('@/services/researchV2/persist')
+    // Reuse scored trends — do not call SerpAPI a second time
     const opportunities = await runResearchEngineV2({
-      includeLive: true,
+      includeLive: false,
       includeSample: true,
+      seedScored: scored,
       limit: 40,
     })
     const top = selectTopOpportunities(opportunities, 25, { excludeHighIpRisk: true })
@@ -142,10 +145,15 @@ export async function runTrendPersistJob(): Promise<PipelineJobStats> {
     }
   }
 
+  const diagnostics =
+    (scored[0] as { _diagnostics?: unknown } | undefined)?._diagnostics || null
+
   return {
     scored: scored.length,
     persisted: persisted.length,
     viralMigration: migration,
+    serpConfigured: Boolean((getEnv().SERPAPI_API_KEY || '').trim()),
+    diagnostics,
     top: scored.slice(0, 5).map((t) => ({
       title: t.signal.title,
       score: t.score,
@@ -186,7 +194,11 @@ export async function runIdeaGenerationJob(): Promise<PipelineJobStats> {
       '@/services/safety/engine'
     )
     const opportunities = selectTopOpportunities(
-      await runResearchEngineV2({ includeLive: true, includeSample: true, limit: 30 }),
+      await runResearchEngineV2({
+        includeLive: true,
+        includeSample: true,
+        limit: 30,
+      }),
       20,
       { excludeHighIpRisk: true }
     )

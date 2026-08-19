@@ -1,4 +1,5 @@
 import { getEnv } from '@/lib/env'
+import { logger } from '@/lib/logger'
 import { ProviderError } from '@/providers/errors'
 import type {
   ProviderConfigValidation,
@@ -25,6 +26,13 @@ type SerpTrendsRelated = {
   extracted_value?: number
 }
 
+type SerpOrganicResult = {
+  title?: string
+  link?: string
+  snippet?: string
+  position?: number
+}
+
 function health(provider: string, ok: boolean, message?: string): ProviderHealth {
   return {
     ok,
@@ -40,7 +48,7 @@ function clampHint(n: number): number {
 }
 
 export async function serpFetch(params: Record<string, string>): Promise<Record<string, unknown>> {
-  const key = getEnv().SERPAPI_API_KEY
+  const key = (getEnv().SERPAPI_API_KEY || process.env.SERPAPI_API_KEY || '').trim()
   if (!key) {
     throw new ProviderError('SERPAPI_API_KEY missing', {
       provider: 'serpapi',
@@ -57,22 +65,43 @@ export async function serpFetch(params: Record<string, string>): Promise<Record<
   }
 
   const res = await fetch(url.toString(), {
-    headers: { 'User-Agent': 'bbsdesigns-trend-research/0.1' },
+    headers: { 'User-Agent': 'bbsdesigns-trend-research/0.2' },
     cache: 'no-store',
   })
 
+  const bodyText = await res.text().catch(() => '')
+  let json: Record<string, unknown> = {}
+  try {
+    json = bodyText ? (JSON.parse(bodyText) as Record<string, unknown>) : {}
+  } catch {
+    json = { parse_error: true, body: bodyText.slice(0, 200) }
+  }
+
   if (!res.ok) {
-    const body = await res.text().catch(() => '')
     throw new ProviderError(`SerpAPI HTTP ${res.status}`, {
       provider: 'serpapi',
       kind: 'trend',
       code: 'SERPAPI_HTTP',
       retryable: res.status >= 500 || res.status === 429,
-      details: { status: res.status, body: body.slice(0, 300) },
+      details: {
+        status: res.status,
+        body: bodyText.slice(0, 400),
+        error: json.error,
+      },
     })
   }
 
-  return (await res.json()) as Record<string, unknown>
+  if (typeof json.error === 'string' && json.error.trim()) {
+    throw new ProviderError(`SerpAPI error: ${json.error}`, {
+      provider: 'serpapi',
+      kind: 'trend',
+      code: 'SERPAPI_API_ERROR',
+      retryable: /rate|limit|timeout|unavailable/i.test(json.error),
+      details: { error: json.error },
+    })
+  }
+
+  return json
 }
 
 export function shoppingToSignals(niche: Niche, results: SerpShoppingResult[]): TrendSignalDto[] {
@@ -86,9 +115,8 @@ export function shoppingToSignals(niche: Niche, results: SerpShoppingResult[]): 
       return {
         externalId: `serpapi-shop-${niche}-${r.product_id || i}-${Buffer.from(r.title!).toString('hex').slice(0, 10)}`,
         title: r.title!.trim().slice(0, 160),
-        summary:
-          `Google Shopping signal (${r.source || 'retailer'}). Theme research only — do not copy listing art.`,
-        keywords: [niche, 'merch', 'shopping', ...(r.source ? [r.source.toLowerCase()] : [])],
+        summary: `Google Shopping signal (${r.source || 'retailer'}). Theme research only — do not copy listing art.`,
+        keywords: [niche, 'merch', 'shopping', 'google_shopping', ...(r.source ? [r.source.toLowerCase()] : [])],
         scoreHint: commercial,
         observedAt: new Date().toISOString(),
         raw: {
@@ -130,16 +158,88 @@ export function trendsToSignals(niche: Niche, related: SerpTrendsRelated[]): Tre
     })
 }
 
+export function organicToSignals(niche: Niche, results: SerpOrganicResult[]): TrendSignalDto[] {
+  return results
+    .filter((r) => r.title?.trim())
+    .slice(0, 8)
+    .map((r, i) => {
+      const title = r.title!.trim().slice(0, 160)
+      const snippet = (r.snippet || '').toLowerCase()
+      const intentBoost =
+        /\b(buy|shirt|tee|hoodie|etsy|amazon|gift|funny)\b/.test(snippet + ' ' + title.toLowerCase())
+          ? 15
+          : 0
+      return {
+        externalId: `serpapi-google-${niche}-${i}-${Buffer.from(title).toString('hex').slice(0, 10)}`,
+        title,
+        summary:
+          'Google Search organic result theme. Research pattern only — never copy listing artwork or slogans.',
+        keywords: [niche, 'google_search', 'organic', 'merch'],
+        scoreHint: clampHint(50 + intentBoost + Math.max(0, 12 - (r.position || i))),
+        observedAt: new Date().toISOString(),
+        raw: {
+          source: 'serpapi_google_search',
+          link: r.link,
+          snippet: r.snippet,
+          position: r.position,
+        },
+      }
+    })
+}
+
+async function fetchShoppingSignals(niche: Niche, query: string, limit: number): Promise<TrendSignalDto[]> {
+  const shopping = await serpFetch({
+    engine: 'google_shopping',
+    q: query,
+    num: String(Math.min(10, limit + 2)),
+    hl: 'en',
+    gl: 'us',
+  })
+  return shoppingToSignals(niche, (shopping.shopping_results || []) as SerpShoppingResult[])
+}
+
 /**
- * SerpAPI trend provider: Google Shopping + Google Trends for niche merch demand.
- * Extracts themes/keywords only — never copies third-party artwork.
+ * RELATED_QUERIES accepts exactly ONE query (SerpAPI rule).
+ */
+async function fetchTrendsRelatedSignals(niche: Niche, query: string): Promise<TrendSignalDto[]> {
+  const trends = await serpFetch({
+    engine: 'google_trends',
+    q: query.slice(0, 100),
+    data_type: 'RELATED_QUERIES',
+    geo: 'US',
+    date: 'today 3-m',
+    hl: 'en',
+  })
+  const relatedBlock = trends.related_queries as
+    | { rising?: SerpTrendsRelated[]; top?: SerpTrendsRelated[] }
+    | undefined
+  const related = relatedBlock?.rising?.length
+    ? relatedBlock.rising
+    : relatedBlock?.top || []
+  return trendsToSignals(niche, related)
+}
+
+async function fetchGoogleSearchSignals(niche: Niche, query: string): Promise<TrendSignalDto[]> {
+  const search = await serpFetch({
+    engine: 'google',
+    q: query,
+    num: '10',
+    hl: 'en',
+    gl: 'us',
+  })
+  return organicToSignals(niche, (search.organic_results || []) as SerpOrganicResult[])
+}
+
+/**
+ * SerpAPI trend provider: Google Shopping + Google Trends + Google Search.
+ * Themes/keywords only — never copies third-party artwork.
  */
 export function createSerpApiTrendProvider(name = 'serpapi'): TrendProvider {
   return {
     kind: 'trend',
     name,
     validateConfig(): ProviderConfigValidation {
-      const key = getEnv().SERPAPI_API_KEY
+      const key = (getEnv().SERPAPI_API_KEY || process.env.SERPAPI_API_KEY || '').trim()
       const missing = key ? [] : ['SERPAPI_API_KEY']
       return {
         ok: missing.length === 0,
@@ -150,7 +250,7 @@ export function createSerpApiTrendProvider(name = 'serpapi'): TrendProvider {
     async healthCheck(): Promise<ProviderHealth> {
       const validation = this.validateConfig()
       if (!validation.ok) return health(name, false, validation.message)
-      return health(name, true, 'SerpAPI configured')
+      return health(name, true, 'SerpAPI configured (Shopping + Trends + Google Search)')
     },
     async fetchSignals(request: TrendFetchRequest): Promise<TrendSignalDto[]> {
       const validation = this.validateConfig()
@@ -169,51 +269,74 @@ export function createSerpApiTrendProvider(name = 'serpapi'): TrendProvider {
       const { findCachedTrendSignals, saveCachedTrendSignals } = await import(
         '@/services/trends/cache'
       )
-      // Cache key includes algorithm version via source tag so old batches are ignored after purge
-      const cacheSource = `serpapi:${(await import('@/services/trends/viralAlgorithm')).VIRAL_ALGORITHM_VERSION}`
+      const cacheSource = `serpapi:v3:${(await import('@/services/trends/viralAlgorithm')).VIRAL_ALGORITHM_VERSION}`
       const cached = await findCachedTrendSignals(niche, cacheSource)
       if (cached?.length) return cached.slice(0, limit)
 
-      const { viralSearchQueries } = await import('@/services/trends/viralAlgorithm')
+      const { viralSearchQueries, primaryViralQuery } = await import(
+        '@/services/trends/viralAlgorithm'
+      )
       const queries = viralSearchQueries(niche)
-      const signals: TrendSignalDto[] = []
+      const primary = primaryViralQuery(niche)
+      const shoppingQuery = queries[0] || primary
+      const trendsQuery = niche // short single term for RELATED_QUERIES
+      const searchQuery = queries[1] || `${niche} funny graphic tshirt`
 
-      // Shopping: primary + first occasion/viral alternate
-      for (const q of queries.slice(0, 2)) {
+      const signals: TrendSignalDto[] = []
+      const errors: string[] = []
+
+      const tasks: Array<{ label: string; run: () => Promise<TrendSignalDto[]> }> = [
+        {
+          label: 'google_shopping',
+          run: () => fetchShoppingSignals(niche, shoppingQuery, limit),
+        },
+        {
+          label: 'google_trends',
+          run: () => fetchTrendsRelatedSignals(niche, trendsQuery),
+        },
+        {
+          label: 'google_search',
+          run: () => fetchGoogleSearchSignals(niche, searchQuery),
+        },
+      ]
+
+      // Sequential to stay within SerpAPI rate limits / serverless time budgets
+      for (const task of tasks) {
         try {
-          const shopping = await serpFetch({
-            engine: 'google_shopping',
-            q,
-            num: String(Math.min(10, limit + 2)),
-            hl: 'en',
-            gl: 'us',
+          const batch = await task.run()
+          signals.push(...batch)
+          logger.info('serpapi_source_ok', {
+            niche,
+            source: task.label,
+            count: batch.length,
+            query:
+              task.label === 'google_shopping'
+                ? shoppingQuery
+                : task.label === 'google_trends'
+                  ? trendsQuery
+                  : searchQuery,
           })
-          const shoppingResults = (shopping.shopping_results || []) as SerpShoppingResult[]
-          signals.push(...shoppingToSignals(niche, shoppingResults))
-        } catch {
-          // continue
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          errors.push(`${task.label}: ${message}`)
+          logger.warn('serpapi_source_failed', { niche, source: task.label, error: message })
         }
       }
 
-      try {
-        const trends = await serpFetch({
-          engine: 'google_trends',
-          q: queries.slice(0, 2).join(','),
-          data_type: 'RELATED_QUERIES',
-          geo: 'US',
-          date: 'today 3-m',
-        })
-        const relatedBlock = trends.related_queries as
-          | { rising?: SerpTrendsRelated[]; top?: SerpTrendsRelated[] }
-          | undefined
-        const related =
-          relatedBlock?.rising?.length ? relatedBlock.rising : relatedBlock?.top || []
-        signals.push(...trendsToSignals(niche, related))
-      } catch {
-        // optional
+      if (!signals.length) {
+        throw new ProviderError(
+          `SerpAPI returned no signals for ${niche}. ${errors.join(' | ') || 'Unknown failure'}`,
+          {
+            provider: name,
+            kind: 'trend',
+            code: 'SERPAPI_EMPTY',
+            retryable: true,
+            details: { niche, errors },
+          }
+        )
       }
 
-      const sliced = signals.slice(0, Math.max(limit, 10))
+      const sliced = signals.slice(0, Math.max(limit, 12))
       await saveCachedTrendSignals(niche, cacheSource, sliced)
       return sliced.slice(0, limit)
     },

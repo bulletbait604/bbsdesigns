@@ -144,7 +144,7 @@ describe('serpapi fetch mock', () => {
     delete process.env.SERPAPI_API_KEY
   })
 
-  it('fetchSignals returns mapped shopping rows', async () => {
+  it('fetchSignals returns mapped shopping + google search rows', async () => {
     process.env.SERPAPI_API_KEY = 'k'
     resetEnvCache()
     vi.stubGlobal(
@@ -159,14 +159,69 @@ describe('serpapi fetch mock', () => {
             { status: 200 }
           )
         }
-        return new Response(JSON.stringify({ related_queries: { rising: [] } }), { status: 200 })
+        if (url.includes('engine=google_trends') || url.includes('google_trends')) {
+          return new Response(
+            JSON.stringify({
+              related_queries: {
+                rising: [{ query: 'one more game shirt', extracted_value: 70 }],
+              },
+            }),
+            { status: 200 }
+          )
+        }
+        if (url.includes('engine=google') || url.includes('engine%3Dgoogle')) {
+          return new Response(
+            JSON.stringify({
+              organic_results: [
+                { title: 'Funny Gaming Graphic Tee Ideas', snippet: 'buy funny shirt', position: 1 },
+              ],
+            }),
+            { status: 200 }
+          )
+        }
+        return new Response(JSON.stringify({}), { status: 200 })
       })
     )
 
     const { createSerpApiTrendProvider } = await import('@/providers/trend/serpapi')
     const provider = createSerpApiTrendProvider()
-    const signals = await provider.fetchSignals({ niche: 'gaming', limit: 5 })
+    const signals = await provider.fetchSignals({ niche: 'gaming', limit: 8 })
     expect(signals.length).toBeGreaterThan(0)
-    expect(signals[0].title).toMatch(/Gamer/i)
+    expect(signals.some((s) => /Gamer|game|Gaming/i.test(s.title))).toBe(true)
+  })
+
+  it('rejects multi-query RELATED_QUERIES misuse by using a single niche term', async () => {
+    process.env.SERPAPI_API_KEY = 'k'
+    resetEnvCache()
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('google_trends')) {
+        const u = new URL(url)
+        // RELATED_QUERIES must be a single query (no commas)
+        expect(u.searchParams.get('q') || '').not.toContain(',')
+        expect(u.searchParams.get('data_type')).toBe('RELATED_QUERIES')
+        return new Response(
+          JSON.stringify({
+            related_queries: { top: [{ query: 'dog mom shirt', extracted_value: 55 }] },
+          }),
+          { status: 200 }
+        )
+      }
+      if (url.includes('google_shopping')) {
+        return new Response(
+          JSON.stringify({
+            shopping_results: [{ title: 'Dog Mom Tee', reviews: 5, rating: 4, product_id: 'p1' }],
+          }),
+          { status: 200 }
+        )
+      }
+      return new Response(JSON.stringify({ organic_results: [] }), { status: 200 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { createSerpApiTrendProvider } = await import('@/providers/trend/serpapi')
+    const signals = await createSerpApiTrendProvider().fetchSignals({ niche: 'pets', limit: 3 })
+    expect(fetchMock).toHaveBeenCalled()
+    expect(signals.length).toBeGreaterThan(0)
   })
 })

@@ -107,8 +107,12 @@ async function executeJob(jobName: AutomationJobName, run: AutomationRunRecord):
           const { runTrendPersistJob } = await import('@/services/pipeline/jobs')
           const stats = await runTrendPersistJob()
           run.stats = stats
-          run.summary = `Scored ${stats.scored ?? 0} trend(s); persisted ${stats.persisted ?? 0}`
-          appendLog(run, `trends:${stats.scored}`)
+          const serp = stats.serpConfigured ? 'serp:on' : 'serp:off'
+          run.summary = `Scored ${stats.scored ?? 0} trend(s); persisted ${stats.persisted ?? 0} (${serp})`
+          appendLog(run, `trends:${stats.scored};${serp}`)
+          if (stats.diagnostics) {
+            appendLog(run, `diagnostics:${JSON.stringify(stats.diagnostics).slice(0, 500)}`)
+          }
           break
         }
         case 'idea_generation': {
