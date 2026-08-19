@@ -11,11 +11,19 @@ function isLive(design: CardDesign): design is LiveDesignCard {
   return 'source' in design
 }
 
+function isSvgUrl(url: string): boolean {
+  return (
+    url.includes('design-preview') ||
+    url.startsWith('data:image/svg') ||
+    url.includes('image/svg+xml')
+  )
+}
+
 export function DesignGalleryCard({ design }: { design: CardDesign }) {
   const live = isLive(design) ? design : null
   const isPlaceholder = Boolean(live?.isPlaceholder)
   const initialArt =
-    live?.artworkSrc && !live.artworkSrc.includes('design-preview') ? live.artworkSrc : undefined
+    live?.artworkSrc && !isSvgUrl(live.artworkSrc) ? live.artworkSrc : undefined
 
   const [artSrc, setArtSrc] = useState<string | undefined>(() => initialArt)
   const [fromCache, setFromCache] = useState(false)
@@ -26,7 +34,7 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
 
   useEffect(() => {
     const next =
-      live?.artworkSrc && !live.artworkSrc.includes('design-preview') ? live.artworkSrc : undefined
+      live?.artworkSrc && !isSvgUrl(live.artworkSrc) ? live.artworkSrc : undefined
     setArtSrc(next)
     setIsAi(Boolean(next?.includes('/api/design-assets/')))
     setFromCache(false)
@@ -63,11 +71,23 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
       if (!res.ok || !data.ok || !data.previewUrl) {
         const googleHint = data.details?.googleMessage
         const modelHint = data.details?.model ? ` (model ${data.details.model})` : ''
+        const base = data.message || data.error || 'Generation failed'
         setError(
-          googleHint
-            ? `${data.message || data.error || 'Generation failed'}${modelHint}`
-            : data.message || data.error || 'Generation failed'
+          res.status === 503
+            ? `${base} — add GEMINI_API or IMAGE_API_KEY in Vercel env, set IMAGE_PROVIDER=google, redeploy.`
+            : googleHint
+              ? `${base}${modelHint}: ${googleHint}`
+              : `${base}${modelHint}`
         )
+        setArtSrc(undefined)
+        setIsAi(false)
+        return
+      }
+
+      if (isSvgUrl(data.previewUrl)) {
+        setError('API returned SVG placeholder instead of Gemini — image provider misconfigured')
+        setArtSrc(undefined)
+        setIsAi(false)
         return
       }
 
@@ -75,27 +95,28 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         const imgRes = await fetch(data.previewUrl, { credentials: 'same-origin', cache: 'no-store' })
         if (!imgRes.ok) throw new Error(`Asset ${imgRes.status}`)
         const blob = await imgRes.blob()
-        if (blob.type.includes('svg')) {
+        if (blob.type.includes('svg') || isSvgUrl(data.previewUrl)) {
           setError('Generator returned SVG placeholder — check IMAGE_API_KEY / Gemini image model')
+          setArtSrc(undefined)
+          setIsAi(false)
           return
         }
         const objectUrl = URL.createObjectURL(blob)
         setArtSrc(objectUrl)
         setIsAi(true)
         setFromCache(Boolean(data.fromCache))
-      } catch {
-        if (data.previewUrl.includes('design-preview')) {
-          setError('Got design-preview SVG instead of Gemini art — image provider misconfigured')
-          return
-        }
-        setArtSrc(data.previewUrl)
-        setIsAi(true)
-        setFromCache(Boolean(data.fromCache))
+      } catch (e) {
+        setError(
+          e instanceof Error
+            ? `Generated but preview failed to load (${e.message}). Try Force new.`
+            : 'Generated but preview failed to load. Try Force new.'
+        )
+        setArtSrc(undefined)
+        setIsAi(false)
       }
     })
   }
 
-  // Auto-kick Gemini for placeholders so bland SVG never sits as the "design"
   useEffect(() => {
     if (!live || !isPlaceholder || autoTried || pending || artSrc) return
     setAutoTried(true)
@@ -128,10 +149,9 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-6 text-center">
-              <p className="font-display text-lg text-accent">Waiting for Gemini flash art</p>
+              <p className="font-display text-lg text-accent">Waiting for Gemini</p>
               <p className="text-sm text-muted">
-                No SVG placeholders. Commercial illustrated merch only — art + typography locked
-                together.
+                No SVG placeholders. Click Generate for a real illustrated print.
               </p>
             </div>
           )}
@@ -198,7 +218,7 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
             onClick={() => generateAi(true)}
             className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-ink disabled:opacity-50"
           >
-            {pending ? 'Generating flash design…' : 'Generate flash Gemini design'}
+            {pending ? 'Calling Gemini…' : 'Generate flash Gemini design'}
           </button>
           <button
             type="button"
@@ -214,7 +234,11 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
             {fromCache ? ' · Mongo cache hit' : ''}
           </span>
         </div>
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
+        {error ? (
+          <p className="rounded-md border border-danger/40 bg-danger/10 p-3 text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
       </div>
     </article>
   )

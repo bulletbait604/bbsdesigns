@@ -1,5 +1,9 @@
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { DesignGalleryCard } from '@/components/dashboard/DesignGalleryCard'
+import {
+  DesignsEmptyGeneratePanel,
+  DesignsGeminiStatus,
+} from '@/components/dashboard/DesignsGeminiStatus'
 import { loadDesignsForDashboard } from '@/services/pipeline/dashboard'
 
 export const dynamic = 'force-dynamic'
@@ -17,12 +21,16 @@ export default async function DesignsPage() {
           : 'Empty slate — no demo mockups. Connect Mongo + Gemini, then run design generation.'
       }
     >
+      <DesignsGeminiStatus />
       {!designs.length ? (
-        <p className="text-sm text-muted">
-          {source === 'mongo'
-            ? 'No designs yet. Approve ideas and run Automation → design_generation.'
-            : 'No designs. Connect Mongo, then run Automation → design generation.'}
-        </p>
+        <div className="space-y-4">
+          <p className="text-sm text-muted">
+            {source === 'mongo'
+              ? 'No real AI designs yet (SVG placeholders are deleted on load). Generate below from approved ideas, or run Automation → design_generation.'
+              : 'No designs. Connect Mongo, then run Automation → design generation.'}
+          </p>
+          {source === 'mongo' ? <DesignsEmptyGeneratePanel /> : null}
+        </div>
       ) : (
         <div className="space-y-6">
           {designs.map((design) => (

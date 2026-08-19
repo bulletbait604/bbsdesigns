@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       {
         error: 'image_provider_not_configured',
         message:
-          'Set IMAGE_PROVIDER=google and IMAGE_API_KEY / GEMINI_API, then redeploy. Without Google image keys you only get SVG placeholders.',
+          'Gemini image is not configured. In Vercel set GEMINI_API (or IMAGE_API_KEY), IMAGE_PROVIDER=google, redeploy. Generate will not invent SVG placeholders anymore.',
       },
       { status: 503 }
     )
