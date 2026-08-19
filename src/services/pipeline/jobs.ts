@@ -51,8 +51,8 @@ function isSvgPlaceholderDesign(doc: {
     model.includes('svg') ||
     model.includes('lite') ||
     model.includes('stub') ||
-    // Upgrade older Flash-model art to Pro quality
-    (model.includes('flash-image') && !model.includes('pro')) ||
+    // Upgrade older Flash-model art to Pro quality — DISABLED: Flash Gemini is real art, not SVG junk
+    // (model.includes('flash-image') && !model.includes('pro')) ||
     doc.mimeType === 'image/svg+xml' ||
     url.includes('/api/design-preview') ||
     url.startsWith('local://') ||
@@ -501,7 +501,11 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
           niche,
           id: mongoId,
         })
-        result.design.assetUrl = `/api/design-assets/${stored.id}`
+        const publicUrl =
+          result.design.assetUrl && result.design.assetUrl.startsWith('https://')
+            ? result.design.assetUrl
+            : null
+        result.design.assetUrl = publicUrl || `/api/design-assets/${stored.id}`
         result.design.assetKey = stored.id
         await upsertDesignResult({
           result,

@@ -73,7 +73,7 @@ export async function runDesignEngine(
         negativePrompt: built.negativePrompt,
         width: built.width,
         height: built.height,
-        imageSize: (process.env.IMAGE_SIZE || '4K').trim() || '4K',
+        imageSize: (process.env.IMAGE_SIZE || '2K').trim() || '2K',
         aspectRatio: '1:1',
       }),
     {

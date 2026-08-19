@@ -91,9 +91,23 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         return
       }
 
+      // Public CDN / R2 URLs display directly (no auth blob hop)
+      if (data.previewUrl.startsWith('https://')) {
+        setArtSrc(data.previewUrl)
+        setIsAi(true)
+        setFromCache(Boolean(data.fromCache))
+        return
+      }
+
       try {
         const imgRes = await fetch(data.previewUrl, { credentials: 'same-origin', cache: 'no-store' })
-        if (!imgRes.ok) throw new Error(`Asset ${imgRes.status}`)
+        if (!imgRes.ok) {
+          throw new Error(
+            imgRes.status === 413
+              ? 'Image too large for preview route (413) — redeploy with downscale fix'
+              : `Asset ${imgRes.status}`
+          )
+        }
         const blob = await imgRes.blob()
         if (blob.type.includes('svg') || isSvgUrl(data.previewUrl)) {
           setError('Generator returned SVG placeholder — check IMAGE_API_KEY / Gemini image model')
@@ -106,6 +120,18 @@ export function DesignGalleryCard({ design }: { design: CardDesign }) {
         setIsAi(true)
         setFromCache(Boolean(data.fromCache))
       } catch (e) {
+        // Still try binding the API URL — AuthImage will fetch it after reload path
+        if (data.previewUrl.startsWith('/api/design-assets/')) {
+          setArtSrc(data.previewUrl)
+          setIsAi(true)
+          setFromCache(Boolean(data.fromCache))
+          setError(
+            e instanceof Error
+              ? `Preview blob failed (${e.message}); showing asset URL — refresh if blank.`
+              : 'Preview blob failed; showing asset URL — refresh if blank.'
+          )
+          return
+        }
         setError(
           e instanceof Error
             ? `Generated but preview failed to load (${e.message}). Try Force new.`

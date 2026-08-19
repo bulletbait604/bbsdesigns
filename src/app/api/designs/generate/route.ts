@@ -141,7 +141,13 @@ export async function POST(request: Request) {
       id: mongoId,
     })
 
-    const previewUrl = `/api/design-assets/${stored.id}`
+    // Prefer public R2/CDN URL when engine uploaded one — avoids Vercel 4.5MB response limits.
+    // Always keep Mongo id as assetKey so /api/design-assets can recover.
+    const publicUrl =
+      result.design.assetUrl && result.design.assetUrl.startsWith('https://')
+        ? result.design.assetUrl
+        : null
+    const previewUrl = publicUrl || `/api/design-assets/${stored.id}`
     result.design.assetUrl = previewUrl
     result.design.assetKey = stored.id
 
@@ -165,6 +171,7 @@ export async function POST(request: Request) {
       review: result.review,
       publishAllowed: false,
       previewUrl,
+      previewBytes: result.bytes.length,
       cacheKey,
     })
   } catch (error) {

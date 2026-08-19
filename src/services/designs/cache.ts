@@ -7,6 +7,31 @@ import type { Niche } from '@/types'
 import type { DesignPipelineResult, GeneratedDesignRecord } from '@/services/designs/types'
 import type { ImageReviewResult } from '@/services/designs/types'
 
+/** Normalize Mongo Binary / Uint8Array / Buffer into a Node Buffer. */
+export function toNodeBuffer(data: unknown): Buffer {
+  if (Buffer.isBuffer(data)) return data
+  if (data instanceof Uint8Array) return Buffer.from(data)
+  if (data && typeof data === 'object') {
+    const maybe = data as {
+      buffer?: ArrayBuffer
+      byteOffset?: number
+      byteLength?: number
+      value?: () => Buffer
+    }
+    if (typeof maybe.value === 'function') {
+      try {
+        return maybe.value()
+      } catch {
+        // fall through
+      }
+    }
+    if (maybe.buffer instanceof ArrayBuffer) {
+      return Buffer.from(maybe.buffer, maybe.byteOffset ?? 0, maybe.byteLength ?? maybe.buffer.byteLength)
+    }
+  }
+  return Buffer.from(data as ArrayBuffer)
+}
+
 export function buildDesignCacheKey(input: {
   niche: Niche
   slogan: string
@@ -50,9 +75,7 @@ export async function findCachedDesign(cacheKey: string): Promise<CachedDesignHi
 
   if (!doc || !doc.imageBytes) return null
 
-  const bytes = Buffer.isBuffer(doc.imageBytes)
-    ? doc.imageBytes
-    : Buffer.from(doc.imageBytes as unknown as ArrayBuffer)
+  const bytes = toNodeBuffer(doc.imageBytes)
 
   const id = String(doc._id)
   logger.info('design_cache_hit', { cacheKey, id, hitCount: doc.hitCount })
@@ -147,10 +170,7 @@ export async function getCachedDesignBytes(id: string): Promise<{
 
   const byId = await CachedDesign.findById(id).lean()
   if (byId?.imageBytes) {
-    const bytes = Buffer.isBuffer(byId.imageBytes)
-      ? byId.imageBytes
-      : Buffer.from(byId.imageBytes as unknown as ArrayBuffer)
-    return { bytes, mimeType: byId.mimeType || 'image/png' }
+    return { bytes: toNodeBuffer(byId.imageBytes), mimeType: byId.mimeType || 'image/png' }
   }
 
   // Recover after cold starts / id drift: Design.assetKey → latest raster cache for slogan
@@ -174,10 +194,7 @@ export async function getCachedDesignBytes(id: string): Promise<{
 
   if (!bySlogan?.imageBytes) return null
 
-  const bytes = Buffer.isBuffer(bySlogan.imageBytes)
-    ? bySlogan.imageBytes
-    : Buffer.from(bySlogan.imageBytes as unknown as ArrayBuffer)
-  return { bytes, mimeType: bySlogan.mimeType || 'image/png' }
+  return { bytes: toNodeBuffer(bySlogan.imageBytes), mimeType: bySlogan.mimeType || 'image/png' }
 }
 
 /** True when a CachedDesign document still has raster bytes for this asset id. */

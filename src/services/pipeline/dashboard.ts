@@ -219,9 +219,13 @@ export async function loadDesignsForDashboard(): Promise<{
 
   const { cachedDesignIdsWithBytes } = await import('@/services/designs/cache')
   const { DESIGN_PROMPT_VERSION } = await import('@/services/designs/types')
-  const assetIds = docs
-    .map((d) => d.assetKey)
-    .filter((k): k is string => Boolean(k) && !String(k).startsWith('svg:'))
+  const assetIds = docs.flatMap((d) => {
+    const keys: string[] = []
+    if (d.assetKey && !String(d.assetKey).startsWith('svg:')) keys.push(String(d.assetKey))
+    const fromUrl = (d.assetUrl || '').match(/\/api\/design-assets\/([a-f\d]{24})/i)?.[1]
+    if (fromUrl) keys.push(fromUrl)
+    return keys
+  })
   const cachedIds = await cachedDesignIdsWithBytes(assetIds)
 
   const designs: LiveDesignCard[] = docs.map((doc) => {
@@ -233,8 +237,11 @@ export async function loadDesignsForDashboard(): Promise<{
     const mongoId = String(doc._id)
     const assetKey = doc.assetKey || ''
     const assetUrl = doc.assetUrl || ''
+    const idFromUrl = assetUrl.match(/\/api\/design-assets\/([a-f\d]{24})/i)?.[1]
+    const cachePresent =
+      (assetKey && cachedIds.has(assetKey)) || (idFromUrl && cachedIds.has(idFromUrl))
     const missingRaster =
-      assetUrl.includes('/api/design-assets/') && assetKey && !cachedIds.has(assetKey)
+      assetUrl.includes('/api/design-assets/') && Boolean(assetKey || idFromUrl) && !cachePresent
     const stalePrompt =
       Boolean(doc.promptVersion) && doc.promptVersion !== DESIGN_PROMPT_VERSION
     const isSvgProvider =
@@ -252,17 +259,21 @@ export async function loadDesignsForDashboard(): Promise<{
       Boolean(assetUrl) &&
       !isSvgProvider &&
       (assetUrl.includes('/api/design-assets/') || assetUrl.startsWith('https://'))
-    // Needs regen — but NEVER replace a real AI raster with bland SVG in the gallery
-    const isPlaceholder = isSvgProvider || missingRaster || stalePrompt || !hasRasterAsset
-    const artworkSrc = hasRasterAsset && !missingRaster ? assetUrl : undefined
-    const mockupReal = (doc.mockupKeys || []).find((u) => isBrowserSafeAssetUrl(u) && !u.includes('design-preview'))
+    // Only true junk counts as placeholder. Never blank a real assetUrl just because cache probe missed.
+    const isPlaceholder = isSvgProvider || !hasRasterAsset
+    const artworkSrc = hasRasterAsset ? assetUrl : undefined
+    const mockupReal = (doc.mockupKeys || []).find(
+      (u) => isBrowserSafeAssetUrl(u) && !u.includes('design-preview')
+    )
     return {
       id: mongoId,
       ideaId: String(doc.ideaId),
       niche,
       title: doc.title || slogan,
       slogan,
-      style: `${doc.provider} · ${doc.model}`,
+      style: `${doc.provider} · ${doc.model}${stalePrompt ? ' · prompt upgrade available' : ''}${
+        missingRaster ? ' · reload asset if blank' : ''
+      }`,
       mockupLabel: hasRasterAsset
         ? 'AI print preview'
         : 'Waiting for Gemini flash art — not a product',
@@ -298,7 +309,6 @@ export async function loadDesignsForDashboard(): Promise<{
       ideaIdMongo: String(doc.ideaId),
       isPlaceholder,
       concept: conceptByIdea.get(String(doc.ideaId)) || '',
-      // Prefer real AI art for both panels. Never feed bland design-preview SVG as the product.
       artworkSrc,
       mockupSrc: mockupReal || artworkSrc,
     }

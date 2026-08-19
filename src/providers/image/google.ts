@@ -14,7 +14,7 @@ import type {
  * Flash is a fallback only when Pro is unavailable on the key/project.
  */
 export const DEFAULT_IMAGE_MODEL = 'gemini-3-pro-image'
-const DEFAULT_IMAGE_SIZE = '4K'
+const DEFAULT_IMAGE_SIZE = '2K'
 
 /** Tried in order when the primary model returns a model-related 400/404. */
 const FALLBACK_MODELS = ['gemini-3-pro-image', 'gemini-3.1-flash-image']
