@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import type { QueueItem } from '@/lib/dashboardData'
-import { artworkDataUri, mockupDataUri, buildLiveMerchDesign } from '@/lib/svgMerch'
+import { AuthImage } from '@/components/dashboard/AuthImage'
 
 function Score({ label, value, warn }: { label: string; value: number; warn?: boolean }) {
   return (
@@ -13,6 +13,13 @@ function Score({ label, value, warn }: { label: string; value: number; warn?: bo
       </p>
     </div>
   )
+}
+
+function isRealRaster(url?: string | null): url is string {
+  if (!url) return false
+  if (url.includes('design-preview')) return false
+  if (url.startsWith('data:image/svg')) return false
+  return true
 }
 
 export function ApprovalCard({
@@ -29,18 +36,8 @@ export function ApprovalCard({
   const [pending, startTransition] = useTransition()
   const canAct = liveActions && /^[a-f\d]{24}$/i.test(item.id)
 
-  const livePreview = useMemo(() => {
-    if (rejected) return null
-    const design = buildLiveMerchDesign({
-      slogan: item.slogan,
-      niche: item.niche,
-      title: item.title,
-    })
-    return { art: artworkDataUri(design), mock: mockupDataUri(design) }
-  }, [item.slogan, item.niche, item.title, rejected])
-
-  const art = item.artworkUrl || livePreview?.art || null
-  const mock = item.mockupUrl || livePreview?.mock || null
+  const art = isRealRaster(item.artworkUrl) ? item.artworkUrl : null
+  const mock = isRealRaster(item.mockupUrl) ? item.mockupUrl : art
 
   function act(action: 'approve' | 'reject' | 'create_draft') {
     if (!canAct) {
@@ -110,8 +107,7 @@ export function ApprovalCard({
       {art ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="relative aspect-square overflow-hidden rounded-md border border-line bg-ink">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <AuthImage
               src={art}
               alt={`Design for ${item.title}`}
               className="absolute inset-0 h-full w-full object-cover"
@@ -121,8 +117,7 @@ export function ApprovalCard({
             </span>
           </div>
           <div className="relative aspect-square overflow-hidden rounded-md border border-line bg-ink">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <AuthImage
               src={mock || art}
               alt={`Mockup for ${item.title}`}
               className="absolute inset-0 h-full w-full object-cover"
@@ -132,9 +127,14 @@ export function ApprovalCard({
             </span>
           </div>
         </div>
-      ) : (
+      ) : rejected ? (
         <div className="mt-5 rounded-md border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
           No design/mockup — safety REJECT blocked generation.
+        </div>
+      ) : (
+        <div className="mt-5 rounded-md border border-line bg-ink/40 p-4 text-sm text-muted">
+          Awaiting Gemini flash art — bland SVG placeholders are disabled. Generate from Designs,
+          then return here to approve.
         </div>
       )}
 
@@ -212,6 +212,7 @@ export function ApprovalCard({
             !canAct ||
             rejected ||
             pending ||
+            !art ||
             (status !== 'approved' && item.safetyDecision !== 'PASS')
           }
           onClick={() => act('create_draft')}

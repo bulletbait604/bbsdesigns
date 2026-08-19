@@ -8,8 +8,8 @@ import type { Niche, SafetyDecision } from '@/types'
 
 function isBrowserSafeAssetUrl(url?: string | null): boolean {
   if (!url) return false
-  if (url.startsWith('/api/design-assets/') || url.startsWith('/api/design-preview')) return true
-  if (url.startsWith('local://')) return false
+  if (url.includes('design-preview') || url.startsWith('local://')) return false
+  if (url.startsWith('/api/design-assets/')) return true
   if (!url.startsWith('http://') && !url.startsWith('https://')) return false
   try {
     const host = new URL(url).hostname.toLowerCase()
@@ -20,17 +20,9 @@ function isBrowserSafeAssetUrl(url?: string | null): boolean {
   }
 }
 
-function previewArtwork(slogan: string, niche: Niche, assetUrl?: string | null): string {
+function previewArtwork(_slogan: string, _niche: Niche, assetUrl?: string | null): string | null {
   if (isBrowserSafeAssetUrl(assetUrl)) return assetUrl as string
-  const q = new URLSearchParams({ slogan, niche, view: 'artwork' })
-  return `/api/design-preview?${q.toString()}`
-}
-
-function previewMockup(slogan: string, niche: Niche, mockupKeys?: string[] | null): string {
-  const first = mockupKeys?.[0]
-  if (isBrowserSafeAssetUrl(first)) return first as string
-  const q = new URLSearchParams({ slogan, niche, view: 'mockup' })
-  return `/api/design-preview?${q.toString()}`
+  return null
 }
 
 function estimateMargin(qualityScore: number): number {
@@ -71,6 +63,13 @@ export async function loadIdeasForDashboard(): Promise<{
     const design = byIdea.get(String(doc._id))
     const niche = doc.niche as Niche
     const decision = (doc.provenance?.safetyDecision || 'REVIEW') as SafetyDecision
+    const assetUrl = design?.assetUrl || ''
+    const isSvgArt =
+      !design ||
+      (design.provider || '').includes('svg') ||
+      design.mimeType === 'image/svg+xml' ||
+      assetUrl.includes('design-preview') ||
+      assetUrl.startsWith('local://')
     return {
       id: String(doc._id),
       niche,
@@ -80,11 +79,10 @@ export async function loadIdeasForDashboard(): Promise<{
       safetyDecision: decision,
       designId: design ? String(design._id) : null,
       trendScore: Math.round(doc.provenance?.qualityScore ?? 70),
-      artworkUrl: design
-        ? previewArtwork(doc.slogan, niche, design.assetUrl)
-        : decision === 'REJECT'
+      artworkUrl:
+        decision === 'REJECT' || isSvgArt
           ? null
-          : previewArtwork(doc.slogan, niche),
+          : previewArtwork(doc.slogan, niche, design?.assetUrl),
       source: 'mongo',
     }
   })
@@ -121,6 +119,25 @@ export async function loadSafetyQueueForDashboard(): Promise<{
     const safetyDecision = (idea.provenance?.safetyDecision || 'REVIEW') as SafetyDecision
     const slogan = idea.slogan
     const qualityScore = Math.round(design?.qualityScore ?? idea.provenance?.qualityScore ?? 70)
+    const assetUrl = design?.assetUrl || ''
+    const isSvgArt =
+      !design ||
+      (design.provider || '').includes('svg') ||
+      design.mimeType === 'image/svg+xml' ||
+      assetUrl.includes('design-preview') ||
+      assetUrl.startsWith('local://')
+    const realArt =
+      !isSvgArt && design
+        ? previewArtwork(slogan, niche, design.assetUrl) || undefined
+        : undefined
+    const realMock =
+      design && !isSvgArt
+        ? (design.mockupKeys || []).find(
+            (u) => isBrowserSafeAssetUrl(u) && !u.includes('design-preview')
+          ) ||
+          realArt ||
+          undefined
+        : undefined
     return {
       id: String(idea._id),
       niche,
@@ -137,19 +154,11 @@ export async function loadSafetyQueueForDashboard(): Promise<{
       ipRisk: safetyDecision === 'REJECT' ? 80 : safetyDecision === 'REVIEW' ? 25 : 5,
       qualityScore,
       estimatedMargin: estimateMargin(qualityScore),
-      designLabel: design?.provider || 'pending',
-      mockupLabel: design?.mockupKeys?.length ? 'Tee mockup ready' : 'Mockup pending',
+      designLabel: isSvgArt ? 'awaiting_gemini' : design?.provider || 'pending',
+      mockupLabel: realMock ? 'AI print preview' : 'Awaiting Gemini art',
       status: idea.status,
-      artworkUrl: design
-        ? previewArtwork(slogan, niche, design.assetUrl)
-        : safetyDecision === 'REJECT'
-          ? undefined
-          : previewArtwork(slogan, niche),
-      mockupUrl: design
-        ? previewMockup(slogan, niche, design.mockupKeys)
-        : safetyDecision === 'REJECT'
-          ? undefined
-          : previewMockup(slogan, niche),
+      artworkUrl: safetyDecision === 'REJECT' ? undefined : realArt,
+      mockupUrl: safetyDecision === 'REJECT' ? undefined : realMock,
     }
   })
 
@@ -179,13 +188,21 @@ export async function loadDesignsForDashboard(): Promise<{
 
   await connectMongo()
   try {
-    const { ensureViralAlgorithmMigration } = await import('@/services/trends/purge')
+    const { ensureViralAlgorithmMigration, purgeSvgPlaceholderDesigns } = await import(
+      '@/services/trends/purge'
+    )
     await ensureViralAlgorithmMigration()
+    await purgeSvgPlaceholderDesigns()
   } catch {
     // purge migration is best-effort
   }
 
-  const docs = await Design.find({ status: { $ne: 'rejected' } })
+  const docs = await Design.find({
+    status: { $ne: 'rejected' },
+    provider: { $not: /svg|stub/i },
+    mimeType: { $ne: 'image/svg+xml' },
+    assetUrl: { $not: /design-preview|local:\/\/|example\.invalid/i },
+  })
     .sort({ createdAt: -1 })
     .limit(40)
     .lean()
@@ -220,18 +237,25 @@ export async function loadDesignsForDashboard(): Promise<{
       assetUrl.includes('/api/design-assets/') && assetKey && !cachedIds.has(assetKey)
     const stalePrompt =
       Boolean(doc.promptVersion) && doc.promptVersion !== DESIGN_PROMPT_VERSION
-    const isPlaceholder =
+    const isSvgProvider =
       (doc.provider || '').includes('svg') ||
       (doc.provider || '').includes('stub') ||
+      (doc.model || '').includes('svg') ||
       (doc.model || '').includes('lite') ||
       (doc.model || '').includes('stub') ||
       doc.mimeType === 'image/svg+xml' ||
       assetUrl.includes('design-preview') ||
       assetUrl.startsWith('local://') ||
       assetUrl.includes('example.invalid') ||
-      missingRaster ||
-      stalePrompt ||
-      !assetUrl
+      assetKey.startsWith('svg:')
+    const hasRasterAsset =
+      Boolean(assetUrl) &&
+      !isSvgProvider &&
+      (assetUrl.includes('/api/design-assets/') || assetUrl.startsWith('https://'))
+    // Needs regen — but NEVER replace a real AI raster with bland SVG in the gallery
+    const isPlaceholder = isSvgProvider || missingRaster || stalePrompt || !hasRasterAsset
+    const artworkSrc = hasRasterAsset && !missingRaster ? assetUrl : undefined
+    const mockupReal = (doc.mockupKeys || []).find((u) => isBrowserSafeAssetUrl(u) && !u.includes('design-preview'))
     return {
       id: mongoId,
       ideaId: String(doc.ideaId),
@@ -239,7 +263,9 @@ export async function loadDesignsForDashboard(): Promise<{
       title: doc.title || slogan,
       slogan,
       style: `${doc.provider} · ${doc.model}`,
-      mockupLabel: doc.mockupKeys?.length ? 'Tee mockup ready' : 'Mockup preview',
+      mockupLabel: hasRasterAsset
+        ? 'AI print preview'
+        : 'Waiting for Gemini flash art — not a product',
       qualityScore: Math.round(doc.qualityScore ?? 70),
       ipRisk: Math.round(doc.ipRisk ?? 5),
       safetyDecision: decision,
@@ -272,10 +298,9 @@ export async function loadDesignsForDashboard(): Promise<{
       ideaIdMongo: String(doc.ideaId),
       isPlaceholder,
       concept: conceptByIdea.get(String(doc.ideaId)) || '',
-      artworkSrc: isPlaceholder
-        ? previewArtwork(slogan, niche)
-        : previewArtwork(slogan, niche, doc.assetUrl),
-      mockupSrc: previewMockup(slogan, niche, doc.mockupKeys),
+      // Prefer real AI art for both panels. Never feed bland design-preview SVG as the product.
+      artworkSrc,
+      mockupSrc: mockupReal || artworkSrc,
     }
   })
 

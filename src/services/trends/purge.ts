@@ -116,6 +116,28 @@ export async function purgeViralCreativeState(): Promise<ViralPurgeCounts> {
 }
 
 /**
+ * Delete bland SVG / stub / design-preview "designs" so the gallery never shows
+ * circle-and-text placeholders as if they were commercial art.
+ */
+export async function purgeSvgPlaceholderDesigns(): Promise<number> {
+  if (!isMongoConfigured()) return 0
+  await connectMongo()
+  const result = await Design.deleteMany({
+    $or: [
+      { provider: /svg|stub/i },
+      { model: /svg|stub|lite/i },
+      { mimeType: 'image/svg+xml' },
+      { assetUrl: /design-preview|local:\/\/|example\.invalid/i },
+      { assetKey: /^svg:/i },
+      { promptVersion: /svg-preview/i },
+    ],
+  })
+  const n = result.deletedCount ?? 0
+  if (n > 0) logger.info('svg_placeholder_designs_purged', { deleted: n })
+  return n
+}
+
+/**
  * On algorithm version bump (or first boot), wipe legacy pipeline state once.
  */
 export async function ensureViralAlgorithmMigration(): Promise<{

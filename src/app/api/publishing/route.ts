@@ -57,12 +57,27 @@ export async function POST(request: Request) {
     }
 
     const design = await Design.findOne({ ideaId: String(idea._id) }).sort({ createdAt: -1 })
-    const mediaUrls = design
-      ? [design.assetUrl, ...(design.mockupKeys || [])].filter(Boolean)
-      : [
-          `/api/design-preview?slogan=${encodeURIComponent(idea.slogan)}&niche=${idea.niche}&view=artwork`,
-          `/api/design-preview?slogan=${encodeURIComponent(idea.slogan)}&niche=${idea.niche}&view=mockup`,
-        ]
+    const assetUrl = design?.assetUrl || ''
+    const isSvg =
+      !design ||
+      (design.provider || '').includes('svg') ||
+      design.mimeType === 'image/svg+xml' ||
+      assetUrl.includes('design-preview') ||
+      assetUrl.startsWith('local://')
+    if (isSvg || !assetUrl) {
+      return NextResponse.json(
+        {
+          error: 'design_not_ready',
+          message:
+            'Need real Gemini artwork before creating a Shopify draft — SVG placeholders are blocked.',
+        },
+        { status: 400 }
+      )
+    }
+    const mediaUrls = [
+      assetUrl,
+      ...(design.mockupKeys || []).filter((u) => u && !u.includes('design-preview')),
+    ].filter(Boolean)
 
     const queued = enqueueListingForDraft({
       niche: idea.niche as Niche,

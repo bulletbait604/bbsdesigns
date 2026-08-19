@@ -63,13 +63,18 @@ function isSvgPlaceholderDesign(doc: {
 
 export type PipelineJobStats = Record<string, unknown>
 
-function previewUrlFor(slogan: string, niche: Niche, view: 'artwork' | 'mockup' = 'artwork'): string {
-  const q = new URLSearchParams({
-    slogan,
-    niche,
-    view,
-  })
-  return `/api/design-preview?${q.toString()}`
+function isBrowserSafeAssetUrl(url?: string | null): boolean {
+  if (!url) return false
+  if (url.startsWith('/api/design-assets/')) return true
+  if (url.includes('design-preview') || url.startsWith('local://')) return false
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return false
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host === 'example.invalid' || host.endsWith('.invalid') || host === 'localhost') return false
+    return true
+  } catch {
+    return false
+  }
 }
 
 async function topTrendTitles(): Promise<{ niche: Niche; title: string; score: number }[]> {
@@ -423,14 +428,13 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
 
   let created = 0
   let cached = 0
-  let svgFallback = 0
   let aiUsed = 0
   let skippedExisting = 0
   let upgradedPlaceholders = 0
 
   for (const idea of ideas) {
     const ideaId = String(idea._id)
-    const existing = await Design.findOne({ ideaId }).lean()
+    const existing = await Design.findOne().where('ideaId').equals(idea._id).lean()
     const placeholder = existing ? isSvgPlaceholderDesign(existing) : false
 
     // Keep real AI / stored raster designs; replace SVG word placeholders when AI is available
@@ -517,72 +521,47 @@ export async function runDesignGenerationJob(): Promise<PipelineJobStats> {
       }
     }
 
-    // Already have a placeholder — don't duplicate
+    // Already have a placeholder — delete it and keep trying AI (do not keep garbage)
     if (existing && placeholder) {
-      skippedExisting += 1
-      continue
+      await Design.deleteOne({ _id: existing._id })
     }
 
-    // When AI is configured, never persist boring SVG stand-ins — leave the idea for a later run
-    if (canAi) {
-      logger.info('design_generation_deferred_no_svg', { ideaId, reason: 'ai_budget_or_failure' })
-      skippedExisting += 1
-      continue
-    }
-
-    // SVG illustrated placeholder — last resort only when AI is unavailable
-    const artwork = previewUrlFor(slogan, niche, 'artwork')
-    const mockup = previewUrlFor(slogan, niche, 'mockup')
-    await Design.create({
-      storeId: catalog.storeId,
-      brandId: catalog.brandId,
-      ideaId,
-      niche,
-      title: slogan,
-      slogan,
-      provider: 'svg-preview',
-      model: 'local-svg',
-      prompt: `Illustrated SVG placeholder for: ${slogan}`,
-      negativePrompt: '',
-      promptVersion: 'svg-preview-v2',
-      assetKey: `svg:${ideaId}`,
-      assetUrl: artwork,
-      mimeType: 'image/svg+xml',
-      width: 1024,
-      height: 1024,
-      mockupKeys: [mockup],
-      qualityScore: 55,
-      ipRisk: idea.provenance?.safetyDecision === 'PASS' ? 5 : 20,
-      safetyScore: idea.provenance?.safetyScore ?? 80,
-      imageReviewDecision: 'REVIEW',
-      status: 'review',
-      provenance: {
-        sourceTrendIds: idea.provenance?.sourceTrendIds || [],
+    // NEVER persist boring SVG stand-ins — they look like finished merch and poison the gallery
+    if (!canAi) {
+      logger.warn('design_generation_blocked_no_image_ai', {
         ideaId,
-        promptVersion: 'svg-preview-v2',
-        modelProvider: 'svg-preview',
-        modelName: 'local-svg',
-        imageAssetKey: `svg:${ideaId}`,
-        qualityScore: 55,
-        safetyScore: idea.provenance?.safetyScore ?? null,
-        safetyDecision: 'REVIEW',
-        publishStatus: 'awaiting_approval',
-      },
+        hint: 'Set IMAGE_PROVIDER=google and IMAGE_API_KEY / GEMINI_API',
+      })
+      skippedExisting += 1
+      continue
+    }
+
+    logger.info('design_generation_deferred_no_svg', {
+      ideaId,
+      reason: aiUsed >= aiBudget ? 'ai_budget' : 'ai_failure',
     })
-    svgFallback += 1
-    created += 1
+    skippedExisting += 1
+  }
+
+  // Final sweep: any leftover SVG junk from older deploys
+  try {
+    const { purgeSvgPlaceholderDesigns } = await import('@/services/trends/purge')
+    await purgeSvgPlaceholderDesigns()
+  } catch {
+    // ignore
   }
 
   return {
     candidates: ideas.length,
     created,
     cached,
-    svgFallback,
+    svgFallback: 0,
     aiUsed,
     skippedExisting,
     upgradedPlaceholders,
     canAi,
     aiBudget,
+    svgPersistenceDisabled: true,
   }
 }
 
@@ -627,23 +606,42 @@ export async function runMockupsJob(): Promise<PipelineJobStats> {
   }
   await connectMongo()
 
+  // Only real AI rasters — never attach bland design-preview SVG as a "mockup"
   const designs = await Design.find({
     status: { $nin: ['rejected'] },
+    provider: { $not: /svg|stub/i },
+    mimeType: { $ne: 'image/svg+xml' },
+    assetUrl: { $not: /design-preview|local:\/\/|example\.invalid/i },
   })
     .sort({ createdAt: -1 })
     .limit(25)
 
   let updated = 0
+  let skippedSvg = 0
   for (const design of designs) {
-    const mockup = previewUrlFor(design.slogan || design.title, design.niche as Niche, 'mockup')
-    if (!design.mockupKeys?.includes(mockup)) {
-      design.mockupKeys = [...(design.mockupKeys || []), mockup]
+    if (isSvgPlaceholderDesign(design)) {
+      skippedSvg += 1
+      continue
+    }
+    const art = design.assetUrl
+    if (!art || art.includes('design-preview') || !isBrowserSafeAssetUrl(art)) {
+      skippedSvg += 1
+      continue
+    }
+    // Use the AI print itself as the mockup panel until a real tee renderer exists
+    const cleaned = (design.mockupKeys || []).filter((u) => !u.includes('design-preview'))
+    if (!cleaned.includes(art)) {
+      design.mockupKeys = [...cleaned, art]
+      await design.save()
+      updated += 1
+    } else if (cleaned.length !== (design.mockupKeys || []).length) {
+      design.mockupKeys = cleaned
       await design.save()
       updated += 1
     }
   }
 
-  return { updated, scanned: designs.length }
+  return { updated, scanned: designs.length, skippedSvg }
 }
 
 export async function runListingPreparationJob(): Promise<PipelineJobStats> {
